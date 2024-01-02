@@ -1,0 +1,4 @@
+delete_merged_file: true
+rmd_subdir: "chapters"
+output_dir: "output"
+new_session: no

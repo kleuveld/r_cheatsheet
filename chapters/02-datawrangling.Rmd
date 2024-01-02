@@ -1,0 +1,218 @@
+<!-- https://datacarpentry.org/r-socialsci/03-dplyr.html -->
+
+
+# Data Wrangling
+
+## Basic Data Manipulation
+
+
+Below we do some basic data manipulations on our interview data.
+
+
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+interviews %>%
+    filter(village == "Chirodzo") %>%
+    mutate(people_per_room = no_membrs / rooms,
+           day = day(interview_date),
+           month = month(interview_date),
+           year = year(interview_date)) %>%
+    select(key_ID:rooms, day:people_per_room, -village) %>%
+    filter(interview_date > "2016-12-1" & interview_date < '2017-01-01')
+
+```
+
+Note:
+
+- We filter a number of rows using the `filter()` function
+- We create some new variables using mutate. Note that for some date operations we use the `lubridate` library, wich is include in the tidyverse. Check out [lubridate's documentation](https://lubridate.tidyverse.org/) for more advanced date manipulation techniques.
+- We select some of our variables using `select()`; note that you can
+select a range of variables using `varaible1:variable2` and drop variables
+using the `-`.
+- We "chain" all these operations together using the [pipe operator](https://uc-r.github.io/pipe) `%>%`.
+
+
+## Pivoting (or reshaping)
+
+When you want to combine two data frames at different levels of analysis, 
+for example a household roster with the rest of the household questionnaire,
+you'll run into the problem that the household roster has more rows than the 
+household questionnaire: the household roster will have each row repeated for
+each household member (i.e. it is *long* data). To combine it with the household data data we need to make sure the columns are repeated for each member (ie make the data *wide*). In R, this is done using the 
+`pivot_wider()` function, which works much like Stata's `reshape` command.
+
+
+### Creating fake data
+
+First, let's create some long data, so we have something to pivot. 
+We will make sure that our household roster has a number of lines
+for each household that is equal to the household size, and has two
+randomly generated variables: `female` and `age`.
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+long_data <- 
+    interviews %>%
+    select(key_ID,no_membrs ) %>%
+    uncount(no_membrs) %>%
+    group_by(key_ID) %>% 
+    mutate(member_ID = row_number()) %>%
+    rowwise() %>%
+    mutate(female = sample(0:1,1),
+           age = case_when(member_ID == 1 ~ sample(18:86,1),
+                          .default = sample(0:86,1))) %>%
+    ungroup()
+
+long_data
+
+```
+
+Note that this uses some advanced data wrangling:
+
+- `uncount()` to inflate each number of rows by the number of members in the household.
+- `group_by(key_ID)` and `row_number()` to generate the row number within all
+observations with the same key_ID.
+- `rowwise()` to ensure randomizations are run over each row, rather than once
+for the entire data set.
+- `sample()` to get random integers.
+- `case_when()` to make sure the age is never lower than 18 if the member_id is 1 (presumably the household head).
+
+### Pivoting long to wide
+
+To merge this into our main data set, we need to make sure we go back to having 1 observation per household. We will do this by using `pivot_wider()`:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+wide_data <-
+    long_data %>% 
+    pivot_wider(names_from = member_ID,
+                values_from = !ends_with("_ID"))
+wide_data
+```
+
+We only needed to specify two options:
+
+- names_from: this is the column that contains the names (or usually numbers)
+for each of our units of analysis. In this case, the `member_ID`.
+- values_from: the variables containing the data. All variables you specify here, will get one column for each possible value of names_from. In our case, these variables `female` and `age`. I used [tidy select syntax](https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html) to specify all variables except the ones ending in "\_ID". 
+
+`pivot_wider()` will assume all variables not specified in names_from and values_from are the unique identifiers of your wide data. In our case, the
+only remaining variable is `key_ID`, which is indeed the unique identifier.
+
+
+### Pivoting wide to long
+
+If we had started with wide data, and had wanted to transform to
+long data, we'd have to use `pivot_longer()`:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+recreated_long_data <-
+    wide_data %>%
+    pivot_longer(!key_ID, 
+                 names_to = c(".value", "member_ID"),
+                 names_sep="_",
+                 values_drop_na = TRUE)
+long_data
+
+```
+
+In this case, the syntax is a bit harder to understand than that of pivot wider. It's good to think first what the original data looks like, and 
+how we intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. We don't really want to touch the key_ID
+column. We want to turn the columns age_1-19 and female_1-19 into three columns: female, age and Member_ID, which contains the values 1-19. This translates to the options we passed to `pivot_longer()` as follows:
+
+- `!key_ID`: We want to pivot the data that's in all columns except key_ID. 
+- `names_to = c(".value", "member_ID")`: this specifies the new columns we want to create. It basically says that the existing column names consist of two parts: one part (i.e. female and age) that we wish to keep as column names , and one part (i.e. the numbers 1-19) which should be put into a new column which we will "member_ID".
+- `"names_sep="`: this indicates how the two parts mentioned above are 
+separated. If there is no separator (for example your variables are called age1, age2, etc.) you'll have to use the`names_pattern` option.
+- `values_drop_na = TRUE`: tells R to drop rows that have missing data for 
+all variables. If we had set this to FALSE, we'd have 19 rows for each
+household, with a lot of missing data in all households smaller than 19 people.
+
+## Joining (or merging) data
+
+Tidyverse has four functions to join (or merge, as Stata calls it) two
+data sets. The functions that differ in the way they treat observations that are in one data set but not the other. 
+Consider the diagram below. 
+It has two data sets, `x` (in Stata terms, this is the master data set) and `y` (the using 
+data set in Stata terms). They have overlapping rows (area B), but also
+rows that are only in `x` (area A) or only in `y` (area C).
+
+![](images/join_venn.png)
+
+The four join functions work as follows:
+
+- `inner_join()` will only keep area B.
+- `left_join()` will keep areas A and B.
+- `right_join()` will keep areas B and C.
+- `full_join()` will keep areas A, B, and C.
+
+In our case, the data sets match perfectly, i.e. we only have an area B, so there is no practical difference. I chose `left_join()` so the number of 
+observations in my household survey is guaranteed to remain the same.
+To merge the roster to the household data, we use the join_by function:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+interviews %>%
+    left_join(wide_data)
+
+```
+
+Note that we didn't specify identifiers, like we would in Stata. R 
+assumed that the variables that appear in both data frames are the 
+identifiers, in this case `key_ID`. Use the `by` option to change this.
+
+Going the other way around, joining the household data to the 
+roster data, is equally easy:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+long_data %>%
+    left_join(
+        interviews %>% 
+            select(key_ID,village,interview_date))
+```
+Note that here I only merged in two variables, by using `select` and a pipe within the `left_join()` function.
+
+## Summarizing over groups (or collapsing data)
+
+To compute summary statistics (sums, counts, means etc.) over a group,
+we use the `group_by()` and `summarize()` functions. For example, to
+compute the household size, number of women and average age in each household:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+long_data %>%
+    group_by(key_ID) %>%
+    summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age))    
+```
+
+## Advanced Row Wise Operations
+
+Suppose we wanted to get the above information (the household size, number of women and average age in each) from the wide data. The easiest,
+and probably best, way to do this in R is by reshaping to long, and do the above.
+But in Stata you would probably use some sort of `egen` function, and you
+can do similar things in R. It's just a bit more complex:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+wide_data %>%
+    rowwise() %>%
+    mutate(mean_age = mean(c_across(starts_with("age_")),
+                           na.rm=TRUE),
+
+           num_women = sum(c_across(starts_with("female_")),
+                           na.rm=TRUE),
+           hh_size = sum(!is.na(c_across(starts_with("female_"))),
+                         na.rm=TRUE)) %>%
+    select(key_ID,hh_size,num_women,mean_age) %>%
+    ungroup()
+
+
+```
+
+The key trick here is the combination of `rowwise()` and `c_across()`.
+`rowwise()` ensure all summaries are computed per row, and `c_across()`
+allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
+`sum(!is.na())` simply counts the non-missing values.
