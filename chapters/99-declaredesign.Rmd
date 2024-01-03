@@ -1,0 +1,28 @@
+# Estimating causal effects
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+# https://book.declaredesign.org/
+
+library(DeclareDesign)
+library(tidyverse)
+
+
+
+
+declaration <-
+  declare_model(N = 1000,
+                U = rnorm(N),
+                X = U + rnorm(N, sd = 0.5),
+                potential_outcomes(Y ~  0.2 * Z + U)) + 
+  declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)) +
+  declare_sampling(S = simple_rs(N, prob = 0.2),
+                   filter = S == 1) +
+  declare_assignment(Z = complete_ra(N)) +
+  declare_measurement(Y = reveal_outcomes(Y ~ Z)) +
+  declare_estimator(Y ~ Z, inquiry = "ATE", label = "DIM") +
+  declare_estimator(Y ~ Z + X, inquiry = "ATE", label = "OLS")
+
+draw_estimates(declaration)
+```
