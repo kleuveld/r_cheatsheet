@@ -1,0 +1,11 @@
+about
+setting-up
+data-wrangling
+basic-data-manipulation
+pivoting-or-reshaping
+creating-fake-data
+pivoting-long-to-wide
+pivoting-wide-to-long
+joining-or-merging-data
+summarizing-over-groups-or-collapsing-data
+advanced-row-wise-operations

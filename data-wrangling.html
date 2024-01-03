@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>3 Data Wrangling | R Cheat Sheet</title>
+  <meta name="description" content="This page contains some quick R tips." />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="3 Data Wrangling | R Cheat Sheet" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This page contains some quick R tips." />
+  <meta name="github-repo" content="kleuveld/r_cheatsheet" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="3 Data Wrangling | R Cheat Sheet" />
+  
+  <meta name="twitter:description" content="This page contains some quick R tips." />
+  
+
+<meta name="author" content="Koen" />
+
+
+<meta name="date" content="2024-01-03" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="setting-up.html"/>
+
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">R Cheat Sheet</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a></li>
+<li class="chapter" data-level="2" data-path="setting-up.html"><a href="setting-up.html"><i class="fa fa-check"></i><b>2</b> Setting up</a></li>
+<li class="chapter" data-level="3" data-path="data-wrangling.html"><a href="data-wrangling.html"><i class="fa fa-check"></i><b>3</b> Data Wrangling</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="data-wrangling.html"><a href="data-wrangling.html#basic-data-manipulation"><i class="fa fa-check"></i><b>3.1</b> Basic Data Manipulation</a></li>
+<li class="chapter" data-level="3.2" data-path="data-wrangling.html"><a href="data-wrangling.html#pivoting-or-reshaping"><i class="fa fa-check"></i><b>3.2</b> Pivoting (or reshaping)</a>
+<ul>
+<li class="chapter" data-level="3.2.1" data-path="data-wrangling.html"><a href="data-wrangling.html#creating-fake-data"><i class="fa fa-check"></i><b>3.2.1</b> Creating fake data</a></li>
+<li class="chapter" data-level="3.2.2" data-path="data-wrangling.html"><a href="data-wrangling.html#pivoting-long-to-wide"><i class="fa fa-check"></i><b>3.2.2</b> Pivoting long to wide</a></li>
+<li class="chapter" data-level="3.2.3" data-path="data-wrangling.html"><a href="data-wrangling.html#pivoting-wide-to-long"><i class="fa fa-check"></i><b>3.2.3</b> Pivoting wide to long</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="data-wrangling.html"><a href="data-wrangling.html#joining-or-merging-data"><i class="fa fa-check"></i><b>3.3</b> Joining (or merging) data</a></li>
+<li class="chapter" data-level="3.4" data-path="data-wrangling.html"><a href="data-wrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i><b>3.4</b> Summarizing over groups (or collapsing data)</a></li>
+<li class="chapter" data-level="3.5" data-path="data-wrangling.html"><a href="data-wrangling.html#advanced-row-wise-operations"><i class="fa fa-check"></i><b>3.5</b> Advanced Row Wise Operations</a></li>
+</ul></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">R Cheat Sheet</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="data-wrangling" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">3</span> Data Wrangling<a href="data-wrangling.html#data-wrangling" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="basic-data-manipulation" class="section level2 hasAnchor" number="3.1">
+<h2><span class="header-section-number">3.1</span> Basic Data Manipulation<a href="data-wrangling.html#basic-data-manipulation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Below we do some basic data manipulations on our interview data.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="data-wrangling.html#cb3-1" aria-hidden="true" tabindex="-1"></a>interviews <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="data-wrangling.html#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(village <span class="sc">==</span> <span class="st">&quot;Chirodzo&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="data-wrangling.html#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">people_per_room =</span> no_membrs <span class="sc">/</span> rooms,</span>
+<span id="cb3-4"><a href="data-wrangling.html#cb3-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">day =</span> <span class="fu">day</span>(interview_date),</span>
+<span id="cb3-5"><a href="data-wrangling.html#cb3-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">month =</span> <span class="fu">month</span>(interview_date),</span>
+<span id="cb3-6"><a href="data-wrangling.html#cb3-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">year =</span> <span class="fu">year</span>(interview_date)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-7"><a href="data-wrangling.html#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID<span class="sc">:</span>rooms, day<span class="sc">:</span>people_per_room, <span class="sc">-</span>village) <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="data-wrangling.html#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(interview_date <span class="sc">&gt;</span> <span class="st">&quot;2016-12-1&quot;</span> <span class="sc">&amp;</span> interview_date <span class="sc">&lt;</span> <span class="st">&#39;2017-01-01&#39;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 8
+##   key_ID interview_date      no_membrs years_liv respondent_wall_type rooms
+##    &lt;dbl&gt; &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                &lt;dbl&gt;
+## 1     10 2016-12-16 00:00:00        12        23 burntbricks              5
+## # ℹ 2 more variables: day &lt;int&gt;, people_per_room &lt;dbl&gt;</code></pre>
+<p>Note:</p>
+<ul>
+<li>We filter a number of rows using the <code>filter()</code> function</li>
+<li>We create some new variables using mutate. Note that for some date operations we use the <code>lubridate</code> library, wich is include in the tidyverse. Check out <a href="https://lubridate.tidyverse.org/">lubridate’s documentation</a> for more advanced date manipulation techniques.</li>
+<li>We select some of our variables using <code>select()</code>; note that you can
+select a range of variables using <code>varaible1:variable2</code> and drop variables
+using the <code>-</code>.</li>
+<li>We “chain” all these operations together using the <a href="https://uc-r.github.io/pipe">pipe operator</a> <code>%&gt;%</code>.</li>
+</ul>
+</div>
+<div id="pivoting-or-reshaping" class="section level2 hasAnchor" number="3.2">
+<h2><span class="header-section-number">3.2</span> Pivoting (or reshaping)<a href="data-wrangling.html#pivoting-or-reshaping" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>When you want to combine two data frames at different levels of analysis,
+for example a household roster with the rest of the household questionnaire,
+you’ll run into the problem that the household roster has more rows than the
+household questionnaire: the household roster will have each row repeated for
+each household member (i.e. it is <em>long</em> data). To combine it with the household data data we need to make sure the columns are repeated for each member (ie make the data <em>wide</em>). In R, this is done using the
+<code>pivot_wider()</code> function, which works much like Stata’s <code>reshape</code> command.</p>
+<div id="creating-fake-data" class="section level3 hasAnchor" number="3.2.1">
+<h3><span class="header-section-number">3.2.1</span> Creating fake data<a href="data-wrangling.html#creating-fake-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>First, let’s create some long data, so we have something to pivot.
+We will make sure that our household roster has a number of lines
+for each household that is equal to the household size, and has two
+randomly generated variables: <code>female</code> and <code>age</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="data-wrangling.html#cb5-1" aria-hidden="true" tabindex="-1"></a>long_data <span class="ot">&lt;-</span> </span>
+<span id="cb5-2"><a href="data-wrangling.html#cb5-2" aria-hidden="true" tabindex="-1"></a>    interviews <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="data-wrangling.html#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,no_membrs ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="data-wrangling.html#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">uncount</span>(no_membrs) <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="data-wrangling.html#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(key_ID) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-6"><a href="data-wrangling.html#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">member_ID =</span> <span class="fu">row_number</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb5-7"><a href="data-wrangling.html#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-8"><a href="data-wrangling.html#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">female =</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>,<span class="dv">1</span>),</span>
+<span id="cb5-9"><a href="data-wrangling.html#cb5-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">age =</span> <span class="fu">case_when</span>(member_ID <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="fu">sample</span>(<span class="dv">18</span><span class="sc">:</span><span class="dv">86</span>,<span class="dv">1</span>),</span>
+<span id="cb5-10"><a href="data-wrangling.html#cb5-10" aria-hidden="true" tabindex="-1"></a>                          <span class="at">.default =</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">86</span>,<span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-11"><a href="data-wrangling.html#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
+<span id="cb5-12"><a href="data-wrangling.html#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="data-wrangling.html#cb5-13" aria-hidden="true" tabindex="-1"></a>long_data</span></code></pre></div>
+<pre><code>## # A tibble: 942 × 4
+##    key_ID member_ID female   age
+##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
+##  1      1         1      1    86
+##  2      1         2      0    36
+##  3      1         3      1    56
+##  4      2         1      0    37
+##  5      2         2      0     0
+##  6      2         3      0    38
+##  7      2         4      0    18
+##  8      2         5      0    53
+##  9      2         6      1    26
+## 10      2         7      0     6
+## # ℹ 932 more rows</code></pre>
+<p>Note that this uses some advanced data wrangling:</p>
+<ul>
+<li><code>uncount()</code> to inflate each number of rows by the number of members in the household.</li>
+<li><code>group_by(key_ID)</code> and <code>row_number()</code> to generate the row number within all
+observations with the same key_ID.</li>
+<li><code>rowwise()</code> to ensure randomizations are run over each row, rather than once
+for the entire data set.</li>
+<li><code>sample()</code> to get random integers.</li>
+<li><code>case_when()</code> to make sure the age is never lower than 18 if the member_id is 1 (presumably the household head).</li>
+</ul>
+</div>
+<div id="pivoting-long-to-wide" class="section level3 hasAnchor" number="3.2.2">
+<h3><span class="header-section-number">3.2.2</span> Pivoting long to wide<a href="data-wrangling.html#pivoting-long-to-wide" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>To merge this into our main data set, we need to make sure we go back to having 1 observation per household. We will do this by using <code>pivot_wider()</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="data-wrangling.html#cb7-1" aria-hidden="true" tabindex="-1"></a>wide_data <span class="ot">&lt;-</span></span>
+<span id="cb7-2"><a href="data-wrangling.html#cb7-2" aria-hidden="true" tabindex="-1"></a>    long_data <span class="sc">%&gt;%</span> </span>
+<span id="cb7-3"><a href="data-wrangling.html#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> member_ID,</span>
+<span id="cb7-4"><a href="data-wrangling.html#cb7-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_from =</span> <span class="sc">!</span><span class="fu">ends_with</span>(<span class="st">&quot;_ID&quot;</span>))</span>
+<span id="cb7-5"><a href="data-wrangling.html#cb7-5" aria-hidden="true" tabindex="-1"></a>wide_data</span></code></pre></div>
+<pre><code>## # A tibble: 131 × 39
+##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
+##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
+##  1      1        1        0        1       NA       NA       NA       NA
+##  2      2        0        0        0        0        0        1        0
+##  3      3        0        0        0        0        0        0        1
+##  4      4        0        1        0        1        1        1        1
+##  5      5        1        0        1        1        0        1        0
+##  6      6        0        0        1       NA       NA       NA       NA
+##  7      7        1        0        1        0        1        0       NA
+##  8      8        0        0        0        1        0        0        0
+##  9      9        0        0        0        0        0        0        0
+## 10     10        1        0        0        1        1        0        1
+## # ℹ 121 more rows
+## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
+## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
+## #   female_15 &lt;int&gt;, female_16 &lt;int&gt;, female_17 &lt;int&gt;, female_18 &lt;int&gt;,
+## #   female_19 &lt;int&gt;, age_1 &lt;int&gt;, age_2 &lt;int&gt;, age_3 &lt;int&gt;, age_4 &lt;int&gt;,
+## #   age_5 &lt;int&gt;, age_6 &lt;int&gt;, age_7 &lt;int&gt;, age_8 &lt;int&gt;, age_9 &lt;int&gt;,
+## #   age_10 &lt;int&gt;, age_11 &lt;int&gt;, age_12 &lt;int&gt;, age_13 &lt;int&gt;, age_14 &lt;int&gt;, …</code></pre>
+<p>We only needed to specify two options:</p>
+<ul>
+<li>names_from: this is the column that contains the names (or usually numbers)
+for each of our units of analysis. In this case, the <code>member_ID</code>.</li>
+<li>values_from: the variables containing the data. All variables you specify here, will get one column for each possible value of names_from. In our case, these variables <code>female</code> and <code>age</code>. I used <a href="https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html">tidy select syntax</a> to specify all variables except the ones ending in “_ID”.</li>
+</ul>
+<p><code>pivot_wider()</code> will assume all variables not specified in names_from and values_from are the unique identifiers of your wide data. In our case, the
+only remaining variable is <code>key_ID</code>, which is indeed the unique identifier.</p>
+</div>
+<div id="pivoting-wide-to-long" class="section level3 hasAnchor" number="3.2.3">
+<h3><span class="header-section-number">3.2.3</span> Pivoting wide to long<a href="data-wrangling.html#pivoting-wide-to-long" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>If we had started with wide data, and had wanted to transform to
+long data, we’d have to use <code>pivot_longer()</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="data-wrangling.html#cb9-1" aria-hidden="true" tabindex="-1"></a>recreated_long_data <span class="ot">&lt;-</span></span>
+<span id="cb9-2"><a href="data-wrangling.html#cb9-2" aria-hidden="true" tabindex="-1"></a>    wide_data <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="data-wrangling.html#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="sc">!</span>key_ID, </span>
+<span id="cb9-4"><a href="data-wrangling.html#cb9-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">&quot;.value&quot;</span>, <span class="st">&quot;member_ID&quot;</span>),</span>
+<span id="cb9-5"><a href="data-wrangling.html#cb9-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">names_sep=</span><span class="st">&quot;_&quot;</span>,</span>
+<span id="cb9-6"><a href="data-wrangling.html#cb9-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">values_drop_na =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-7"><a href="data-wrangling.html#cb9-7" aria-hidden="true" tabindex="-1"></a>long_data</span></code></pre></div>
+<pre><code>## # A tibble: 942 × 4
+##    key_ID member_ID female   age
+##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
+##  1      1         1      1    86
+##  2      1         2      0    36
+##  3      1         3      1    56
+##  4      2         1      0    37
+##  5      2         2      0     0
+##  6      2         3      0    38
+##  7      2         4      0    18
+##  8      2         5      0    53
+##  9      2         6      1    26
+## 10      2         7      0     6
+## # ℹ 932 more rows</code></pre>
+<p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
+how we intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. We don’t really want to touch the key_ID
+column. We want to turn the columns age_1-19 and female_1-19 into three columns: female, age and Member_ID, which contains the values 1-19. This translates to the options we passed to <code>pivot_longer()</code> as follows:</p>
+<ul>
+<li><code>!key_ID</code>: We want to pivot the data that’s in all columns except key_ID.</li>
+<li><code>names_to = c(".value", "member_ID")</code>: this specifies the new columns we want to create. It basically says that the existing column names consist of two parts: one part (i.e. female and age) that we wish to keep as column names , and one part (i.e. the numbers 1-19) which should be put into a new column which we will “member_ID”.</li>
+<li><code>"names_sep="</code>: this indicates how the two parts mentioned above are
+separated. If there is no separator (for example your variables are called age1, age2, etc.) you’ll have to use the<code>names_pattern</code> option.</li>
+<li><code>values_drop_na = TRUE</code>: tells R to drop rows that have missing data for
+all variables. If we had set this to FALSE, we’d have 19 rows for each
+household, with a lot of missing data in all households smaller than 19 people.</li>
+</ul>
+</div>
+</div>
+<div id="joining-or-merging-data" class="section level2 hasAnchor" number="3.3">
+<h2><span class="header-section-number">3.3</span> Joining (or merging) data<a href="data-wrangling.html#joining-or-merging-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Tidyverse has four functions to join (or merge, as Stata calls it) two
+data sets. The functions that differ in the way they treat observations that are in one data set but not the other.
+Consider the diagram below.
+It has two data sets, <code>x</code> (in Stata terms, this is the master data set) and <code>y</code> (the using
+data set in Stata terms). They have overlapping rows (area B), but also
+rows that are only in <code>x</code> (area A) or only in <code>y</code> (area C).</p>
+<p><img src="images/join_venn.png" /></p>
+<p>The four join functions work as follows:</p>
+<ul>
+<li><code>inner_join()</code> will only keep area B.</li>
+<li><code>left_join()</code> will keep areas A and B.</li>
+<li><code>right_join()</code> will keep areas B and C.</li>
+<li><code>full_join()</code> will keep areas A, B, and C.</li>
+</ul>
+<p>In our case, the data sets match perfectly, i.e. we only have an area B, so there is no practical difference. I chose <code>left_join()</code> so the number of
+observations in my household survey is guaranteed to remain the same.
+To merge the roster to the household data, we use the join_by function:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="data-wrangling.html#cb11-1" aria-hidden="true" tabindex="-1"></a>interviews <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="data-wrangling.html#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(wide_data)</span></code></pre></div>
+<pre><code>## # A tibble: 131 × 52
+##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
+##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
+##  1      1 God      2016-11-17 00:00:00         3         4 muddaub             
+##  2      2 God      2016-11-17 00:00:00         7         9 muddaub             
+##  3      3 God      2016-11-17 00:00:00        10        15 burntbricks         
+##  4      4 God      2016-11-17 00:00:00         7         6 burntbricks         
+##  5      5 God      2016-11-17 00:00:00         7        40 burntbricks         
+##  6      6 God      2016-11-17 00:00:00         3         3 muddaub             
+##  7      7 God      2016-11-17 00:00:00         6        38 muddaub             
+##  8      8 Chirodzo 2016-11-16 00:00:00        12        70 burntbricks         
+##  9      9 Chirodzo 2016-11-16 00:00:00         8         6 burntbricks         
+## 10     10 Chirodzo 2016-12-16 00:00:00        12        23 burntbricks         
+## # ℹ 121 more rows
+## # ℹ 46 more variables: rooms &lt;dbl&gt;, memb_assoc &lt;chr&gt;, affect_conflicts &lt;chr&gt;,
+## #   liv_count &lt;dbl&gt;, items_owned &lt;chr&gt;, no_meals &lt;dbl&gt;, months_lack_food &lt;chr&gt;,
+## #   instanceID &lt;chr&gt;, female_1 &lt;int&gt;, female_2 &lt;int&gt;, female_3 &lt;int&gt;,
+## #   female_4 &lt;int&gt;, female_5 &lt;int&gt;, female_6 &lt;int&gt;, female_7 &lt;int&gt;,
+## #   female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;, female_11 &lt;int&gt;,
+## #   female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;, female_15 &lt;int&gt;, …</code></pre>
+<p>Note that we didn’t specify identifiers, like we would in Stata. R
+assumed that the variables that appear in both data frames are the
+identifiers, in this case <code>key_ID</code>. Use the <code>by</code> option to change this.</p>
+<p>Going the other way around, joining the household data to the
+roster data, is equally easy:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="data-wrangling.html#cb13-1" aria-hidden="true" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="data-wrangling.html#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
+<span id="cb13-3"><a href="data-wrangling.html#cb13-3" aria-hidden="true" tabindex="-1"></a>        interviews <span class="sc">%&gt;%</span> </span>
+<span id="cb13-4"><a href="data-wrangling.html#cb13-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(key_ID,village,interview_date))</span></code></pre></div>
+<pre><code>## # A tibble: 942 × 6
+##    key_ID member_ID female   age village interview_date     
+##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;dttm&gt;             
+##  1      1         1      1    86 God     2016-11-17 00:00:00
+##  2      1         2      0    36 God     2016-11-17 00:00:00
+##  3      1         3      1    56 God     2016-11-17 00:00:00
+##  4      2         1      0    37 God     2016-11-17 00:00:00
+##  5      2         2      0     0 God     2016-11-17 00:00:00
+##  6      2         3      0    38 God     2016-11-17 00:00:00
+##  7      2         4      0    18 God     2016-11-17 00:00:00
+##  8      2         5      0    53 God     2016-11-17 00:00:00
+##  9      2         6      1    26 God     2016-11-17 00:00:00
+## 10      2         7      0     6 God     2016-11-17 00:00:00
+## # ℹ 932 more rows</code></pre>
+<p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
+</div>
+<div id="summarizing-over-groups-or-collapsing-data" class="section level2 hasAnchor" number="3.4">
+<h2><span class="header-section-number">3.4</span> Summarizing over groups (or collapsing data)<a href="data-wrangling.html#summarizing-over-groups-or-collapsing-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>To compute summary statistics (sums, counts, means etc.) over a group,
+we use the <code>group_by()</code> and <code>summarize()</code> functions. For example, to
+compute the household size, number of women and average age in each household:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="data-wrangling.html#cb15-1" aria-hidden="true" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="data-wrangling.html#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(key_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="data-wrangling.html#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">hh_size =</span> <span class="fu">n</span>(), <span class="at">num_women =</span> <span class="fu">sum</span>(female), <span class="at">mean_age =</span> <span class="fu">mean</span>(age))    </span></code></pre></div>
+<pre><code>## # A tibble: 131 × 4
+##    key_ID hh_size num_women mean_age
+##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
+##  1      1       3         2     59.3
+##  2      2       7         1     25.4
+##  3      3      10         2     34.7
+##  4      4       7         5     38.7
+##  5      5       7         4     48.9
+##  6      6       3         1     23.3
+##  7      7       6         3     61.3
+##  8      8      12         3     32.1
+##  9      9       8         0     33.2
+## 10     10      12         9     35.8
+## # ℹ 121 more rows</code></pre>
+</div>
+<div id="advanced-row-wise-operations" class="section level2 hasAnchor" number="3.5">
+<h2><span class="header-section-number">3.5</span> Advanced Row Wise Operations<a href="data-wrangling.html#advanced-row-wise-operations" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Suppose we wanted to get the above information (the household size, number of women and average age in each) from the wide data. The easiest,
+and probably best, way to do this in R is by reshaping to long, and do the above.
+But in Stata you would probably use some sort of <code>egen</code> function, and you
+can do similar things in R. It’s just a bit more complex:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="data-wrangling.html#cb17-1" aria-hidden="true" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a href="data-wrangling.html#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="data-wrangling.html#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">mean_age =</span> <span class="fu">mean</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>)),</span>
+<span id="cb17-4"><a href="data-wrangling.html#cb17-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb17-5"><a href="data-wrangling.html#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="data-wrangling.html#cb17-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">num_women =</span> <span class="fu">sum</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;female_&quot;</span>)),</span>
+<span id="cb17-7"><a href="data-wrangling.html#cb17-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb17-8"><a href="data-wrangling.html#cb17-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">hh_size =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;female_&quot;</span>))),</span>
+<span id="cb17-9"><a href="data-wrangling.html#cb17-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">na.rm=</span><span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-10"><a href="data-wrangling.html#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,hh_size,num_women,mean_age) <span class="sc">%&gt;%</span></span>
+<span id="cb17-11"><a href="data-wrangling.html#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 131 × 4
+##    key_ID hh_size num_women mean_age
+##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
+##  1      1       3         2     59.3
+##  2      2       7         1     25.4
+##  3      3      10         2     34.7
+##  4      4       7         5     38.7
+##  5      5       7         4     48.9
+##  6      6       3         1     23.3
+##  7      7       6         3     61.3
+##  8      8      12         3     32.1
+##  9      9       8         0     33.2
+## 10     10      12         9     35.8
+## # ℹ 121 more rows</code></pre>
+<p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
+<code>rowwise()</code> ensure all summaries are computed per row, and <code>c_across()</code>
+allows you to use <a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html">tidy select</a> syntax within the <code>mean()</code> and <code>sum()</code> functions.
+<code>sum(!is.na())</code> simply counts the non-missing values.</p>
+
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="setting-up.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/USERNAME/REPO/edit/BRANCH/chapters/02-datawrangling.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["_main.pdf", "_main.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>
