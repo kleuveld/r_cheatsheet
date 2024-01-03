@@ -10,7 +10,7 @@ Below we do some basic data manipulations on our interview data.
 
 
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 interviews %>%
     filter(village == "Chirodzo") %>%
@@ -50,7 +50,7 @@ We will make sure that our household roster has a number of lines
 for each household that is equal to the household size, and has two
 randomly generated variables: `female` and `age`.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 long_data <- 
     interviews %>%
@@ -82,7 +82,7 @@ for the entire data set.
 
 To merge this into our main data set, we need to make sure we go back to having 1 observation per household. We will do this by using `pivot_wider()`:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 wide_data <-
     long_data %>% 
@@ -106,7 +106,7 @@ only remaining variable is `key_ID`, which is indeed the unique identifier.
 If we had started with wide data, and had wanted to transform to
 long data, we'd have to use `pivot_longer()`:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 recreated_long_data <-
     wide_data %>%
@@ -152,7 +152,7 @@ In our case, the data sets match perfectly, i.e. we only have an area B, so ther
 observations in my household survey is guaranteed to remain the same.
 To merge the roster to the household data, we use the join_by function:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 interviews %>%
     left_join(wide_data)
@@ -166,7 +166,7 @@ identifiers, in this case `key_ID`. Use the `by` option to change this.
 Going the other way around, joining the household data to the 
 roster data, is equally easy:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 long_data %>%
     left_join(
@@ -181,7 +181,7 @@ To compute summary statistics (sums, counts, means etc.) over a group,
 we use the `group_by()` and `summarize()` functions. For example, to
 compute the household size, number of women and average age in each household:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 long_data %>%
     group_by(key_ID) %>%
@@ -195,7 +195,7 @@ and probably best, way to do this in R is by reshaping to long, and do the above
 But in Stata you would probably use some sort of `egen` function, and you
 can do similar things in R. It's just a bit more complex:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 wide_data %>%
     rowwise() %>%
