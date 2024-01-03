@@ -1,0 +1,139 @@
+# Estimating and reporting
+
+## Generating some fake data
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+#maybe replace with
+# https://egap.github.io/learningdays-resources/Slides/estimation-slides.html#/using-declaredesign-define-estimand-and-estimators
+library(tidyverse)
+
+rm(list=ls())
+set.seed(1)
+
+data <-  
+  read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+  left_join({.} %>%
+            select(village) %>%
+            distinct(village) %>%
+            rowwise %>%
+            mutate(treatment = rbinom(1,1,0.5)))%>%
+  rowwise() %>%
+  mutate(educated = rbinom(1,1,0.3),
+         u = rnorm(1,sd=0.5),
+         prob = 0.3 * treatment + 0.1 * educated + u,
+         prob = max(0,prob),
+         prob = min(1,prob),
+         uses_fertilizer = rbinom(1,1,prob))        ) 
+
+```
+
+
+## Making a table of summary statistics
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+library(gtsummary)
+
+data %>%
+  select(where(is.numeric)) %>%
+  tbl_summary( statistic = list(all_continuous() ~ "{mean} ({sd})"))
+
+
+data %>%
+sumtable(out = "return") %>%
+huxtable() %>%
+as_flextable() %>%
+save_as_docx(path = "assets/summ_table.docx")
+
+
+library(table1)
+
+
+table1(data = data) 
+
+
+library(tableone)
+
+data%>%
+select(where(is.numeric)) %>%
+CreateTableOne(data=.,strata="treatment") %>%
+print(printToggle = FALSE) %>%
+as.data.frame() %>% 
+rownames_to_column("Variables")  %>% 
+flextable::as_flextable() %>%
+save_as_docx(path = "assets/summ_table.docx")
+
+
+library(furniture)
+
+data%>%
+select(where(is.numeric)) %>%
+furniture::table1(data)
+
+```
+
+## Simple regression
+
+A simple regression uses the `lm()` function.
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+lm <- lm(uses_fertilizer ~ treatment + educated, data = data)
+summary(lm)
+
+
+```
+
+## Robust standard errors
+
+To get robust standard errors clustered at the village
+level, we can use the following:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+library(lmtest)
+library(sandwich)
+
+coeftest <- coeftest(fit, vcov = vcovHC(fit, type = 'HC0'),cluster=~village)
+coeftest
+```
+
+Or, alternatively, we can use the `lm_robust()` from the 
+DeclareDesign library:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+library(DeclareDesign)
+
+lm_robust <- lm_robust(uses_fertilizer ~ treatment + educated, 
+                        cluster = village,
+                        data = data)
+
+summary(lm_robust)
+
+```
+## Exporting to word
+
+To export the resulting tables to word, I use the huxtable and
+flextable packages.
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+library(flextable)
+library(huxtable)
+
+huxreg(lm,coeftest,lm_robust,
+       statistics = c(N = "nobs", "Adj. R2" = "adj.r.squared")) %>%
+as_flextable() %>%
+save_as_docx(path = "assets/regression_table.docx")
+
+```
+
+
+
+
+
+

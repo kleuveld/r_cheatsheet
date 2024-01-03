@@ -23,6 +23,10 @@ jobs:
             any::bookdown
             any::tidyverse
             any::kableExtra
+            any::DeclareDesign
+            any::lmtest
+            any::sandwich
+            any::vtable
       - name: Render Book
         run: Rscript -e 'bookdown::render_book("index.Rmd")'
       - name: Deploy to GitHub Pages
