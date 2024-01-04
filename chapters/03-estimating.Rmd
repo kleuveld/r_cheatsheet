@@ -2,11 +2,19 @@
 
 ## Generating some fake data
 
+<!--
+  #maybe replace with
+# https://egap.github.io/learningdays-resources/Slides/estimation-slides.html#/using-declaredesign-define-estimand-and-estimators
+-->
+
+First we make a fake intervention aimed at improving fertilizer adoption.
+Adoption depends on the treatment and education and a random component.
+
+I will create a table of descriptive statistics, and a simple regression
+table.
+
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-
-#maybe replace with
-# https://egap.github.io/learningdays-resources/Slides/estimation-slides.html#/using-declaredesign-define-estimand-and-estimators
 library(tidyverse)
 
 rm(list=ls())
@@ -25,61 +33,58 @@ data <-
          prob = 0.3 * treatment + 0.1 * educated + u,
          prob = max(0,prob),
          prob = min(1,prob),
-         uses_fertilizer = rbinom(1,1,prob))        ) 
+         uses_fertilizer = rbinom(1,1,prob)) %>%
+  select(-u,-prob)
 
 ```
+
+
 
 
 ## Making a table of summary statistics
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+The first table we make is a table of descriptive statistics
+using the Arsenal package:
 
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-library(gtsummary)
+library(arsenal)
 
-data %>%
-  select(where(is.numeric)) %>%
-  tbl_summary( statistic = list(all_continuous() ~ "{mean} ({sd})"))
+descriptive_table <-
+  data %>%
+  select(where(is.numeric),-key_ID) %>%
+  tableby(treatment ~ ., 
+          data = .)
 
-
-data %>%
-sumtable(out = "return") %>%
-huxtable() %>%
-as_flextable() %>%
-save_as_docx(path = "assets/summ_table.docx")
-
-
-library(table1)
-
-
-table1(data = data) 
-
-
-library(tableone)
-
-data%>%
-select(where(is.numeric)) %>%
-CreateTableOne(data=.,strata="treatment") %>%
-print(printToggle = FALSE) %>%
-as.data.frame() %>% 
-rownames_to_column("Variables")  %>% 
-flextable::as_flextable() %>%
-save_as_docx(path = "assets/summ_table.docx")
-
-
-library(furniture)
-
-data%>%
-select(where(is.numeric)) %>%
-furniture::table1(data)
+summary(descriptive_table)
 
 ```
 
+That summary looks okay, even as raw text, and does what we want, so
+let's export it to word! For this, we use Arsenal's `write2word()`
+function. I had some trouble getting it to pick up my path, so I 
+am using the [here library](https://here.r-lib.org/) to generate 
+a path for me. This library is great for shared projects!
+
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+here::i_am("README.md")
+library(here)
+
+write2word(descriptive_table, here("tables/summ_stats.docx"), title = "Descripte Statistics", quiet = TRUE)
+
+```
+
+
+
+
 ## Simple regression
 
-A simple regression uses the `lm()` function.
+A simple regression uses the `lm()` function. We save the results
+in an object, which we can later include in a table we export to word.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 lm <- lm(uses_fertilizer ~ treatment + educated, data = data)
 summary(lm)
@@ -92,48 +97,91 @@ summary(lm)
 To get robust standard errors clustered at the village
 level, we can use the following:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 library(lmtest)
 library(sandwich)
 
-coeftest <- coeftest(fit, vcov = vcovHC(fit, type = 'HC0'),cluster=~village)
-coeftest
+lm_robust <- coeftest(lm, vcov = vcovHC(lm, type = 'HC0',cluster=~village))
+lm_robust
+
 ```
 
-Or, alternatively, we can use the `lm_robust()` from the 
-DeclareDesign library:
+
+Let's also do a probit model:
+
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-library(DeclareDesign)
+probit <- glm(uses_fertilizer ~ treatment + educated, 
+                family = binomial(link = "probit"), 
+                data = data)
 
-lm_robust <- lm_robust(uses_fertilizer ~ treatment + educated, 
-                        cluster = village,
-                        data = data)
-
-summary(lm_robust)
+summary(probit)
 
 ```
+
+And get robust SEs:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+probit_robust <- coeftest(probit, vcov = vcovHC(probit, type = 'HC0',cluster=~village))
+probit_robust
+
+```
+
 ## Exporting to word
 
-To export the resulting tables to word, I use the huxtable and
-flextable packages.
+To make a good looking regression table, I use the huxtable 
+library. Note the use of `tidy_override()` to add statistics
+to the model output.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+To export the resulting tables to word, I use the huxtable package.
+The package is extremely flexible, so check out [its website](https://cran.r-project.org/web/packages/huxtable/vignettes/huxreg.html).
+Some of the flexibility is seen below, by adding the number of clusters
+and formatting the number in the resulting table.
 
-library(flextable)
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
 library(huxtable)
 
-huxreg(lm,coeftest,lm_robust,
-       statistics = c(N = "nobs", "Adj. R2" = "adj.r.squared")) %>%
-as_flextable() %>%
-save_as_docx(path = "assets/regression_table.docx")
+#add the number of clusers to each
+lm_robust <- 
+  tidy_override(lm_robust,
+                glance = list(n_clusters = 4),
+                extend=TRUE)
+probit_robust <- 
+  tidy_override(probit_robust,
+                glance = list(n_clusters = 4),
+                extend=TRUE)
+#make the table
+reg_table <-
+  huxreg("Linear" = lm,"Linear Robust" = lm_robust,
+         "Probit" = probit, "Probit Robust" = probit_robust,
+         statistics = c(N = "nobs",
+                        Clusters = "n_clusters", 
+                        "Adj. R2" = "adj.r.squared")) %>% 
+  set_number_format(row=9,value=0)
+
+reg_table
 
 ```
 
+That looks decent! However, huxtable doesn't work well with
+Word. We can use `as_flextable()` to convert to flextable
+(note that I had bad results with `flextable::as_flextable()`, so make
+sure to use `huxtable::as_flextable()`), and then use flextable
+to export to docx. 
 
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
+library(flextable)
 
+reg_table %>%
+  huxtable::as_flextable() %>%
+  flextable::save_as_docx(path = here("tables/regression_table.docx"))
+
+```
 
 

@@ -22,11 +22,12 @@ jobs:
             any::rmarkdown
             any::bookdown
             any::tidyverse
-            any::kableExtra
-            any::DeclareDesign
             any::lmtest
             any::sandwich
-            any::vtable
+            any::here
+            any::arsenal
+            any::huxtable
+            any::flextable
       - name: Render Book
         run: Rscript -e 'bookdown::render_book("index.Rmd")'
       - name: Deploy to GitHub Pages
