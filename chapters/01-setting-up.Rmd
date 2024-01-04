@@ -16,8 +16,8 @@ download.file(
   "data/SAFI_clean.csv", mode = "wb"
 )
 
-install.packages("tidyverse")
-
+install.packages(c("tidyverse","here","arsenal","lmtest","sandwich","here",
+                   "huxtable","flextable"))
 ```
 
 Then we load the file in R, using the `read_csv()` function from the

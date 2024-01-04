@@ -1,5 +1,11 @@
 # Estimating and reporting
 
+This chapter uses a large number of packages, so make sure
+all are installed by running the code from the first chapter.
+
+I will create a table of descriptive statistics, and a simple regression
+table.
+
 ## Generating some fake data
 
 <!--
@@ -10,8 +16,7 @@
 First we make a fake intervention aimed at improving fertilizer adoption.
 Adoption depends on the treatment and education and a random component.
 
-I will create a table of descriptive statistics, and a simple regression
-table.
+
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
@@ -29,12 +34,10 @@ data <-
             mutate(treatment = rbinom(1,1,0.5)))%>%
   rowwise() %>%
   mutate(educated = rbinom(1,1,0.3),
-         u = rnorm(1,sd=0.5),
+         u = sample(c(0.1,0.2,0.3),1),
          prob = 0.3 * treatment + 0.1 * educated + u,
-         prob = max(0,prob),
-         prob = min(1,prob),
          uses_fertilizer = rbinom(1,1,prob)) %>%
-  select(-u,-prob)
+  select(-prob,-u)
 
 ```
 
@@ -64,7 +67,7 @@ That summary looks okay, even as raw text, and does what we want, so
 let's export it to word! For this, we use Arsenal's `write2word()`
 function. I had some trouble getting it to pick up my path, so I 
 am using the [here library](https://here.r-lib.org/) to generate 
-a path for me. This library is great for shared projects!
+a path for me. This library is a must for shared projects!
 
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
@@ -72,7 +75,7 @@ a path for me. This library is great for shared projects!
 here::i_am("README.md")
 library(here)
 
-write2word(descriptive_table, here("tables/summ_stats.docx"), title = "Descripte Statistics", quiet = TRUE)
+write2word(descriptive_table, here("tables/summ_stats.docx"), title = "Descriptive Statistics", quiet = TRUE)
 
 ```
 
@@ -94,7 +97,7 @@ summary(lm)
 
 ## Robust standard errors
 
-To get robust standard errors clustered at the village
+To get robust standard errors (bootstrapped) clustered at the village
 level, we can use the following:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
@@ -102,10 +105,11 @@ level, we can use the following:
 library(lmtest)
 library(sandwich)
 
-lm_robust <- coeftest(lm, vcov = vcovHC(lm, type = 'HC0',cluster=~village))
+lm_robust <- coeftest(lm, vcov = vcovBS(lm, cluster=~village))
 lm_robust
 
 ```
+<!-- alternatively: use lm_robust from estimatr -->
 
 
 Let's also do a probit model:
@@ -126,10 +130,11 @@ And get robust SEs:
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 
-probit_robust <- coeftest(probit, vcov = vcovHC(probit, type = 'HC0',cluster=~village))
+probit_robust <- coeftest(probit, vcov = vcovBS(probit,cluster=~village))
 probit_robust
 
 ```
+
 
 ## Exporting to word
 
