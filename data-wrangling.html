@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-01-03" />
+<meta name="date" content="2024-01-04" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -31,7 +31,7 @@
   
   
 <link rel="prev" href="setting-up.html"/>
-
+<link rel="next" href="estimating-and-reporting.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -155,6 +155,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="3.4" data-path="data-wrangling.html"><a href="data-wrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i><b>3.4</b> Summarizing over groups (or collapsing data)</a></li>
 <li class="chapter" data-level="3.5" data-path="data-wrangling.html"><a href="data-wrangling.html#advanced-row-wise-operations"><i class="fa fa-check"></i><b>3.5</b> Advanced Row Wise Operations</a></li>
 </ul></li>
+<li class="chapter" data-level="4" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html"><i class="fa fa-check"></i><b>4</b> Estimating and reporting</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#generating-some-fake-data"><i class="fa fa-check"></i><b>4.1</b> Generating some fake data</a></li>
+<li class="chapter" data-level="4.2" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i><b>4.2</b> Making a table of summary statistics</a></li>
+<li class="chapter" data-level="4.3" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#simple-regression"><i class="fa fa-check"></i><b>4.3</b> Simple regression</a></li>
+<li class="chapter" data-level="4.4" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#robust-standard-errors"><i class="fa fa-check"></i><b>4.4</b> Robust standard errors</a></li>
+<li class="chapter" data-level="4.5" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#exporting-to-word"><i class="fa fa-check"></i><b>4.5</b> Exporting to word</a></li>
+</ul></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
 
@@ -233,16 +241,16 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    86
-##  2      1         2      0    36
-##  3      1         3      1    56
-##  4      2         1      0    37
-##  5      2         2      0     0
-##  6      2         3      0    38
-##  7      2         4      0    18
-##  8      2         5      0    53
-##  9      2         6      1    26
-## 10      2         7      0     6
+##  1      1         1      0    74
+##  2      1         2      1    19
+##  3      1         3      0    23
+##  4      2         1      0    86
+##  5      2         2      0    40
+##  6      2         3      0    73
+##  7      2         4      0     6
+##  8      2         5      1     3
+##  9      2         6      1    83
+## 10      2         7      1    57
 ## # ℹ 932 more rows</code></pre>
 <p>Note that this uses some advanced data wrangling:</p>
 <ul>
@@ -266,16 +274,16 @@ for the entire data set.</li>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
 ##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        1        0        1       NA       NA       NA       NA
-##  2      2        0        0        0        0        0        1        0
-##  3      3        0        0        0        0        0        0        1
-##  4      4        0        1        0        1        1        1        1
-##  5      5        1        0        1        1        0        1        0
-##  6      6        0        0        1       NA       NA       NA       NA
-##  7      7        1        0        1        0        1        0       NA
-##  8      8        0        0        0        1        0        0        0
-##  9      9        0        0        0        0        0        0        0
-## 10     10        1        0        0        1        1        0        1
+##  1      1        0        1        0       NA       NA       NA       NA
+##  2      2        0        0        0        0        1        1        1
+##  3      3        0        1        0        0        0        0        1
+##  4      4        0        0        0        1        1        1        0
+##  5      5        0        0        1        1        1        0        0
+##  6      6        0        0        0       NA       NA       NA       NA
+##  7      7        0        1        1        0        1        1       NA
+##  8      8        1        0        0        0        1        0        1
+##  9      9        1        1        0        1        1        0        0
+## 10     10        0        1        0        1        0        1        1
 ## # ℹ 121 more rows
 ## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
 ## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
@@ -306,16 +314,16 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    86
-##  2      1         2      0    36
-##  3      1         3      1    56
-##  4      2         1      0    37
-##  5      2         2      0     0
-##  6      2         3      0    38
-##  7      2         4      0    18
-##  8      2         5      0    53
-##  9      2         6      1    26
-## 10      2         7      0     6
+##  1      1         1      0    74
+##  2      1         2      1    19
+##  3      1         3      0    23
+##  4      2         1      0    86
+##  5      2         2      0    40
+##  6      2         3      0    73
+##  7      2         4      0     6
+##  8      2         5      1     3
+##  9      2         6      1    83
+## 10      2         7      1    57
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
 how we intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. We don’t really want to touch the key_ID
@@ -352,6 +360,7 @@ observations in my household survey is guaranteed to remain the same.
 To merge the roster to the household data, we use the join_by function:</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="data-wrangling.html#cb11-1" aria-hidden="true" tabindex="-1"></a>interviews <span class="sc">%&gt;%</span></span>
 <span id="cb11-2"><a href="data-wrangling.html#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(wide_data)</span></code></pre></div>
+<pre><code>## Joining with `by = join_by(key_ID)`</code></pre>
 <pre><code>## # A tibble: 131 × 52
 ##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
 ##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
@@ -377,23 +386,24 @@ assumed that the variables that appear in both data frames are the
 identifiers, in this case <code>key_ID</code>. Use the <code>by</code> option to change this.</p>
 <p>Going the other way around, joining the household data to the
 roster data, is equally easy:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="data-wrangling.html#cb13-1" aria-hidden="true" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span></span>
-<span id="cb13-2"><a href="data-wrangling.html#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
-<span id="cb13-3"><a href="data-wrangling.html#cb13-3" aria-hidden="true" tabindex="-1"></a>        interviews <span class="sc">%&gt;%</span> </span>
-<span id="cb13-4"><a href="data-wrangling.html#cb13-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(key_ID,village,interview_date))</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="data-wrangling.html#cb14-1" aria-hidden="true" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="data-wrangling.html#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
+<span id="cb14-3"><a href="data-wrangling.html#cb14-3" aria-hidden="true" tabindex="-1"></a>        interviews <span class="sc">%&gt;%</span> </span>
+<span id="cb14-4"><a href="data-wrangling.html#cb14-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(key_ID,village,interview_date))</span></code></pre></div>
+<pre><code>## Joining with `by = join_by(key_ID)`</code></pre>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    86 God     2016-11-17 00:00:00
-##  2      1         2      0    36 God     2016-11-17 00:00:00
-##  3      1         3      1    56 God     2016-11-17 00:00:00
-##  4      2         1      0    37 God     2016-11-17 00:00:00
-##  5      2         2      0     0 God     2016-11-17 00:00:00
-##  6      2         3      0    38 God     2016-11-17 00:00:00
-##  7      2         4      0    18 God     2016-11-17 00:00:00
-##  8      2         5      0    53 God     2016-11-17 00:00:00
-##  9      2         6      1    26 God     2016-11-17 00:00:00
-## 10      2         7      0     6 God     2016-11-17 00:00:00
+##  1      1         1      0    74 God     2016-11-17 00:00:00
+##  2      1         2      1    19 God     2016-11-17 00:00:00
+##  3      1         3      0    23 God     2016-11-17 00:00:00
+##  4      2         1      0    86 God     2016-11-17 00:00:00
+##  5      2         2      0    40 God     2016-11-17 00:00:00
+##  6      2         3      0    73 God     2016-11-17 00:00:00
+##  7      2         4      0     6 God     2016-11-17 00:00:00
+##  8      2         5      1     3 God     2016-11-17 00:00:00
+##  9      2         6      1    83 God     2016-11-17 00:00:00
+## 10      2         7      1    57 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -402,22 +412,22 @@ roster data, is equally easy:</p>
 <p>To compute summary statistics (sums, counts, means etc.) over a group,
 we use the <code>group_by()</code> and <code>summarize()</code> functions. For example, to
 compute the household size, number of women and average age in each household:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="data-wrangling.html#cb15-1" aria-hidden="true" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span></span>
-<span id="cb15-2"><a href="data-wrangling.html#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(key_ID) <span class="sc">%&gt;%</span></span>
-<span id="cb15-3"><a href="data-wrangling.html#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">hh_size =</span> <span class="fu">n</span>(), <span class="at">num_women =</span> <span class="fu">sum</span>(female), <span class="at">mean_age =</span> <span class="fu">mean</span>(age))    </span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="data-wrangling.html#cb17-1" aria-hidden="true" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a href="data-wrangling.html#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(key_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="data-wrangling.html#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">hh_size =</span> <span class="fu">n</span>(), <span class="at">num_women =</span> <span class="fu">sum</span>(female), <span class="at">mean_age =</span> <span class="fu">mean</span>(age))    </span></code></pre></div>
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     59.3
-##  2      2       7         1     25.4
-##  3      3      10         2     34.7
-##  4      4       7         5     38.7
-##  5      5       7         4     48.9
-##  6      6       3         1     23.3
-##  7      7       6         3     61.3
-##  8      8      12         3     32.1
-##  9      9       8         0     33.2
-## 10     10      12         9     35.8
+##  1      1       3         1     38.7
+##  2      2       7         3     49.7
+##  3      3      10         4     39.7
+##  4      4       7         3     41.3
+##  5      5       7         3     38.9
+##  6      6       3         0     53  
+##  7      7       6         4     35.7
+##  8      8      12         6     26  
+##  9      9       8         5     56.6
+## 10     10      12         8     37.6
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="advanced-row-wise-operations" class="section level2 hasAnchor" number="3.5">
@@ -426,36 +436,35 @@ compute the household size, number of women and average age in each household:</
 and probably best, way to do this in R is by reshaping to long, and do the above.
 But in Stata you would probably use some sort of <code>egen</code> function, and you
 can do similar things in R. It’s just a bit more complex:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="data-wrangling.html#cb17-1" aria-hidden="true" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
-<span id="cb17-2"><a href="data-wrangling.html#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb17-3"><a href="data-wrangling.html#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">mean_age =</span> <span class="fu">mean</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>)),</span>
-<span id="cb17-4"><a href="data-wrangling.html#cb17-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb17-5"><a href="data-wrangling.html#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-6"><a href="data-wrangling.html#cb17-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">num_women =</span> <span class="fu">sum</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;female_&quot;</span>)),</span>
-<span id="cb17-7"><a href="data-wrangling.html#cb17-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb17-8"><a href="data-wrangling.html#cb17-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">hh_size =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;female_&quot;</span>))),</span>
-<span id="cb17-9"><a href="data-wrangling.html#cb17-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">na.rm=</span><span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb17-10"><a href="data-wrangling.html#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,hh_size,num_women,mean_age) <span class="sc">%&gt;%</span></span>
-<span id="cb17-11"><a href="data-wrangling.html#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="data-wrangling.html#cb19-1" aria-hidden="true" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
+<span id="cb19-2"><a href="data-wrangling.html#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="data-wrangling.html#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">mean_age =</span> <span class="fu">mean</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>)),</span>
+<span id="cb19-4"><a href="data-wrangling.html#cb19-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb19-5"><a href="data-wrangling.html#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="data-wrangling.html#cb19-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">num_women =</span> <span class="fu">sum</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;female_&quot;</span>)),</span>
+<span id="cb19-7"><a href="data-wrangling.html#cb19-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb19-8"><a href="data-wrangling.html#cb19-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">hh_size =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(<span class="fu">c_across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;female_&quot;</span>))),</span>
+<span id="cb19-9"><a href="data-wrangling.html#cb19-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">na.rm=</span><span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb19-10"><a href="data-wrangling.html#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,hh_size,num_women,mean_age) <span class="sc">%&gt;%</span></span>
+<span id="cb19-11"><a href="data-wrangling.html#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     59.3
-##  2      2       7         1     25.4
-##  3      3      10         2     34.7
-##  4      4       7         5     38.7
-##  5      5       7         4     48.9
-##  6      6       3         1     23.3
-##  7      7       6         3     61.3
-##  8      8      12         3     32.1
-##  9      9       8         0     33.2
-## 10     10      12         9     35.8
+##  1      1       3         1     38.7
+##  2      2       7         3     49.7
+##  3      3      10         4     39.7
+##  4      4       7         3     41.3
+##  5      5       7         3     38.9
+##  6      6       3         0     53  
+##  7      7       6         4     35.7
+##  8      8      12         6     26  
+##  9      9       8         5     56.6
+## 10     10      12         8     37.6
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensure all summaries are computed per row, and <code>c_across()</code>
 allows you to use <a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html">tidy select</a> syntax within the <code>mean()</code> and <code>sum()</code> functions.
 <code>sum(!is.na())</code> simply counts the non-missing values.</p>
-
 
 </div>
 </div>
@@ -464,8 +473,8 @@ allows you to use <a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_sele
           </div>
         </div>
       </div>
-<a href="setting-up.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="setting-up.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="estimating-and-reporting.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

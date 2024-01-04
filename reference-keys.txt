@@ -1,3 +1,4 @@
+tab:unnamed-chunk-18
 about
 setting-up
 data-wrangling
@@ -9,3 +10,9 @@ pivoting-wide-to-long
 joining-or-merging-data
 summarizing-over-groups-or-collapsing-data
 advanced-row-wise-operations
+estimating-and-reporting
+generating-some-fake-data
+making-a-table-of-summary-statistics
+simple-regression
+robust-standard-errors
+exporting-to-word
