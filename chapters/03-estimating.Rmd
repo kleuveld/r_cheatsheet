@@ -149,25 +149,25 @@ and formatting the number in the resulting table.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-library(huxtable)
+#library(huxtable)
 
 #add the number of clusers to each
 lm_robust <- 
-  tidy_override(lm_robust,
+  huxtable::tidy_override(lm_robust,
                 glance = list(n_clusters = 4),
                 extend=TRUE)
 probit_robust <- 
-  tidy_override(probit_robust,
+  huxtable::tidy_override(probit_robust,
                 glance = list(n_clusters = 4),
                 extend=TRUE)
 #make the table
 reg_table <-
-  huxreg("Linear" = lm,"Linear Robust" = lm_robust,
+  huxtable::huxreg("Linear" = lm,"Linear Robust" = lm_robust,
          "Probit" = probit, "Probit Robust" = probit_robust,
          statistics = c(N = "nobs",
                         Clusters = "n_clusters", 
                         "Adj. R2" = "adj.r.squared")) %>% 
-  set_number_format(row=9,value=0)
+  huxtable::set_number_format(row=9,value=0)
 
 reg_table
 
@@ -181,12 +181,10 @@ to export to docx.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-library(flextable)
+#library(flextable)
 
 reg_table %>%
   huxtable::as_flextable() %>%
   flextable::save_as_docx(path = here("tables/regression_table.docx"))
 
 ```
-
-
