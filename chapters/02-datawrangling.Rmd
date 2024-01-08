@@ -5,10 +5,7 @@
 
 ## Basic Data Manipulation
 
-
 Below we do some basic data manipulations on our interview data.
-
-
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
@@ -23,15 +20,15 @@ interviews %>%
 
 ```
 
+
 Note:
 
 - We filter a number of rows using the `filter()` function
 - We create some new variables using mutate. Note that for some date operations we use the `lubridate` library, wich is include in the tidyverse. Check out [lubridate's documentation](https://lubridate.tidyverse.org/) for more advanced date manipulation techniques.
 - We select some of our variables using `select()`; note that you can
-select a range of variables using `varaible1:variable2` and drop variables
+select a range of variables using `variable1:variable2` and drop variables
 using the `-`.
 - We "chain" all these operations together using the [pipe operator](https://uc-r.github.io/pipe) `%>%`.
-
 
 ## Pivoting (or reshaping)
 
@@ -188,12 +185,90 @@ long_data %>%
     summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age))    
 ```
 
-## Advanced Row Wise Operations
+## Advanced stuff
 
-Suppose we wanted to get the above information (the household size, number of women and average age in each) from the wide data. The easiest,
-and probably best, way to do this in R is by reshaping to long, and do the above.
-But in Stata you would probably use some sort of `egen` function, and you
-can do similar things in R. It's just a bit more complex:
+### Splitting multi-response variable into dummies
+
+The SAFI data contains a number of columns that contain all responses selected
+in a multiple response questions. For example, the variables `items_owned` can
+contain something like `"bicycle;television;solar_panel;table"`. We want to 
+split this into dummies: one for each possible answers. There's a number of 
+ways to do this: 
+
+First, you can use `str_match()` for each possible answer: 
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+interviews %>%
+    select(items_owned) %>%
+    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+    mutate(owns_bicycle = str_count(interviews$items_owned,"bicycle")) %>%
+    mutate(owns_television = str_count(interviews$items_owned,"television")) 
+    #etc etc.
+
+```
+
+This gets extremely tedious, better to put everything in a loop:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
+           "cow_plough","solar_torch","mobile_phone","motor_cycle","fridge",
+           "electricity","sofa_set","lorry","sterio","computer","car")
+
+interviews2 <- 
+    interviews %>%
+    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+
+    select(items_owned)
+
+for (i in items){
+    varname <- i
+    interviews2 <-
+        mutate(interviews2, {{i}} := str_count(interviews2$items_owned,i))
+}
+interviews2
+
+```
+
+Note how we used `{{i}} := ` to dynamically create variable names in the `mutate()` function.
+
+Writing a vector with possible values is still tedious, so to prevent even that:
+
+    - split the string variable using `separate_wider_delim()`;
+    - pivot to a long list of  all items owned; and then
+    - pivot back to household level in a usuable format.
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+interviews %>%
+        mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+        separate_wider_delim(items_owned,";",names_sep = "_",too_few = "align_start") %>%
+        select(key_ID,items_owned_1:items_owned_14) %>%
+        pivot_longer(!key_ID,
+                     names_to="number",
+                     values_to="item") %>%
+        filter(!is.na(item)) %>%
+        mutate(yn = 1) %>%
+        select(-number) %>%
+        pivot_wider(names_from = item,
+                    values_from = yn,
+                    names_prefix = "owns_",
+                    values_fill = 0) 
+
+```
+You can use a `left_join()` to merge this back into the main data set.
+
+### Row Wise Operations
+
+Suppose we wanted to run an operation over multiple variables. For example to
+get the household size, number of women and average age. The easiest,
+and probably best, way to do this in R is by reshaping to long, and the use
+summarize, like we did above. But in Stata you would probably use some sort of 
+`egen` function, so that may come natural.
+You can do similar things in R. It's just a bit more complex than in Stata:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
