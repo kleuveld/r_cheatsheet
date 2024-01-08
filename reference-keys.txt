@@ -10,11 +10,15 @@ pivoting-wide-to-long
 joining-or-merging-data
 summarizing-over-groups-or-collapsing-data
 advanced-stuff
-splitting-multi-response-variable-into-dummies
 row-wise-operations
+splitting-multi-response-variable-into-dummies
 estimating-and-reporting
 generating-some-fake-data
 making-a-table-of-summary-statistics
 simple-regression
 robust-standard-errors
 exporting-to-word
+functions
+basic-structure
+using-functions-in-a-pipe
+passing-variables-to-a-function
