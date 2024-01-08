@@ -1,27 +1,115 @@
 # Functions
 
-Remember our long code to generate dummies based on text:
+Functions are great to re-use and structure your code.
+
+## Basic structure
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-rm(list=ls())
+
+add_two <- function(input) {
+	# Do something with the input
+	output <- input + 2
+
+	#call the intended output in the last line
+	output
+}
+
+add_two(84)
+
+```
+
+## Using functions in a pipe
+
+By default, a function in a pipe uses the dataset of the pipe as its first argument.
+Also make sure to include a quick description of what your function does.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+library(tidyverse)
+
+add_number_column <- function(data,number=2) {
+	#This functions takes a data frame, and returns the same data frame,
+	#but with an exta column of 2sas its first variable. 
+	#The user can specify a number other than 2 using the num argument
+	#This is great if you want a column of twos as the first variable
+	#of your data set.
+	data %>%
+		mutate(bestvar = number) %>%
+		select(bestvar,everything())
+}
+
+read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+add_number_column() 
+
+read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+add_number_column(4) 
+
+
+```
+
+
+
+
+## Passing variables to a function
+
+The following doesn't work, because R can't find `no_membrs`, even though it 
+does exist in the data set in our pipe.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=TRUE}
+
+library(tidyverse)
+
+add_two_to_a_column_broken <- function(data,variable) {
+	#function that wants to add two two a column specified by the user
+	#but it doesn't work.
+	data %>%
+	mutate(variable = variable + 2)
+}
+
+read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+add_two_to_a_column_broken(no_membrs) 
+
+
+```
+
+For a technical note on why this is, 
+see [here](https://dplyr.tidyverse.org/articles/programming.html).
+To solve this, wrapp the variable in your function definition
+in `{{` and `}}`, and change the `=` in `mutatate` to `:=`. 
+
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
 library(tidyverse)
 
 
+add_two_to_a_column_fixed <- function(data,variable) {
+	#function that adds two two a column specified by the user
+	data %>%
+	mutate( {{variable}} := {{variable}} + 2)
+}
+
+read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+	add_two_to_a_column_fixed(no_membrs)
+
+```
+
+
+Remember our code to generate dummies based on text:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+library(tidyverse)
+
 read_csv("data/SAFI_clean.csv", na = "NULL") %>%
-        mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-        separate_wider_delim(items_owned,";",names_sep = "_",too_few = "align_start") %>%
-        select(key_ID,items_owned_1:items_owned_14) %>%
-        pivot_longer(!key_ID,
-                     names_to="number",
-                     values_to="item") %>%
-        filter(!is.na(item)) %>%
-        mutate(yn = 1) %>%
-        select(-number) %>%
-        pivot_wider(names_from = item,
-                    values_from = yn,
-                    names_prefix = "owns_",
-                    values_fill = 0) 
+    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+    select(key_ID,items_owned) %>%
+    separate_longer_delim(items_owned, delim = ";") %>%
+    mutate(value = 1) %>%
+    pivot_wider(names_from = items_owned,
+                values_from = value,
+                names_prefix = "owns_",
+                values_fill = 0) 
 
 ```
 
@@ -31,29 +119,27 @@ We could copy-paste the code, but the better solution is to make a function:
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 
-create_dummies <- function(df,stringvar,idvar,prefix="") {
-	df %>%
-		left_join({.} %>%
-	        select({{idvar}},{{stringvar}}) %>%
-	        separate_wider_delim({{stringvar}},";",
-	        	 				 names_sep = "_",
-	        	 				 too_few = "align_start") %>%
-	        pivot_longer(!{{idvar}},
-	                     names_to="number",
-	                     values_to="item") %>%
-	        filter(!is.na(item)) %>%
-	        mutate(yn = 1) %>%
-	        select(-number) %>%
-	        pivot_wider(names_from = item,
-	                    values_from = yn,
-	                    names_prefix = prefix,
-	                    values_fill = 0)) 
+create_dummies <- function(df,stringvar,prefix="",delim = ";") {
+	#Function that generates dummies from a string variable
+	#containing multi-response answers
+	#returns dataset without original var, but with dummies.
 
+	df %>%
+		separate_longer_delim({{stringvar}}, delim = delim) %>%
+	    mutate(value = 1) %>%
+        pivot_wider(names_from = {{stringvar}},
+                    values_from = value,
+                    names_prefix = prefix,
+                    values_fill = 0) 
 }
 
 read_csv("data/SAFI_clean.csv", na = "NULL") %>%
 	mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-	create_dummies(stringvar = items_owned, idvar = key_ID, prefix = "owns_") %>%
-	create_dummies(months_lack_food,key_ID,"lack_food_")
+	create_dummies(stringvar = items_owned, prefix = "owns_") %>%
+	create_dummies(months_lack_food,"lack_food_")
 
 ```
+
+The code is now clear, I can update the function in one place and all variables will
+be updated accordingly. Plus, if I want to use the same code in another project, I can
+easily do it. 
