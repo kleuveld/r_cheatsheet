@@ -1,0 +1,59 @@
+# Functions
+
+Remember our long code to generate dummies based on text:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+rm(list=ls())
+library(tidyverse)
+
+
+read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+        mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+        separate_wider_delim(items_owned,";",names_sep = "_",too_few = "align_start") %>%
+        select(key_ID,items_owned_1:items_owned_14) %>%
+        pivot_longer(!key_ID,
+                     names_to="number",
+                     values_to="item") %>%
+        filter(!is.na(item)) %>%
+        mutate(yn = 1) %>%
+        select(-number) %>%
+        pivot_wider(names_from = item,
+                    values_from = yn,
+                    names_prefix = "owns_",
+                    values_fill = 0) 
+
+```
+
+We now want to apply this same principle to `months_lack_food` column.
+We could copy-paste the code, but the better solution is to make a function:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+create_dummies <- function(df,stringvar,idvar,prefix="") {
+	df %>%
+		left_join({.} %>%
+	        select({{idvar}},{{stringvar}}) %>%
+	        separate_wider_delim({{stringvar}},";",
+	        	 				 names_sep = "_",
+	        	 				 too_few = "align_start") %>%
+	        pivot_longer(!{{idvar}},
+	                     names_to="number",
+	                     values_to="item") %>%
+	        filter(!is.na(item)) %>%
+	        mutate(yn = 1) %>%
+	        select(-number) %>%
+	        pivot_wider(names_from = item,
+	                    values_from = yn,
+	                    names_prefix = prefix,
+	                    values_fill = 0)) 
+
+}
+
+read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+	mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+	create_dummies(stringvar = items_owned, idvar = key_ID, prefix = "owns_") %>%
+	create_dummies(months_lack_food,key_ID,"lack_food_")
+
+```
