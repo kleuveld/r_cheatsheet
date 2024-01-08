@@ -7,9 +7,9 @@
 
 Below we do some basic data manipulations on our interview data.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-interviews %>%
+read_csv("data/SAFI_clean.csv", na = "NULL") %>%
     filter(village == "Chirodzo") %>%
     mutate(people_per_room = no_membrs / rooms,
            day = day(interview_date),
@@ -47,10 +47,10 @@ We will make sure that our household roster has a number of lines
 for each household that is equal to the household size, and has two
 randomly generated variables: `female` and `age`.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 long_data <- 
-    interviews %>%
+    read_csv("data/SAFI_clean.csv", na = "NULL") %>%
     select(key_ID,no_membrs ) %>%
     uncount(no_membrs) %>%
     group_by(key_ID) %>% 
@@ -79,7 +79,7 @@ for the entire data set.
 
 To merge this into our main data set, we need to make sure we go back to having 1 observation per household. We will do this by using `pivot_wider()`:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 wide_data <-
     long_data %>% 
@@ -103,7 +103,7 @@ only remaining variable is `key_ID`, which is indeed the unique identifier.
 If we had started with wide data, and had wanted to transform to
 long data, we'd have to use `pivot_longer()`:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 recreated_long_data <-
     wide_data %>%
@@ -187,80 +187,6 @@ long_data %>%
 
 ## Advanced stuff
 
-### Splitting multi-response variable into dummies
-
-The SAFI data contains a number of columns that contain all responses selected
-in a multiple response questions. For example, the variables `items_owned` can
-contain something like `"bicycle;television;solar_panel;table"`. We want to 
-split this into dummies: one for each possible answers. There's a number of 
-ways to do this: 
-
-First, you can use `str_match()` for each possible answer: 
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-
-interviews %>%
-    select(items_owned) %>%
-    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-    mutate(owns_bicycle = str_count(interviews$items_owned,"bicycle")) %>%
-    mutate(owns_television = str_count(interviews$items_owned,"television")) 
-    #etc etc.
-
-```
-
-This gets extremely tedious, better to put everything in a loop:
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-
-items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
-           "cow_plough","solar_torch","mobile_phone","motor_cycle","fridge",
-           "electricity","sofa_set","lorry","sterio","computer","car")
-
-interviews2 <- 
-    interviews %>%
-    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-
-    select(items_owned)
-
-for (i in items){
-    varname <- i
-    interviews2 <-
-        mutate(interviews2, {{i}} := str_count(interviews2$items_owned,i))
-}
-interviews2
-
-```
-
-Note how we used `{{i}} := ` to dynamically create variable names in the `mutate()` function.
-
-Writing a vector with possible values is still tedious, so to prevent even that:
-
-    - split the string variable using `separate_wider_delim()`;
-    - pivot to a long list of  all items owned; and then
-    - pivot back to household level in a usuable format.
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-interviews %>%
-        mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-        separate_wider_delim(items_owned,";",names_sep = "_",too_few = "align_start") %>%
-        select(key_ID,items_owned_1:items_owned_14) %>%
-        pivot_longer(!key_ID,
-                     names_to="number",
-                     values_to="item") %>%
-        filter(!is.na(item)) %>%
-        mutate(yn = 1) %>%
-        select(-number) %>%
-        pivot_wider(names_from = item,
-                    values_from = yn,
-                    names_prefix = "owns_",
-                    values_fill = 0) 
-
-```
-You can use a `left_join()` to merge this back into the main data set.
-
 ### Row Wise Operations
 
 Suppose we wanted to run an operation over multiple variables. For example to
@@ -291,3 +217,79 @@ The key trick here is the combination of `rowwise()` and `c_across()`.
 `rowwise()` ensure all summaries are computed per row, and `c_across()`
 allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
 `sum(!is.na())` simply counts the non-missing values.
+
+### Splitting multi-response variable into dummies
+
+The SAFI data contains a number of columns that contain all responses selected
+in a multiple response questions. For example, the variables `items_owned` can
+contain something like `"bicycle;television;solar_panel;table"`. We want to 
+split this into dummies: one for each possible answers. There's a number of 
+ways to do this: 
+
+First, you can use `str_match()` for each possible answer: 
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+split_without_loop <- 
+    read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+    select(items_owned) %>%
+    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned), 
+           owns_bicycle = str_count(.data$items_owned,"bicycle"), 
+           owns_television = str_count(.data$items_owned,"television")) 
+           #etc etc.
+
+split_without_loop
+
+```
+
+This gets extremely tedious, better to put everything in a loop:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+#define the vector to loop over
+items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
+           "cow_plough","solar_torch","mobile_phone","motor_cycle","fridge",
+           "electricity","sofa_set","lorry","sterio","computer","car")
+
+#prepare the data
+split_with_loop <- 
+    read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+    select(items_owned)
+
+#and add to the data each iteration of a loop
+for (i in items){
+    split_with_loop <-
+        split_with_loop %>%
+        mutate("owns_{i}" := str_count(.data$items_owned,i))
+}
+
+split_with_loop
+
+```
+
+Note how we used `"owns_{i}" :=` to dynamically create variable names in the `mutate()` function.
+
+Writing a vector with possible values is still tedious, so to prevent even that,
+split the string variable using `separate_rows()`, which outputs a long table; and then
+pivot back to household level, making sure to fill in NAs with 0.
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+prefix <- "owns_"
+
+read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+    select(key_ID,items_owned) %>%
+    separate_longer_delim(items_owned, delim = ";") %>%
+    mutate(value = 1) %>%
+    pivot_wider(names_from = items_owned,
+                values_from = value,
+                names_glue = "{prefix}{items_owned}",
+                values_fill = 0) 
+
+```
+
+Just leave out the line `select(key_ID,items_owned) %>%` to keep your entire dataset.
+
+
