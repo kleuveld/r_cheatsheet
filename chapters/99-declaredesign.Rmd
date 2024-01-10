@@ -1,122 +1,142 @@
-# Estimating causal effects
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+# Power Anylsis using DeclareDesign
 
 
-# https://book.declaredesign.org/
-# https://egap.github.io/learningdays-resources/Slides/estimation-slides.html#/first-make-fake-data
-#https://raw.githubusercontent.com/rstudio/cheatsheets/master/declaredesign.pdf
+Resources for learning about Declare Design:
 
-#https://macartan.github.io/slides/202211_declaredesign_and_power.html
-library(tidyverse)
-library(DeclareDesign)
+-  [The DeclareDesign book](https://book.declaredesign.org/)
+- [The DeclareDesign CheatSheet](https://raw.githubusercontent.com/rstudio/cheatsheets/master/declaredesign.pdf)
+- [Slides by Macartan Humphreys](https://macartan.github.io/slides/202211_declaredesign_and_power.html)
 
-
-#make a design
-N <- 100
-b <- .5
+Read at least the slides by Macarten before going forward!
 
 
-design <- 
-  declare_model(N = N, U = rnorm(N), 
-                potential_outcomes(Y ~ b * Z + U)) + 
-  declare_assignment(Z = simple_ra(N), Y = reveal_outcomes(Y ~ Z)) + 
-  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) + 
-  declare_estimator(Y ~ Z, inquiry = "ate", .method = lm_robust)
+## Dif in Dif
 
+Here's a common situation: we've collected some baseline data, and are 
+wondering if our study has sufficient power to pick up expected treatment
+effects.
 
-#make fake data and do some analysis
-data <- draw_data(design)
-head(data)
-
-lm_robust(Y ~ Z, data = data)
-
-#draw estimands and estimates
-draw_estimands(design)
-draw_estimates(design)
-get_estimates(design, data)
-
-#diagnose
-simulate_design(design, sims = 5)
-diagnose_design(design, sims = 100) 
-
-
-new_design <-
-  design |> redesign(N = 200)
-
-diagnose_design(new_design, sims = 100) 
-compare_diagnoses(design,new_design) 
-
-```
-
-
+Let's start off with some fake baseline data, which only contains `y0`, our outcome
+indicator. We use the `fabricate()` function, from the fabricatr library, which is
+loaded with DeclareDesign:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-#https://macartan.github.io/slides/202211_declaredesign_and_power.html#/a-simple-design-1
+library(tidyverse)
+library(DeclareDesign)
 
-N <- 100
-b <- .5
+N = 500
 
-design <- 
-  declare_model(N = N, 
-                U = rnorm(N),
-                potential_outcomes(Y ~ b * Z + U)) + 
-  declare_assignment(Z = simple_ra(N),
-                     Y = reveal_outcomes(Y ~ Z)) + 
-  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) + 
-  declare_estimator(Y ~ Z, inquiry = "ate", .method = lm_robust)
+fake_data <-
+  fabricate(N = N, 
+            y0 = runif(N, 1, 10))
 
-
-run_design(design)
-sims_1 <- simulate_design(design) 
-
-sims_1 |> select(sim_ID, estimate, p.value) |> head()
-
-
-sims_1 |>
-  ggplot(aes(p.value)) + 
-  geom_histogram() +
-  geom_vline(xintercept = .05, color = "red")
-
-sims_1 |>
-  mutate(significant = p.value <= .05) |>
-  ggplot(aes(estimate, p.value, color = significant)) + 
-  geom_point()
-
-design |>
-
-  # Redesign
-  redesign(b = c(0.1, 0.3, 0.5), N = 100, 200, 300) |>
-  
-  # Diagnosis
-  diagnose_design() |>
-  
-  # Prep
-  tidy() |>
-  filter(diagnosand == "power") |>
-  
-  # Plot
-  ggplot(aes(N, estimate, color = factor(b))) +
-  geom_line()
-
-design |>
-
-  # Redesign
-  redesign(b = c(0.1, 0.3, 0.5), N = 100, 200, 300) |>
-  
-  # Diagnosis
-  diagnose_design() |>
-  
-  # Prep
-  tidy() |>
-  
-  # Plot
-  ggplot(aes(N, estimate, color = factor(b))) +
-  geom_line()+
-  facet_wrap(~diagnosand)
-
+head(fake_data)
 
 ```
 
+Now, let's add an extra year to our data, again using `fabricate()`, just
+to demonstrate how:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+fakedata_years <-
+  fabricate(fake_data,
+            years = add_level(N = 2, t = as.numeric(years) - 1, nest=FALSE),
+            observations = cross_levels(by = join_using(ID, years)),
+            )
+
+```
+
+Now it's time to start declaring our design. Our model is quite simple, where all
+households will see their `Y` increased by 10 and a small random error with standard deviation of 1, and
+treatment households (indicated by `Z`) will see an additional increase of their `Y` of 20:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+year_shock <- 10
+effect_size <- 20
+sd <- 1
+
+model <- 
+  declare_model(fakedata_years,
+                potential_outcomes(Y ~ y0 + t * year_shock + 
+                                       t * Z * effect_size + 
+                                       t * rnorm(N,sd = sd)))
+
+```
+
+Then we need to think about assignment. We need to assign treatment, and
+reveal the outcomes. If treatment had already been know during baseline (not
+unlikely) then we would have only had to reveal the outcomes:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+assignment <-
+  declare_assignment(Z = cluster_ra(clusters = ID, prob = 0.5),
+                     Y = reveal_outcomes(Y ~ Z)) 
+```
+
+Our theoretical quantity of interest is the treatment effect in year 1:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+inquiry <-  
+  declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0), subset = (t == 1)) 
+
+````
+
+And finally the estimator with which we hope to compute this. We use
+a standard regression model:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+estimator <-
+  declare_estimator(Y ~ t * Z, inquiry = "ATE", .method = lm_robust, term = "t:Z")
+
+```
+
+Our design simply combines these things:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+  
+  design <- model + assignment + inquiry + estimator 
+  summary(design)
+  
+```
+
+Now to calculate our power. The `diagnose_design()` will run our
+model 500 times and our power is simply the fraction of times we
+find a statistically significant effect.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+  diagnose_design(design)
+
+```
+
+Looks good! But what if we were too optimistic? We can vary various parameters of 
+our design, and test all combinations by using the `redesign()` function. 
+I've set the `sims` option of `diagnose_design()` to 50, to reduce the number
+of times each variation of the model is run to save me some time.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+diagnosis <-
+  design %>%
+  redesign(effect_size = c(5,10,20),
+           year_shock = c(5,10,20),
+           sd = c(1,2,5)) %>%
+  diagnose_design(sims = 50)
+  
+
+diagnosis %>%
+  tidy() %>%
+  filter(diagnosand == "power") %>%
+  select(effect_size,year_shock,sd,power = estimate)
+
+```
+
+So as long as the standard deviation of our error term stays below 2, 
+our power stays above 0.8.
 
