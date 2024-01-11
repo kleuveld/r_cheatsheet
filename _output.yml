@@ -2,9 +2,13 @@ bookdown::gitbook:
   css: style.css
   config:
     toc:
+      collapse: none 
       before: |
         <li><a href="./">R Cheat Sheet</a></li>
       after: |
         <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
-    edit: https://github.com/USERNAME/REPO/edit/BRANCH/%s
-    download: ["pdf", "epub"]
+    edit: https://github.com/kleuveld/r_cheatsheet/edit/main/%s
+    sharing:
+      facebook: false
+      github: false
+      twitter: false
