@@ -8,15 +8,8 @@ table.
 
 ## Generating some fake data
 
-<!--
-  #maybe replace with
-# https://egap.github.io/learningdays-resources/Slides/estimation-slides.html#/using-declaredesign-define-estimand-and-estimators
--->
-
 First we make a fake intervention aimed at improving fertilizer adoption.
 Adoption depends on the treatment and education and a random component.
-
-
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 

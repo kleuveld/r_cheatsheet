@@ -1,22 +1,24 @@
-# Power Anylsis using DeclareDesign
+# Power Analysis using DeclareDesign
 
+[DeclareDesign](https://declaredesign.org/) is a system to simulate Research Designs. This is useful for power 
+analysis, because it is often hard to include things like clustering and 
+covariates in standard power calculators. 
 
-Resources for learning about Declare Design:
+Resources for learning about DeclareDesign:
 
--  [The DeclareDesign book](https://book.declaredesign.org/)
+- [Slides by the authors of DeclareDesign: Graeme Blair, Alex Coppock, Macartan Humphreys](https://macartan.github.io/slides/202211_declaredesign_and_power.html)
 - [The DeclareDesign CheatSheet](https://raw.githubusercontent.com/rstudio/cheatsheets/master/declaredesign.pdf)
-- [Slides by Macartan Humphreys](https://macartan.github.io/slides/202211_declaredesign_and_power.html)
+-  The book [Research Design in the Social Sciences: Declaration, Diagnosis, and Redesign](https://book.declaredesign.org/)
 
-Read at least the slides by Macarten before going forward!
+Read at least the slides before going forward!
 
+## Diff-in-Diff
 
-## Dif in Dif
-
-Here's a common situation: we've collected some baseline data, and are 
+Here's a common situation: I've collected some baseline data, and are 
 wondering if our study has sufficient power to pick up expected treatment
 effects.
 
-Let's start off with some fake baseline data, which only contains `y0`, our outcome
+I will start off with some fake baseline data, which only contains `y0`, our outcome
 indicator. We use the `fabricate()` function, from the fabricatr library, which is
 loaded with DeclareDesign:
 
@@ -25,38 +27,55 @@ loaded with DeclareDesign:
 library(tidyverse)
 library(DeclareDesign)
 
-N = 500
+rm(list=ls())
+set.seed(1)
+
+
+N = 100
 
 fake_data <-
   fabricate(N = N, 
-            y0 = runif(N, 1, 10))
+            y0 = runif(N, 100, 150))
 
 head(fake_data)
 
 ```
 
 Now, let's add an extra year to our data, again using `fabricate()`, just
-to demonstrate how:
+to demonstrate how, using `add_level()` and  then `crosslevels()`:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 fakedata_years <-
   fabricate(fake_data,
             years = add_level(N = 2, t = as.numeric(years) - 1, nest=FALSE),
-            observations = cross_levels(by = join_using(ID, years)),
-            )
+            observations = cross_levels(by = join_using(ID, years)))
 
 ```
 
-Now it's time to start declaring our design. Our model is quite simple, where all
-households will see their `Y` increased by 10 and a small random error with standard deviation of 1, and
-treatment households (indicated by `Z`) will see an additional increase of their `Y` of 20:
+Now it's time to start declaring our design. The first element of the 
+design is the model, which essentially is my data, and I declare it 
+using the same synytax as `fabricate()`
+above. This means you can input existing data, but also generate 
+random new variables.
+
+The potential outcomes are generated using the `potential_outcomes()`.
+This will create two variables `Y_Z_1` and `Y_Z_0`, which are 
+the potential outcomes if assigned to treatment (`Z == 1`) or not.
+
+You can see I have created a very simple data generating 
+process to generate different outcomes in `t = 1` for treatment 
+and control, but you can go absolutely wild here to check the 
+assumptions you have: you can cluster the outcomes, include 
+compliance or treatment effectiveness, add more or less noise, 
+make it depend on  both observable and unobservable 
+characteristics, etc. etc.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 year_shock <- 10
-effect_size <- 20
-sd <- 1
+effect_size <- 15
+sd <- 5
 
 model <- 
   declare_model(fakedata_years,
@@ -66,8 +85,9 @@ model <-
 
 ```
 
-Then we need to think about assignment. We need to assign treatment, and
-reveal the outcomes. If treatment had already been know during baseline (not
+Then it's time to think about assignment. I need to assign treatment, 
+and reveal the outcomes based on treatment assignment. 
+If treatment had already been known during baseline (not
 unlikely) then we would have only had to reveal the outcomes:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
@@ -77,7 +97,10 @@ assignment <-
                      Y = reveal_outcomes(Y ~ Z)) 
 ```
 
-Our theoretical quantity of interest is the treatment effect in year 1:
+Next, I declare my theoretical quantity of interest is the treatment 
+effect in year 1. This is useful to check for bias. This is not really
+needed here, since my model will follow our data generation process exactly,
+so I could have just skipped this step.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
@@ -86,23 +109,34 @@ inquiry <-
 
 ````
 
-And finally the estimator with which we hope to compute this. We use
-a standard regression model:
+And finally the estimator with which I hope to estimate the ATE:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 estimator <-
-  declare_estimator(Y ~ t * Z, inquiry = "ATE", .method = lm_robust, term = "t:Z")
+  declare_estimator(Y ~ t * Z, inquiry = "ATE", .method = lm_robust, term = "t:Z", label = "DiD")
 
 ```
 
-Our design simply combines these things:
+Finally, I combine all these elements to declare my design. Note that 
+it's only here that R starts actually running the code to randomize 
+things. The previous was just declaration!
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
   
   design <- model + assignment + inquiry + estimator 
   summary(design)
-  
+
+```
+
+If you want to browse a version of the data created by your design,
+use the `draw_data()` function. This is useful to examine the properties of the data.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+  draw_data(design) %>%
+  head()
+
 ```
 
 Now to calculate our power. The `diagnose_design()` will run our
@@ -115,28 +149,45 @@ find a statistically significant effect.
 
 ```
 
-Looks good! But what if we were too optimistic? We can vary various parameters of 
-our design, and test all combinations by using the `redesign()` function. 
-I've set the `sims` option of `diagnose_design()` to 50, to reduce the number
-of times each variation of the model is run to save me some time.
+Looks good! But what if we were too optimistic? We can vary various 
+parameters of our design, and test all combinations by using the 
+`redesign()` function. Here I check a few plausible values for 
+our `year_shock` variable and the expected effect size.
+
+I've set the `sims` option of `diagnose_design()` to 100, to reduce
+the number of times each variation of the model is run to save me
+some time.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
+set.seed(1234)
+
 diagnosis <-
   design %>%
-  redesign(effect_size = c(5,10,20),
-           year_shock = c(5,10,20),
-           sd = c(1,2,5)) %>%
-  diagnose_design(sims = 50)
-  
+  redesign(effect_size = 6:15,
+           year_shock = c(10,15,20)) %>%
+  diagnose_design(sims = 100)
+
+```
+
+Now, I want a nice plot. For this I use the
+`tidy()` function to convert the output to a data frame, which 
+I then pipe into `ggplot()`. It's now easy to see that I should 
+be able to pick up an effect size of 9 in most cases.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 diagnosis %>%
   tidy() %>%
   filter(diagnosand == "power") %>%
-  select(effect_size,year_shock,sd,power = estimate)
+  select(effect_size,year_shock,power = estimate) %>%
+  mutate(year_shock = as.factor(year_shock)) %>%
+  ggplot(aes(x = effect_size, y = power, 
+             group=year_shock, color=year_shock)) +
+    geom_line() +
+    geom_hline(yintercept=0.8,linetype=2) + 
+    scale_x_continuous(breaks=seq(6,16,2))
 
 ```
 
-So as long as the standard deviation of our error term stays below 2, 
-our power stays above 0.8.
 
