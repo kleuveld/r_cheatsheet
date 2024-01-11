@@ -6,7 +6,6 @@ Functions are great to re-use and structure your code.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-
 add_two <- function(input) {
 	# Do something with the input
 	output <- input + 2
@@ -44,7 +43,6 @@ add_number_column()
 read_csv("data/SAFI_clean.csv",na = "NULL") %>%
 add_number_column(4) 
 
-
 ```
 
 
@@ -57,8 +55,6 @@ does exist in the data set in our pipe.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=TRUE}
 
-library(tidyverse)
-
 add_two_to_a_column_broken <- function(data,variable) {
 	#function that wants to add two two a column specified by the user
 	#but it doesn't work.
@@ -69,7 +65,6 @@ add_two_to_a_column_broken <- function(data,variable) {
 read_csv("data/SAFI_clean.csv",na = "NULL") %>%
 add_two_to_a_column_broken(no_membrs) 
 
-
 ```
 
 For a technical note on why this is, 
@@ -79,9 +74,6 @@ in `{{` and `}}`, and change the `=` in `mutatate` to `:=`.
 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-library(tidyverse)
-
 
 add_two_to_a_column_fixed <- function(data,variable) {
 	#function that adds two two a column specified by the user
@@ -94,12 +86,11 @@ read_csv("data/SAFI_clean.csv",na = "NULL") %>%
 
 ```
 
+## Function to create dummies from text
 
 Remember our code to generate dummies based on text:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-library(tidyverse)
 
 read_csv("data/SAFI_clean.csv", na = "NULL") %>%
     mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
