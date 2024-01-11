@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-01-08" />
+<meta name="date" content="2024-01-11" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -167,11 +167,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="4.4" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#robust-standard-errors"><i class="fa fa-check"></i><b>4.4</b> Robust standard errors</a></li>
 <li class="chapter" data-level="4.5" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#exporting-to-word"><i class="fa fa-check"></i><b>4.5</b> Exporting to word</a></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="functions.html"><a href="functions.html"><i class="fa fa-check"></i><b>5</b> Functions</a>
+<li class="chapter" data-level="5" data-path="power-analysis-using-declaredesign.html"><a href="power-analysis-using-declaredesign.html"><i class="fa fa-check"></i><b>5</b> Power Analysis using DeclareDesign</a>
 <ul>
-<li class="chapter" data-level="5.1" data-path="functions.html"><a href="functions.html#basic-structure"><i class="fa fa-check"></i><b>5.1</b> Basic structure</a></li>
-<li class="chapter" data-level="5.2" data-path="functions.html"><a href="functions.html#using-functions-in-a-pipe"><i class="fa fa-check"></i><b>5.2</b> Using functions in a pipe</a></li>
-<li class="chapter" data-level="5.3" data-path="functions.html"><a href="functions.html#passing-variables-to-a-function"><i class="fa fa-check"></i><b>5.3</b> Passing variables to a function</a></li>
+<li class="chapter" data-level="5.1" data-path="power-analysis-using-declaredesign.html"><a href="power-analysis-using-declaredesign.html#diff-in-diff"><i class="fa fa-check"></i><b>5.1</b> Diff-in-Diff</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="functions.html"><a href="functions.html"><i class="fa fa-check"></i><b>6</b> Functions</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="functions.html"><a href="functions.html#basic-structure"><i class="fa fa-check"></i><b>6.1</b> Basic structure</a></li>
+<li class="chapter" data-level="6.2" data-path="functions.html"><a href="functions.html#using-functions-in-a-pipe"><i class="fa fa-check"></i><b>6.2</b> Using functions in a pipe</a></li>
+<li class="chapter" data-level="6.3" data-path="functions.html"><a href="functions.html#passing-variables-to-a-function"><i class="fa fa-check"></i><b>6.3</b> Passing variables to a function</a></li>
+<li class="chapter" data-level="6.4" data-path="functions.html"><a href="functions.html#function-to-create-dummies-from-text"><i class="fa fa-check"></i><b>6.4</b> Function to create dummies from text</a></li>
 </ul></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
@@ -251,16 +256,16 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    40
-##  2      1         2      1    40
-##  3      1         3      0    76
-##  4      2         1      0    68
-##  5      2         2      1    43
-##  6      2         3      1     1
-##  7      2         4      0    71
-##  8      2         5      0    16
-##  9      2         6      1    34
-## 10      2         7      1    41
+##  1      1         1      0    41
+##  2      1         2      1    84
+##  3      1         3      0    39
+##  4      2         1      1    45
+##  5      2         2      1     9
+##  6      2         3      0     3
+##  7      2         4      0    48
+##  8      2         5      0    40
+##  9      2         6      0    60
+## 10      2         7      0     1
 ## # ℹ 932 more rows</code></pre>
 <p>Note that this uses some advanced data wrangling:</p>
 <ul>
@@ -284,16 +289,16 @@ for the entire data set.</li>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
 ##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        1        1        0       NA       NA       NA       NA
-##  2      2        0        1        1        0        0        1        1
-##  3      3        0        1        1        0        0        1        1
-##  4      4        0        0        1        1        1        0        1
-##  5      5        1        0        1        1        0        0        1
+##  1      1        0        1        0       NA       NA       NA       NA
+##  2      2        1        1        0        0        0        0        0
+##  3      3        1        1        0        1        0        0        0
+##  4      4        1        0        0        1        1        1        1
+##  5      5        1        1        0        0        1        0        1
 ##  6      6        1        0        0       NA       NA       NA       NA
-##  7      7        0        1        0        1        0        1       NA
-##  8      8        1        1        1        0        0        1        0
-##  9      9        0        0        1        1        0        0        1
-## 10     10        0        1        0        0        1        0        1
+##  7      7        0        1        1        0        0        1       NA
+##  8      8        0        0        0        0        1        1        1
+##  9      9        1        1        0        1        1        1        1
+## 10     10        1        0        0        0        1        1        1
 ## # ℹ 121 more rows
 ## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
 ## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
@@ -324,16 +329,16 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    40
-##  2      1         2      1    40
-##  3      1         3      0    76
-##  4      2         1      0    68
-##  5      2         2      1    43
-##  6      2         3      1     1
-##  7      2         4      0    71
-##  8      2         5      0    16
-##  9      2         6      1    34
-## 10      2         7      1    41
+##  1      1         1      0    41
+##  2      1         2      1    84
+##  3      1         3      0    39
+##  4      2         1      1    45
+##  5      2         2      1     9
+##  6      2         3      0     3
+##  7      2         4      0    48
+##  8      2         5      0    40
+##  9      2         6      0    60
+## 10      2         7      0     1
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
 how we intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. We don’t really want to touch the key_ID
@@ -404,16 +409,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    40 God     2016-11-17 00:00:00
-##  2      1         2      1    40 God     2016-11-17 00:00:00
-##  3      1         3      0    76 God     2016-11-17 00:00:00
-##  4      2         1      0    68 God     2016-11-17 00:00:00
-##  5      2         2      1    43 God     2016-11-17 00:00:00
-##  6      2         3      1     1 God     2016-11-17 00:00:00
-##  7      2         4      0    71 God     2016-11-17 00:00:00
-##  8      2         5      0    16 God     2016-11-17 00:00:00
-##  9      2         6      1    34 God     2016-11-17 00:00:00
-## 10      2         7      1    41 God     2016-11-17 00:00:00
+##  1      1         1      0    41 God     2016-11-17 00:00:00
+##  2      1         2      1    84 God     2016-11-17 00:00:00
+##  3      1         3      0    39 God     2016-11-17 00:00:00
+##  4      2         1      1    45 God     2016-11-17 00:00:00
+##  5      2         2      1     9 God     2016-11-17 00:00:00
+##  6      2         3      0     3 God     2016-11-17 00:00:00
+##  7      2         4      0    48 God     2016-11-17 00:00:00
+##  8      2         5      0    40 God     2016-11-17 00:00:00
+##  9      2         6      0    60 God     2016-11-17 00:00:00
+## 10      2         7      0     1 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -428,16 +433,16 @@ compute the household size, number of women and average age in each household:</
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     52  
-##  2      2       7         4     39.1
-##  3      3      10         5     47.6
-##  4      4       7         4     46.6
-##  5      5       7         4     52.7
-##  6      6       3         1     42.7
-##  7      7       6         3     50.5
-##  8      8      12         7     52.7
-##  9      9       8         4     45.4
-## 10     10      12         6     47.6
+##  1      1       3         1     54.7
+##  2      2       7         2     29.4
+##  3      3      10         4     21  
+##  4      4       7         5     50.9
+##  5      5       7         4     58.9
+##  6      6       3         1     51.3
+##  7      7       6         3     67  
+##  8      8      12         5     42.2
+##  9      9       8         6     24.5
+## 10     10      12         6     39.2
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="advanced-stuff" class="section level2 hasAnchor" number="3.5">
@@ -464,16 +469,16 @@ You can do similar things in R. It’s just a bit more complex than in Stata:</p
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     52  
-##  2      2       7         4     39.1
-##  3      3      10         5     47.6
-##  4      4       7         4     46.6
-##  5      5       7         4     52.7
-##  6      6       3         1     42.7
-##  7      7       6         3     50.5
-##  8      8      12         7     52.7
-##  9      9       8         4     45.4
-## 10     10      12         6     47.6
+##  1      1       3         1     54.7
+##  2      2       7         2     29.4
+##  3      3      10         4     21  
+##  4      4       7         5     50.9
+##  5      5       7         4     58.9
+##  6      6       3         1     51.3
+##  7      7       6         3     67  
+##  8      8      12         5     42.2
+##  9      9       8         6     24.5
+## 10     10      12         6     39.2
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensure all summaries are computed per row, and <code>c_across()</code>
@@ -620,8 +625,8 @@ gitbook.require(["gitbook"], function(gitbook) {
 gitbook.start({
 "sharing": {
 "github": false,
-"facebook": true,
-"twitter": true,
+"facebook": false,
+"twitter": false,
 "linkedin": false,
 "weibo": false,
 "instapaper": false,
@@ -635,7 +640,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/USERNAME/REPO/edit/BRANCH/chapters/02-datawrangling.Rmd",
+"link": "https://github.com/kleuveld/r_cheatsheet/edit/main/chapters/02-datawrangling.Rmd",
 "text": "Edit"
 },
 "history": {
@@ -646,13 +651,13 @@ gitbook.start({
 "link": null,
 "text": null
 },
-"download": ["_main.pdf", "_main.epub"],
+"download": null,
 "search": {
 "engine": "fuse",
 "options": null
 },
 "toc": {
-"collapse": "subsection"
+"collapse": "none"
 }
 });
 });

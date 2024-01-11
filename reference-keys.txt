@@ -18,7 +18,10 @@ making-a-table-of-summary-statistics
 simple-regression
 robust-standard-errors
 exporting-to-word
+power-analysis-using-declaredesign
+diff-in-diff
 functions
 basic-structure
 using-functions-in-a-pipe
 passing-variables-to-a-function
+function-to-create-dummies-from-text
