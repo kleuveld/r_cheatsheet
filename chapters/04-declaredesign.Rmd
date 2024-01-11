@@ -37,7 +37,7 @@ fake_data <-
   fabricate(N = N, 
             y0 = runif(N, 100, 150))
 
-head(fake_data)
+fake_data %>% as_tibble()
 
 ```
 
@@ -50,6 +50,9 @@ fakedata_years <-
   fabricate(fake_data,
             years = add_level(N = 2, t = as.numeric(years) - 1, nest=FALSE),
             observations = cross_levels(by = join_using(ID, years)))
+
+fakedata_years %>% as_tibble()
+
 
 ```
 
