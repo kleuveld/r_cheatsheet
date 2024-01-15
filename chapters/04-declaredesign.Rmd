@@ -56,7 +56,6 @@ fakedata_years <-
                               nest=FALSE),
             observations = cross_levels(by = join_using(ID, years)))
 
-
 fakedata_years %>% as_tibble()
 
 ```
@@ -130,7 +129,7 @@ inquiry <-
 ````
 
 And finally, I add three estimators. If I hadn't declared an inquiry, 
-I could have declared a test here using `declaretest()`, which has 
+I could have declared a test here using `declare_test()`, which has 
 the same syntax.
 
 The first estimator uses `lm_robust()`, which is included
@@ -147,47 +146,39 @@ estimator1 <-
                     label = "LM")
 
 ```
-Then I use the fixest package to estimate a Two-way fixed effects (2FE) model. 
+Then I use `feols()` from the fixest package to estimate a 
+Two-way fixed effects (2FE) model. 
 This is equivalent to the model above for this case, but the 
-2FE can be more easily extended to more complex designs  
-([but beware!](https://doi.org/10.1017/pan.2020.33)).
+2FE can be more easily extended to more complex 
+designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
 
-I also define a custom function to summarize the results. DeclareDesign
-uses `tidy()` to summarize outputs, but expects
-a column in its output with the outcome variable. `feols()` doesn't
-create that column, which makes some output of Declare Design look a
-bit inconsistent. So I create `add_Y_to_feols()` to do so. 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 library(fixest)
 
-add_Y_to_feols <- function(regoutput) {
-  #function that takes the regression output of feols
-  #and returns a tidy data frame with its results
-  #plus an "outcome" column with "Y" in it
-
-  regoutput %>%
-  broom::tidy(conf.int=TRUE) %>% 
-  mutate(outcome = "Y")
-}
-
 estimator2 <-
   declare_estimator(Y ~ Z | treatment_group + t,
                     vcov = "hetero",
                     .method = feols, 
-                    .summary = add_Y_to_feols,
                     term = "Z", 
                     inquiry = "ATE", 
                     label = "2FE")
 
-
 ```
 
-As third estimator, I use a custom estimation function. I use
-the lmtest/sandwich way of estimating robust standard errors.
-I use HC1 standard errors, as that's equivalent to the SEs I used
-above, but I make it possible to change the type easily.
+As third estimator, I use a custom estimation function. The function
+takes the data to be analyzed as its `data` argument, and as its output
+it returns a tidy dataset created by `broom::tidy()`. As long as you make 
+sure the data can go into your custom function,
+and it returns something that looks like what [`broom::tidy()`](https://broom.tidymodels.org/articles/broom.html) would
+return, there's no limit as to how complex we can make your analysis.
+
+Here, I keep it (relatively) simple. I use the lmtest/sandwich way of estimating 
+robust standard errors, and make sure you can easily change the equation and type of
+Standard Errors to use through a parameter.
+
+
 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
@@ -195,7 +186,7 @@ above, but I make it possible to change the type easily.
 library(lmtest)
 library(sandwich)
 
-custom_robust <- function(formula, data, type="HC1"){
+custom_robust <- function(equation, data, type="HC1"){
 
   #function takes a formula, provided as the first argument
   #of declare_estimator...
@@ -203,10 +194,8 @@ custom_robust <- function(formula, data, type="HC1"){
   #... and data
   #It outputs a tidy data frame with relevant coefficients.
 
-  lm <- lm(formula, data = data)
-
-  lm_robust <- coeftest(lm, vcov = vcovHC(lm, type=type))
-  lm_robust %>% 
+  lm(equation, data = data) %>%
+    coeftest(., vcov = vcovHC(., type=type)) %>% 
     broom::tidy(conf.int=TRUE) %>%
     mutate(outcome = "Y") %>%
     filter(term == "t:treatment_group")
@@ -215,7 +204,7 @@ custom_robust <- function(formula, data, type="HC1"){
 #the arguments formula and type are passed to to custom_robust()
 #as is the data on which to run the estimator. 
 estimator3 <- 
-  declare_estimator(Y ~ t * treatment_group, 
+  declare_estimator(equation = Y ~ t * treatment_group, 
                     handler = label_estimator(custom_robust), 
                     inquiry = "ATE", 
                     label = "Custom") 
@@ -233,7 +222,7 @@ things. The previous was just declaration!
 
 ```
 
-Note that the results of my three estimators are identical.
+Note that the results of my three estimators are identical, which is as expected.
 
 If you want to browse a version of the data created by your design,
 use the `draw_data()` function. This is useful to examine the properties of the data.
@@ -255,7 +244,11 @@ find a statistically significant effect.
 
 ```
 
-Looks good! But what if I was too optimistic? Using the 
+Looks good! (Except for the NA in the Outcome column for the
+2FE model. To fix this, I could have created my own summary
+or handler function, but it doesn't really affect anything.)
+
+But what if I was too optimistic? Using the 
 `redesign()` function, you can vary various 
 parameters of your design, and test all their combinations.
 Here I check a few plausible values for 
