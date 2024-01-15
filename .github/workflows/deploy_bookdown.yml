@@ -29,6 +29,7 @@ jobs:
             any::huxtable
             any::flextable
             any::DeclareDesign
+            any::fixest
       - name: Render Book
         run: Rscript -e 'bookdown::render_book("index.Rmd")'
       - name: Deploy to GitHub Pages

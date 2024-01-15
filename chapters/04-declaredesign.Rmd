@@ -24,15 +24,18 @@ loaded with DeclareDesign:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
+#start with a clean environment
+rm(list=ls())
+
+#load packages
 library(tidyverse)
 library(DeclareDesign)
+library(fixest)
 
-rm(list=ls())
+#set seed for reproducibility
 set.seed(1)
 
-
 N = 100
-
 fake_data <-
   fabricate(N = N, 
             y0 = runif(N, 100, 150))
@@ -48,11 +51,13 @@ to demonstrate how, using `add_level()` and  then `crosslevels()`:
 
 fakedata_years <-
   fabricate(fake_data,
-            years = add_level(N = 2, t = as.numeric(years) - 1, nest=FALSE),
+            years = add_level(N = 2, 
+                              t = as.numeric(years) - 1, 
+                              nest=FALSE),
             observations = cross_levels(by = join_using(ID, years)))
 
-fakedata_years %>% as_tibble()
 
+fakedata_years %>% as_tibble()
 
 ```
 
@@ -62,9 +67,10 @@ using the same synytax as `fabricate()`
 above. This means you can input existing data, but also generate 
 random new variables.
 
-The potential outcomes are generated using the `potential_outcomes()`.
+The potential outcomes are generated using `potential_outcomes()`.
 This will create two variables `Y_Z_1` and `Y_Z_0`, which are 
-the potential outcomes if assigned to treatment (`Z == 1`) or not.
+the potential outcomes if having received treatment (`Z == 1`) or not. 
+Note that I will generate `Z` in the next step.
 
 You can see I have created a very simple data generating 
 process to generate different outcomes in `t = 1` for treatment 
@@ -73,6 +79,7 @@ assumptions you have: you can cluster the outcomes, include
 compliance or treatment effectiveness, add more or less noise, 
 make it depend on  both observable and unobservable 
 characteristics, etc. etc.
+
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
@@ -83,22 +90,31 @@ sd <- 5
 model <- 
   declare_model(fakedata_years,
                 potential_outcomes(Y ~ y0 + t * year_shock + 
-                                            t * Z * effect_size + 
+                                            Z * effect_size + 
                                             t * rnorm(N,sd = sd)))
 
 ```
 
 Then it's time to think about assignment. I need to assign treatment, 
-and reveal the outcomes based on treatment assignment. 
+and reveal the outcomes based on treatment assignment. Here I create
+two variables for treatment so I can toy around with different model
+specifications later on. The first variable is the `treatment_group`, to 
+indicate which households get the treatment. For this I use the 
+`cluster_ra()` because I have two observations per household, 
+so households can be thought of as a cluster. The other is `Z`, 
+an indicator for actually having
+received the treatment (equivalent to `Z = treatment_group * t`). 
+
 If treatment had already been known during baseline (not
 unlikely) then we would have only had to reveal the outcomes:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 assignment <-
-  declare_assignment(group = cluster_ra(clusters = ID, prob = 0.5),
-                     Z = ifelse(group == 1 & t == 1,1,0),
+  declare_assignment(treatment_group = cluster_ra(clusters = ID, prob = 0.5),
+                     Z = ifelse(treatment_group == 1 & t == 1,1,0),
                      Y = reveal_outcomes(Y ~ Z)) 
+
 ```
 
 Next, I declare my theoretical quantity of interest is the treatment 
@@ -110,15 +126,99 @@ so I could have just skipped this step.
 
 inquiry <-  
   declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0), subset = (t == 1)) 
-  #declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0))
+
 ````
 
-And finally the estimator with which I hope to estimate the ATE:
+And finally, I add three estimators. If I hadn't declared an inquiry, 
+I could have declared a test here using `declaretest()`, which has 
+the same syntax.
+
+The first estimator uses `lm_robust()`, which is included
+with DeclareDesign, to estimate a simple linear model using standard 
+DiD notation.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-estimator <-
-  declare_estimator(Y ~ t + Z, inquiry = "ATE", .method = lm_robust, term = "Z", label = "DiD")
+estimator1 <-
+  declare_estimator(Y ~ t * treatment_group, 
+                    inquiry = "ATE", 
+                    .method = estimatr::lm_robust, 
+                    term = "t:treatment_group", 
+                    label = "LM")
+
+```
+Then I use the fixest package to estimate a Two-way fixed effects (2FE) model. 
+This is equivalent to the model above for this case, but the 
+2FE can be more easily extended to more complex designs  
+([but beware!](https://doi.org/10.1017/pan.2020.33)).
+
+I also define a custom function to summarize the results. DeclareDesign
+uses `tidy()` to summarize outputs, but expects
+a column in its output with the outcome variable. `feols()` doesn't
+create that column, which makes some output of Declare Design look a
+bit inconsistent. So I create `add_Y_to_feols()` to do so. 
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(fixest)
+
+add_Y_to_feols <- function(regoutput) {
+  #function that takes the regression output of feols
+  #and returns a tidy data frame with its results
+  #plus an "outcome" column with "Y" in it
+
+  regoutput %>%
+  broom::tidy(conf.int=TRUE) %>% 
+  mutate(outcome = "Y")
+}
+
+estimator2 <-
+  declare_estimator(Y ~ Z | treatment_group + t,
+                    vcov = "hetero",
+                    .method = feols, 
+                    .summary = add_Y_to_feols,
+                    term = "Z", 
+                    inquiry = "ATE", 
+                    label = "2FE")
+
+
+```
+
+As third estimator, I use a custom estimation function. I use
+the lmtest/sandwich way of estimating robust standard errors.
+I use HC1 standard errors, as that's equivalent to the SEs I used
+above, but I make it possible to change the type easily.
+
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(lmtest)
+library(sandwich)
+
+custom_robust <- function(formula, data, type="HC1"){
+
+  #function takes a formula, provided as the first argument
+  #of declare_estimator...
+  #.. a type of standard errors to pass to vcov (default is HC1)
+  #... and data
+  #It outputs a tidy data frame with relevant coefficients.
+
+  lm <- lm(formula, data = data)
+
+  lm_robust <- coeftest(lm, vcov = vcovHC(lm, type=type))
+  lm_robust %>% 
+    broom::tidy(conf.int=TRUE) %>%
+    mutate(outcome = "Y") %>%
+    filter(term == "t:treatment_group")
+}
+
+#the arguments formula and type are passed to to custom_robust()
+#as is the data on which to run the estimator. 
+estimator3 <- 
+  declare_estimator(Y ~ t * treatment_group, 
+                    handler = label_estimator(custom_robust), 
+                    inquiry = "ATE", 
+                    label = "Custom") 
 
 ```
 
@@ -128,10 +228,12 @@ things. The previous was just declaration!
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
   
-  design <- model + assignment + inquiry + estimator 
+  design <- model + assignment + inquiry + estimator1 + estimator2 + estimator3
   summary(design)
 
 ```
+
+Note that the results of my three estimators are identical.
 
 If you want to browse a version of the data created by your design,
 use the `draw_data()` function. This is useful to examine the properties of the data.
@@ -139,7 +241,7 @@ use the `draw_data()` function. This is useful to examine the properties of the 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
   draw_data(design) %>%
-  head()
+  as_tibble()
 
 ```
 
@@ -153,42 +255,47 @@ find a statistically significant effect.
 
 ```
 
-Looks good! But what if we were too optimistic? We can vary various 
-parameters of our design, and test all combinations by using the 
-`redesign()` function. Here I check a few plausible values for 
-our `year_shock` variable and the expected effect size.
+Looks good! But what if I was too optimistic? Using the 
+`redesign()` function, you can vary various 
+parameters of your design, and test all their combinations.
+Here I check a few plausible values for 
+the `sd` variable (giving the variation of the error term for 
+incomes in year 1) and the expected effect size.
 
-I've set the `sims` option of `diagnose_design()` to 100, to reduce
-the number of times each variation of the model is run to save me
-some time.
+Note that by default, this runs all estimators, 500 times for each
+combination of the parameters. This takes a lot of time, so I update
+my design to have only one estimator (estimator1, which is fast) 
+and I've set the `sims` option of `diagnose_design()` to 200.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-set.seed(1234)
+design <- model + assignment + inquiry + estimator1
 
 diagnosis <-
   design %>%
   redesign(effect_size = 6:15,
-           year_shock = c(10,15,20)) %>%
-  diagnose_design(sims = 100)
+           sd = c(3,5,7)) %>%
+  diagnose_design(sims = 200)
 
 ```
 
 Now, I want a nice plot. For this I use the
-`tidy()` function to convert the output to a data frame, which 
-I then pipe into `ggplot()`. It's now easy to see that I should 
-be able to pick up an effect size of 9 in most cases.
+`tidy()` function to convert the output to a data frame, which -
+after some filtering - I pipe into `ggplot()`. 
+It's now easy to see that I should 
+be able to pick up an effect size of 10 in most cases.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 diagnosis %>%
   tidy() %>%
   filter(diagnosand == "power") %>%
-  select(effect_size,year_shock,power = estimate) %>%
-  mutate(year_shock = as.factor(year_shock)) %>%
+  select(effect_size,sd,power = estimate) %>%
+  mutate(sd = factor(sd)) %>%
   ggplot(aes(x = effect_size, y = power, 
-             group=year_shock, color=year_shock)) +
+             shape = sd, color=sd)) +
     geom_line() +
+    geom_point() +
     geom_hline(yintercept=0.8,linetype=2) + 
     scale_x_continuous(breaks=seq(6,16,2))
 

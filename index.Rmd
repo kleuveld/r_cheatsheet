@@ -15,6 +15,7 @@ github-repo: kleuveld/r_cheatsheet
 
 # About
 
-This book contains some useful snippets for using R.
+This book contains some useful snippets for using R. 
 
-Large parts of this cheat sheet are based on the [materials for the R for Social Science Data Carpentry Workshop](https://datacarpentry.org/r-socialsci/03-dplyr.html) 
+Parts of this cheat sheet are based on the [materials for the R for Social Science Data Carpentry Workshop](https://datacarpentry.org/r-socialsci/03-dplyr.html), which is a 
+great intro to R.
