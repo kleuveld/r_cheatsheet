@@ -1,4 +1,4 @@
-# Functions
+# Functions {#functions}
 
 Functions are great to re-use and structure your code.
 
@@ -6,12 +6,12 @@ Functions are great to re-use and structure your code.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-add_two <- function(input) {
+add_two <- function(argument) {
 	# Do something with the input
-	output <- input + 2
+	return <- argument + 2
 
 	#call the intended output in the last line
-	output
+	return
 }
 
 add_two(84)
@@ -37,21 +37,18 @@ add_number_column <- function(data,number=2) {
 		select(bestvar,everything())
 }
 
-read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
 add_number_column() 
 
-read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
 add_number_column(4) 
 
 ```
 
-
-
-
 ## Passing variables to a function
 
 The following doesn't work, because R can't find `no_membrs`, even though it 
-does exist in the data set in our pipe.
+does exist in the data set in the pipe.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=TRUE}
 
@@ -62,14 +59,14 @@ add_two_to_a_column_broken <- function(data,variable) {
 	mutate(variable = variable + 2)
 }
 
-read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
 add_two_to_a_column_broken(no_membrs) 
 
 ```
 
 For a technical note on why this is, 
 see [here](https://dplyr.tidyverse.org/articles/programming.html).
-To solve this, wrapp the variable in your function definition
+To solve this, wrap the variable in your function definition
 in `{{` and `}}`, and change the `=` in `mutatate` to `:=`. 
 
 
@@ -81,7 +78,7 @@ add_two_to_a_column_fixed <- function(data,variable) {
 	mutate( {{variable}} := {{variable}} + 2)
 }
 
-read_csv("data/SAFI_clean.csv",na = "NULL") %>%
+read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
 	add_two_to_a_column_fixed(no_membrs)
 
 ```
@@ -104,8 +101,8 @@ read_csv("data/SAFI_clean.csv", na = "NULL") %>%
 
 ```
 
-We now want to apply this same principle to `months_lack_food` column.
-We could copy-paste the code, but the better solution is to make a function:
+I now want to apply this same principle to `months_lack_food` column.
+I could copy-paste the code, but the better solution is to make a function:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
@@ -124,7 +121,7 @@ create_dummies <- function(df,stringvar,prefix="",delim = ";") {
                     values_fill = 0) 
 }
 
-read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
 	mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
 	create_dummies(stringvar = items_owned, prefix = "owns_") %>%
 	create_dummies(months_lack_food,"lack_food_")

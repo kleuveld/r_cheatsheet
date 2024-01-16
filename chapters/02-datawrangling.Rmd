@@ -1,15 +1,16 @@
-<!-- https://datacarpentry.org/r-socialsci/03-dplyr.html -->
+# Data Wrangling {#datawrangling}
 
-
-# Data Wrangling
+Make sure you have the `tidyverse` installed, and the SAFI data set
+downloaded to your data folder by running the code from the [Set-up section](#setup)
 
 ## Basic Data Manipulation
 
-Below we do some basic data manipulations on our interview data.
-
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+library(tidyverse)
+library(here)
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     filter(village == "Chirodzo") %>%
     mutate(people_per_room = no_membrs / rooms,
            day = day(interview_date),
@@ -20,37 +21,24 @@ read_csv("data/SAFI_clean.csv", na = "NULL") %>%
 
 ```
 
-
-Note:
-
-- We filter a number of rows using the `filter()` function
-- We create some new variables using mutate. Note that for some date operations we use the `lubridate` library, wich is include in the tidyverse. Check out [lubridate's documentation](https://lubridate.tidyverse.org/) for more advanced date manipulation techniques.
-- We select some of our variables using `select()`; note that you can
-select a range of variables using `variable1:variable2` and drop variables
-using the `-`.
-- We "chain" all these operations together using the [pipe operator](https://uc-r.github.io/pipe) `%>%`.
-
 ## Pivoting (or reshaping)
 
-When you want to combine two data frames at different levels of analysis, 
-for example a household roster with the rest of the household questionnaire,
-you'll run into the problem that the household roster has more rows than the 
-household questionnaire: the household roster will have each row repeated for
-each household member (i.e. it is *long* data). To combine it with the household data data we need to make sure the columns are repeated for each member (ie make the data *wide*). In R, this is done using the 
-`pivot_wider()` function, which works much like Stata's `reshape` command.
+In tidyverse, reshaping is called pivoting. Here's how you 
+pivot a household roster (reshape wider) so you can merge 
+it with the household data.
 
 
 ### Creating fake data
 
-First, let's create some long data, so we have something to pivot. 
-We will make sure that our household roster has a number of lines
+First, I create sa fake household roster, based on the SAFI data,
+making sure that the household roster has a number of lines
 for each household that is equal to the household size, and has two
 randomly generated variables: `female` and `age`.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 long_data <- 
-    read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+    read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     select(key_ID,no_membrs ) %>%
     uncount(no_membrs) %>%
     group_by(key_ID) %>% 
@@ -65,16 +53,6 @@ long_data
 
 ```
 
-Note that this uses some advanced data wrangling:
-
-- `uncount()` to inflate each number of rows by the number of members in the household.
-- `group_by(key_ID)` and `row_number()` to generate the row number within all
-observations with the same key_ID.
-- `rowwise()` to ensure randomizations are run over each row, rather than once
-for the entire data set.
-- `sample()` to get random integers.
-- `case_when()` to make sure the age is never lower than 18 if the member_id is 1 (presumably the household head).
-
 ### Pivoting long to wide
 
 To merge this into our main data set, we need to make sure we go back to having 1 observation per household. We will do this by using `pivot_wider()`:
@@ -86,6 +64,7 @@ wide_data <-
     pivot_wider(names_from = member_ID,
                 values_from = !ends_with("_ID"))
 wide_data
+
 ```
 
 We only needed to specify two options:
@@ -94,8 +73,6 @@ We only needed to specify two options:
 for each of our units of analysis. In this case, the `member_ID`.
 - values_from: the variables containing the data. All variables you specify here, will get one column for each possible value of names_from. In our case, these variables `female` and `age`. I used [tidy select syntax](https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html) to specify all variables except the ones ending in "\_ID". 
 
-`pivot_wider()` will assume all variables not specified in names_from and values_from are the unique identifiers of your wide data. In our case, the
-only remaining variable is `key_ID`, which is indeed the unique identifier.
 
 
 ### Pivoting wide to long
@@ -116,8 +93,8 @@ long_data
 ```
 
 In this case, the syntax is a bit harder to understand than that of pivot wider. It's good to think first what the original data looks like, and 
-how we intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. We don't really want to touch the key_ID
-column. We want to turn the columns age_1-19 and female_1-19 into three columns: female, age and Member_ID, which contains the values 1-19. This translates to the options we passed to `pivot_longer()` as follows:
+how I intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. I don't really want to touch the key_ID
+column. I want to turn the columns age_1-19 and female_1-19 into three columns: female, age and Member_ID, which contains the values 1-19. This translates to the options we passed to `pivot_longer()` as follows:
 
 - `!key_ID`: We want to pivot the data that's in all columns except key_ID. 
 - `names_to = c(".value", "member_ID")`: this specifies the new columns we want to create. It basically says that the existing column names consist of two parts: one part (i.e. female and age) that we wish to keep as column names , and one part (i.e. the numbers 1-19) which should be put into a new column which we will "member_ID".
@@ -151,7 +128,7 @@ To merge the roster to the household data, we use the join_by function:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-interviews %>%
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     left_join(wide_data)
 
 ```
@@ -167,7 +144,7 @@ roster data, is equally easy:
 
 long_data %>%
     left_join(
-        interviews %>% 
+        read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
             select(key_ID,village,interview_date))
 ```
 Note that here I only merged in two variables, by using `select` and a pipe within the `left_join()` function.
@@ -202,7 +179,6 @@ wide_data %>%
     rowwise() %>%
     mutate(mean_age = mean(c_across(starts_with("age_")),
                            na.rm=TRUE),
-
            num_women = sum(c_across(starts_with("female_")),
                            na.rm=TRUE),
            hh_size = sum(!is.na(c_across(starts_with("female_"))),
@@ -226,12 +202,12 @@ contain something like `"bicycle;television;solar_panel;table"`. We want to
 split this into dummies: one for each possible answers. There's a number of 
 ways to do this: 
 
-First, you can use `str_match()` for each possible answer: 
+First, you can use `str_count()` for each possible answer: 
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 split_without_loop <- 
-    read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+    read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     select(items_owned) %>%
     mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned), 
            owns_bicycle = str_count(.data$items_owned,"bicycle"), 
@@ -253,7 +229,7 @@ items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
 
 #prepare the data
 split_with_loop <- 
-    read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+    read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
     select(items_owned)
 
@@ -278,7 +254,7 @@ pivot back to household level, making sure to fill in NAs with 0.
 
 prefix <- "owns_"
 
-read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
     select(key_ID,items_owned) %>%
     separate_longer_delim(items_owned, delim = ";") %>%

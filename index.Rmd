@@ -13,9 +13,38 @@ link-citations: yes
 github-repo: kleuveld/r_cheatsheet
 ---
 
-# About
+# Introduction
 
-This book contains some useful snippets for using R. 
+## About
 
-Parts of this cheat sheet are based on the [materials for the R for Social Science Data Carpentry Workshop](https://datacarpentry.org/r-socialsci/03-dplyr.html), which is a 
-great intro to R.
+This website is intended as a quick reference for some techiques 
+that I think I may need when cleaning, analyzing, or presenting data. 
+For a more basic intro to R try 
+[the R for Social Science Data Carpentry Workshop](https://datacarpentry.org/r-socialsci/)
+, on which some of this website is based.
+
+## Setting up {#setup}
+
+This book uses the SAFI data set, and a large number of libraries.
+The following will download them all. 
+I use the [here package](https://here.r-lib.org/) to manage 
+paths. 
+
+```{r eval=FALSE,echo=TRUE,warning=FALSE,error=TRUE,message=TRUE}
+
+#make sure your working folder is set to something sensible!
+
+file.create(".here")
+here::i_am(".here")
+library(here)
+
+dir.create(here("data"))
+
+download.file(
+  "https://raw.githubusercontent.com/datacarpentry/r-socialsci/main/episodes/data/SAFI_clean.csv",
+  here("data/SAFI_clean.csv"), mode = "wb"
+)
+
+install.packages(c("tidyverse","here","arsenal","lmtest","sandwich","here",
+                   "huxtable","flextable","declaredesign","fixest"))
+```

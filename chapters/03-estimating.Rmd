@@ -1,7 +1,8 @@
-# Estimating and reporting
+# Estimating and reporting {#reporting}
 
-This chapter uses a large number of packages, so make sure
-all are installed by running the code from the first chapter.
+This chapter uses a large number of packages, and the SAFI data 
+set, so make sure
+all are downloaded by running the code from the [Set-up section](#setup).
 
 I will create a table of descriptive statistics, and a simple regression
 table.
@@ -10,16 +11,19 @@ table.
 
 First we make a fake intervention aimed at improving fertilizer adoption.
 Adoption depends on the treatment and education and a random component.
+The page on [DeclareDesign](#declaredesign) has more advanced techniques
+to generate fake data.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 library(tidyverse)
+library(here)
 
 rm(list=ls())
 set.seed(1)
 
 data <-  
-  read_csv("data/SAFI_clean.csv", na = "NULL") %>%
+  read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
   left_join({.} %>%
             select(village) %>%
             distinct(village) %>%
@@ -33,9 +37,6 @@ data <-
   select(-prob,-u)
 
 ```
-
-
-
 
 ## Making a table of summary statistics
 
@@ -64,9 +65,6 @@ a path for me. This library is a must for shared projects!
 
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
-
-here::i_am("README.md")
-library(here)
 
 write2word(descriptive_table, here("tables/summ_stats.docx"), title = "Descriptive Statistics", quiet = TRUE)
 
