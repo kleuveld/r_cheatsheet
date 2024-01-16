@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>4 Estimating and reporting | R Cheat Sheet</title>
+  <title>Estimating and reporting | R Cheat Sheet</title>
   <meta name="description" content="This page contains some quick R tips." />
   <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="4 Estimating and reporting | R Cheat Sheet" />
+  <meta property="og:title" content="Estimating and reporting | R Cheat Sheet" />
   <meta property="og:type" content="book" />
   
   <meta property="og:description" content="This page contains some quick R tips." />
   <meta name="github-repo" content="kleuveld/r_cheatsheet" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="4 Estimating and reporting | R Cheat Sheet" />
+  <meta name="twitter:title" content="Estimating and reporting | R Cheat Sheet" />
   
   <meta name="twitter:description" content="This page contains some quick R tips." />
   
@@ -30,8 +30,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="data-wrangling.html"/>
-<link rel="next" href="power-analysis-using-declaredesign.html"/>
+<link rel="prev" href="datawrangling.html"/>
+<link rel="next" href="declaredesign.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -140,43 +140,46 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><a href="./">R Cheat Sheet</a></li>
 
 <li class="divider"></li>
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a></li>
-<li class="chapter" data-level="2" data-path="setting-up.html"><a href="setting-up.html"><i class="fa fa-check"></i><b>2</b> Setting up</a></li>
-<li class="chapter" data-level="3" data-path="data-wrangling.html"><a href="data-wrangling.html"><i class="fa fa-check"></i><b>3</b> Data Wrangling</a>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Introduction</a>
 <ul>
-<li class="chapter" data-level="3.1" data-path="data-wrangling.html"><a href="data-wrangling.html#basic-data-manipulation"><i class="fa fa-check"></i><b>3.1</b> Basic Data Manipulation</a></li>
-<li class="chapter" data-level="3.2" data-path="data-wrangling.html"><a href="data-wrangling.html#pivoting-or-reshaping"><i class="fa fa-check"></i><b>3.2</b> Pivoting (or reshaping)</a>
-<ul>
-<li class="chapter" data-level="3.2.1" data-path="data-wrangling.html"><a href="data-wrangling.html#creating-fake-data"><i class="fa fa-check"></i><b>3.2.1</b> Creating fake data</a></li>
-<li class="chapter" data-level="3.2.2" data-path="data-wrangling.html"><a href="data-wrangling.html#pivoting-long-to-wide"><i class="fa fa-check"></i><b>3.2.2</b> Pivoting long to wide</a></li>
-<li class="chapter" data-level="3.2.3" data-path="data-wrangling.html"><a href="data-wrangling.html#pivoting-wide-to-long"><i class="fa fa-check"></i><b>3.2.3</b> Pivoting wide to long</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#about"><i class="fa fa-check"></i>About</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#setup"><i class="fa fa-check"></i>Setting up</a></li>
 </ul></li>
-<li class="chapter" data-level="3.3" data-path="data-wrangling.html"><a href="data-wrangling.html#joining-or-merging-data"><i class="fa fa-check"></i><b>3.3</b> Joining (or merging) data</a></li>
-<li class="chapter" data-level="3.4" data-path="data-wrangling.html"><a href="data-wrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i><b>3.4</b> Summarizing over groups (or collapsing data)</a></li>
-<li class="chapter" data-level="3.5" data-path="data-wrangling.html"><a href="data-wrangling.html#advanced-stuff"><i class="fa fa-check"></i><b>3.5</b> Advanced stuff</a>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html"><i class="fa fa-check"></i>Data Wrangling</a>
 <ul>
-<li class="chapter" data-level="3.5.1" data-path="data-wrangling.html"><a href="data-wrangling.html#row-wise-operations"><i class="fa fa-check"></i><b>3.5.1</b> Row Wise Operations</a></li>
-<li class="chapter" data-level="3.5.2" data-path="data-wrangling.html"><a href="data-wrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i><b>3.5.2</b> Splitting multi-response variable into dummies</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#basic-data-manipulation"><i class="fa fa-check"></i>Basic Data Manipulation</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-or-reshaping"><i class="fa fa-check"></i>Pivoting (or reshaping)</a>
+<ul>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#creating-fake-data"><i class="fa fa-check"></i>Creating fake data</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-long-to-wide"><i class="fa fa-check"></i>Pivoting long to wide</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-wide-to-long"><i class="fa fa-check"></i>Pivoting wide to long</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#joining-or-merging-data"><i class="fa fa-check"></i>Joining (or merging) data</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i>Summarizing over groups (or collapsing data)</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#advanced-stuff"><i class="fa fa-check"></i>Advanced stuff</a>
+<ul>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row Wise Operations</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="4" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html"><i class="fa fa-check"></i><b>4</b> Estimating and reporting</a>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
-<li class="chapter" data-level="4.1" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#generating-some-fake-data"><i class="fa fa-check"></i><b>4.1</b> Generating some fake data</a></li>
-<li class="chapter" data-level="4.2" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i><b>4.2</b> Making a table of summary statistics</a></li>
-<li class="chapter" data-level="4.3" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#simple-regression"><i class="fa fa-check"></i><b>4.3</b> Simple regression</a></li>
-<li class="chapter" data-level="4.4" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#robust-standard-errors"><i class="fa fa-check"></i><b>4.4</b> Robust standard errors</a></li>
-<li class="chapter" data-level="4.5" data-path="estimating-and-reporting.html"><a href="estimating-and-reporting.html#exporting-to-word"><i class="fa fa-check"></i><b>4.5</b> Exporting to word</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#generating-some-fake-data"><i class="fa fa-check"></i>Generating some fake data</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i>Making a table of summary statistics</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#simple-regression"><i class="fa fa-check"></i>Simple regression</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#robust-standard-errors"><i class="fa fa-check"></i>Robust standard errors</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#exporting-to-word"><i class="fa fa-check"></i>Exporting to word</a></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="power-analysis-using-declaredesign.html"><a href="power-analysis-using-declaredesign.html"><i class="fa fa-check"></i><b>5</b> Power Analysis using DeclareDesign</a>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html"><i class="fa fa-check"></i>Power Analysis using DeclareDesign</a>
 <ul>
-<li class="chapter" data-level="5.1" data-path="power-analysis-using-declaredesign.html"><a href="power-analysis-using-declaredesign.html#diff-in-diff"><i class="fa fa-check"></i><b>5.1</b> Diff-in-Diff</a></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#diff-in-diff"><i class="fa fa-check"></i>Diff-in-Diff</a></li>
 </ul></li>
-<li class="chapter" data-level="6" data-path="functions.html"><a href="functions.html"><i class="fa fa-check"></i><b>6</b> Functions</a>
+<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html"><i class="fa fa-check"></i>Functions</a>
 <ul>
-<li class="chapter" data-level="6.1" data-path="functions.html"><a href="functions.html#basic-structure"><i class="fa fa-check"></i><b>6.1</b> Basic structure</a></li>
-<li class="chapter" data-level="6.2" data-path="functions.html"><a href="functions.html#using-functions-in-a-pipe"><i class="fa fa-check"></i><b>6.2</b> Using functions in a pipe</a></li>
-<li class="chapter" data-level="6.3" data-path="functions.html"><a href="functions.html#passing-variables-to-a-function"><i class="fa fa-check"></i><b>6.3</b> Passing variables to a function</a></li>
-<li class="chapter" data-level="6.4" data-path="functions.html"><a href="functions.html#function-to-create-dummies-from-text"><i class="fa fa-check"></i><b>6.4</b> Function to create dummies from text</a></li>
+<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#basic-structure"><i class="fa fa-check"></i>Basic structure</a></li>
+<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#using-functions-in-a-pipe"><i class="fa fa-check"></i>Using functions in a pipe</a></li>
+<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#passing-variables-to-a-function"><i class="fa fa-check"></i>Passing variables to a function</a></li>
+<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#function-to-create-dummies-from-text"><i class="fa fa-check"></i>Function to create dummies from text</a></li>
 </ul></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
@@ -198,34 +201,38 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="estimating-and-reporting" class="section level1 hasAnchor" number="4">
-<h1><span class="header-section-number">4</span> Estimating and reporting<a href="estimating-and-reporting.html#estimating-and-reporting" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>This chapter uses a large number of packages, so make sure
-all are installed by running the code from the first chapter.</p>
+<div id="reporting" class="section level1 hasAnchor">
+<h1>Estimating and reporting<a href="reporting.html#reporting" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>This chapter uses a large number of packages, and the SAFI data
+set, so make sure
+all are downloaded by running the code from the <a href="index.html#setup">Set-up section</a>.</p>
 <p>I will create a table of descriptive statistics, and a simple regression
 table.</p>
-<div id="generating-some-fake-data" class="section level2 hasAnchor" number="4.1">
-<h2><span class="header-section-number">4.1</span> Generating some fake data<a href="estimating-and-reporting.html#generating-some-fake-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="generating-some-fake-data" class="section level2 hasAnchor">
+<h2>Generating some fake data<a href="reporting.html#generating-some-fake-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>First we make a fake intervention aimed at improving fertilizer adoption.
-Adoption depends on the treatment and education and a random component.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="estimating-and-reporting.html#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb28-2"><a href="estimating-and-reporting.html#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-3"><a href="estimating-and-reporting.html#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
-<span id="cb28-4"><a href="estimating-and-reporting.html#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb28-5"><a href="estimating-and-reporting.html#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-6"><a href="estimating-and-reporting.html#cb28-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span>  </span>
-<span id="cb28-7"><a href="estimating-and-reporting.html#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>, <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb28-8"><a href="estimating-and-reporting.html#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>({.} <span class="sc">%&gt;%</span></span>
-<span id="cb28-9"><a href="estimating-and-reporting.html#cb28-9" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(village) <span class="sc">%&gt;%</span></span>
-<span id="cb28-10"><a href="estimating-and-reporting.html#cb28-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">distinct</span>(village) <span class="sc">%&gt;%</span></span>
-<span id="cb28-11"><a href="estimating-and-reporting.html#cb28-11" aria-hidden="true" tabindex="-1"></a>            rowwise <span class="sc">%&gt;%</span></span>
-<span id="cb28-12"><a href="estimating-and-reporting.html#cb28-12" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.5</span>)))<span class="sc">%&gt;%</span></span>
-<span id="cb28-13"><a href="estimating-and-reporting.html#cb28-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-14"><a href="estimating-and-reporting.html#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">educated =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.3</span>),</span>
-<span id="cb28-15"><a href="estimating-and-reporting.html#cb28-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">u =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.2</span>,<span class="fl">0.3</span>),<span class="dv">1</span>),</span>
-<span id="cb28-16"><a href="estimating-and-reporting.html#cb28-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">prob =</span> <span class="fl">0.3</span> <span class="sc">*</span> treatment <span class="sc">+</span> <span class="fl">0.1</span> <span class="sc">*</span> educated <span class="sc">+</span> u,</span>
-<span id="cb28-17"><a href="estimating-and-reporting.html#cb28-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">uses_fertilizer =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,prob)) <span class="sc">%&gt;%</span></span>
-<span id="cb28-18"><a href="estimating-and-reporting.html#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>prob,<span class="sc">-</span>u)</span></code></pre></div>
+Adoption depends on the treatment and education and a random component.
+The page on <a href="declaredesign.html#declaredesign">DeclareDesign</a> has more advanced techniques
+to generate fake data.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="reporting.html#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb27-2"><a href="reporting.html#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb27-3"><a href="reporting.html#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="reporting.html#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb27-5"><a href="reporting.html#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb27-6"><a href="reporting.html#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-7"><a href="reporting.html#cb27-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span>  </span>
+<span id="cb27-8"><a href="reporting.html#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb27-9"><a href="reporting.html#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>({.} <span class="sc">%&gt;%</span></span>
+<span id="cb27-10"><a href="reporting.html#cb27-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(village) <span class="sc">%&gt;%</span></span>
+<span id="cb27-11"><a href="reporting.html#cb27-11" aria-hidden="true" tabindex="-1"></a>            <span class="fu">distinct</span>(village) <span class="sc">%&gt;%</span></span>
+<span id="cb27-12"><a href="reporting.html#cb27-12" aria-hidden="true" tabindex="-1"></a>            rowwise <span class="sc">%&gt;%</span></span>
+<span id="cb27-13"><a href="reporting.html#cb27-13" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.5</span>)))<span class="sc">%&gt;%</span></span>
+<span id="cb27-14"><a href="reporting.html#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb27-15"><a href="reporting.html#cb27-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">educated =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.3</span>),</span>
+<span id="cb27-16"><a href="reporting.html#cb27-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">u =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.2</span>,<span class="fl">0.3</span>),<span class="dv">1</span>),</span>
+<span id="cb27-17"><a href="reporting.html#cb27-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">prob =</span> <span class="fl">0.3</span> <span class="sc">*</span> treatment <span class="sc">+</span> <span class="fl">0.1</span> <span class="sc">*</span> educated <span class="sc">+</span> u,</span>
+<span id="cb27-18"><a href="reporting.html#cb27-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">uses_fertilizer =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,prob)) <span class="sc">%&gt;%</span></span>
+<span id="cb27-19"><a href="reporting.html#cb27-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>prob,<span class="sc">-</span>u)</span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -237,19 +244,19 @@ Adoption depends on the treatment and education and a random component.</p>
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 ## Joining with `by = join_by(village)`</code></pre>
 </div>
-<div id="making-a-table-of-summary-statistics" class="section level2 hasAnchor" number="4.2">
-<h2><span class="header-section-number">4.2</span> Making a table of summary statistics<a href="estimating-and-reporting.html#making-a-table-of-summary-statistics" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="making-a-table-of-summary-statistics" class="section level2 hasAnchor">
+<h2>Making a table of summary statistics<a href="reporting.html#making-a-table-of-summary-statistics" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The first table we make is a table of descriptive statistics
 using the Arsenal package:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="estimating-and-reporting.html#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arsenal)</span>
-<span id="cb30-2"><a href="estimating-and-reporting.html#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-3"><a href="estimating-and-reporting.html#cb30-3" aria-hidden="true" tabindex="-1"></a>descriptive_table <span class="ot">&lt;-</span></span>
-<span id="cb30-4"><a href="estimating-and-reporting.html#cb30-4" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
-<span id="cb30-5"><a href="estimating-and-reporting.html#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(is.numeric),<span class="sc">-</span>key_ID) <span class="sc">%&gt;%</span></span>
-<span id="cb30-6"><a href="estimating-and-reporting.html#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tableby</span>(treatment <span class="sc">~</span> ., </span>
-<span id="cb30-7"><a href="estimating-and-reporting.html#cb30-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> .)</span>
-<span id="cb30-8"><a href="estimating-and-reporting.html#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-9"><a href="estimating-and-reporting.html#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(descriptive_table)</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="reporting.html#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arsenal)</span>
+<span id="cb29-2"><a href="reporting.html#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="reporting.html#cb29-3" aria-hidden="true" tabindex="-1"></a>descriptive_table <span class="ot">&lt;-</span></span>
+<span id="cb29-4"><a href="reporting.html#cb29-4" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
+<span id="cb29-5"><a href="reporting.html#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(is.numeric),<span class="sc">-</span>key_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb29-6"><a href="reporting.html#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tableby</span>(treatment <span class="sc">~</span> ., </span>
+<span id="cb29-7"><a href="reporting.html#cb29-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> .)</span>
+<span id="cb29-8"><a href="reporting.html#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="reporting.html#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(descriptive_table)</span></code></pre></div>
 <pre><code>## 
 ## 
 ## |                            |    0 (N=82)     |    1 (N=49)     |  Total (N=131)  | p value|
@@ -280,18 +287,15 @@ let’s export it to word! For this, we use Arsenal’s <code>write2word()</code
 function. I had some trouble getting it to pick up my path, so I
 am using the <a href="https://here.r-lib.org/">here library</a> to generate
 a path for me. This library is a must for shared projects!</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="estimating-and-reporting.html#cb32-1" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">&quot;README.md&quot;</span>)</span>
-<span id="cb32-2"><a href="estimating-and-reporting.html#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb32-3"><a href="estimating-and-reporting.html#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="estimating-and-reporting.html#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write2word</span>(descriptive_table, <span class="fu">here</span>(<span class="st">&quot;tables/summ_stats.docx&quot;</span>), <span class="at">title =</span> <span class="st">&quot;Descriptive Statistics&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="reporting.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write2word</span>(descriptive_table, <span class="fu">here</span>(<span class="st">&quot;tables/summ_stats.docx&quot;</span>), <span class="at">title =</span> <span class="st">&quot;Descriptive Statistics&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <p>You can find the resulting .docx <a href="https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats.docx">here</a>.</p>
 </div>
-<div id="simple-regression" class="section level2 hasAnchor" number="4.3">
-<h2><span class="header-section-number">4.3</span> Simple regression<a href="estimating-and-reporting.html#simple-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="simple-regression" class="section level2 hasAnchor">
+<h2>Simple regression<a href="reporting.html#simple-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>A simple regression uses the <code>lm()</code> function. We save the results
 in an object, which we can later include in a table we export to word.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="estimating-and-reporting.html#cb33-1" aria-hidden="true" tabindex="-1"></a>lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, <span class="at">data =</span> data)</span>
-<span id="cb33-2"><a href="estimating-and-reporting.html#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm)</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="reporting.html#cb32-1" aria-hidden="true" tabindex="-1"></a>lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, <span class="at">data =</span> data)</span>
+<span id="cb32-2"><a href="reporting.html#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm)</span></code></pre></div>
 <pre><code>## 
 ## Call:
 ## lm(formula = uses_fertilizer ~ treatment + educated, data = data)
@@ -312,15 +316,15 @@ in an object, which we can later include in a table we export to word.</p>
 ## Multiple R-squared:  0.08871,    Adjusted R-squared:  0.07447 
 ## F-statistic:  6.23 on 2 and 128 DF,  p-value: 0.002618</code></pre>
 </div>
-<div id="robust-standard-errors" class="section level2 hasAnchor" number="4.4">
-<h2><span class="header-section-number">4.4</span> Robust standard errors<a href="estimating-and-reporting.html#robust-standard-errors" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="robust-standard-errors" class="section level2 hasAnchor">
+<h2>Robust standard errors<a href="reporting.html#robust-standard-errors" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>To get robust standard errors (bootstrapped) clustered at the village
 level, we can use the following:</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="estimating-and-reporting.html#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb35-2"><a href="estimating-and-reporting.html#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb35-3"><a href="estimating-and-reporting.html#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-4"><a href="estimating-and-reporting.html#cb35-4" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(lm, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(lm, <span class="at">cluster=</span><span class="sc">~</span>village))</span>
-<span id="cb35-5"><a href="estimating-and-reporting.html#cb35-5" aria-hidden="true" tabindex="-1"></a>lm_robust</span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="reporting.html#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb34-2"><a href="reporting.html#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb34-3"><a href="reporting.html#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="reporting.html#cb34-4" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(lm, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(lm, <span class="at">cluster=</span><span class="sc">~</span>village))</span>
+<span id="cb34-5"><a href="reporting.html#cb34-5" aria-hidden="true" tabindex="-1"></a>lm_robust</span></code></pre></div>
 <pre><code>## 
 ## t test of coefficients:
 ## 
@@ -332,11 +336,11 @@ level, we can use the following:</p>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <!-- alternatively: use lm_robust from estimatr -->
 <p>Let’s also do a probit model:</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="estimating-and-reporting.html#cb37-1" aria-hidden="true" tabindex="-1"></a>probit <span class="ot">&lt;-</span> <span class="fu">glm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, </span>
-<span id="cb37-2"><a href="estimating-and-reporting.html#cb37-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;probit&quot;</span>), </span>
-<span id="cb37-3"><a href="estimating-and-reporting.html#cb37-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> data)</span>
-<span id="cb37-4"><a href="estimating-and-reporting.html#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-5"><a href="estimating-and-reporting.html#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(probit)</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="reporting.html#cb36-1" aria-hidden="true" tabindex="-1"></a>probit <span class="ot">&lt;-</span> <span class="fu">glm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, </span>
+<span id="cb36-2"><a href="reporting.html#cb36-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;probit&quot;</span>), </span>
+<span id="cb36-3"><a href="reporting.html#cb36-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> data)</span>
+<span id="cb36-4"><a href="reporting.html#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="reporting.html#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(probit)</span></code></pre></div>
 <pre><code>## 
 ## Call:
 ## glm(formula = uses_fertilizer ~ treatment + educated, family = binomial(link = &quot;probit&quot;), 
@@ -358,8 +362,8 @@ level, we can use the following:</p>
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
 <p>And get robust SEs:</p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="estimating-and-reporting.html#cb39-1" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(probit, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(probit,<span class="at">cluster=</span><span class="sc">~</span>village))</span>
-<span id="cb39-2"><a href="estimating-and-reporting.html#cb39-2" aria-hidden="true" tabindex="-1"></a>probit_robust</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="reporting.html#cb38-1" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(probit, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(probit,<span class="at">cluster=</span><span class="sc">~</span>village))</span>
+<span id="cb38-2"><a href="reporting.html#cb38-2" aria-hidden="true" tabindex="-1"></a>probit_robust</span></code></pre></div>
 <pre><code>## 
 ## z test of coefficients:
 ## 
@@ -370,8 +374,8 @@ level, we can use the following:</p>
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 </div>
-<div id="exporting-to-word" class="section level2 hasAnchor" number="4.5">
-<h2><span class="header-section-number">4.5</span> Exporting to word<a href="estimating-and-reporting.html#exporting-to-word" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="exporting-to-word" class="section level2 hasAnchor">
+<h2>Exporting to word<a href="reporting.html#exporting-to-word" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>To make a good looking regression table, I use the huxtable
 library. Note the use of <code>tidy_override()</code> to add statistics
 to the model output.</p>
@@ -379,27 +383,27 @@ to the model output.</p>
 The package is extremely flexible, so check out <a href="https://cran.r-project.org/web/packages/huxtable/vignettes/huxreg.html">its website</a>.
 Some of the flexibility is seen below, by adding the number of clusters
 and formatting the number in the resulting table.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="estimating-and-reporting.html#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#add the number of clusers to each</span></span>
-<span id="cb41-2"><a href="estimating-and-reporting.html#cb41-2" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> </span>
-<span id="cb41-3"><a href="estimating-and-reporting.html#cb41-3" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(lm_robust,</span>
-<span id="cb41-4"><a href="estimating-and-reporting.html#cb41-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
-<span id="cb41-5"><a href="estimating-and-reporting.html#cb41-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
-<span id="cb41-6"><a href="estimating-and-reporting.html#cb41-6" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> </span>
-<span id="cb41-7"><a href="estimating-and-reporting.html#cb41-7" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(probit_robust,</span>
-<span id="cb41-8"><a href="estimating-and-reporting.html#cb41-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
-<span id="cb41-9"><a href="estimating-and-reporting.html#cb41-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
-<span id="cb41-10"><a href="estimating-and-reporting.html#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="co">#make the table</span></span>
-<span id="cb41-11"><a href="estimating-and-reporting.html#cb41-11" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span></span>
-<span id="cb41-12"><a href="estimating-and-reporting.html#cb41-12" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">huxreg</span>(<span class="st">&quot;Linear&quot;</span> <span class="ot">=</span> lm,<span class="st">&quot;Linear Robust&quot;</span> <span class="ot">=</span> lm_robust,</span>
-<span id="cb41-13"><a href="estimating-and-reporting.html#cb41-13" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;Probit&quot;</span> <span class="ot">=</span> probit, <span class="st">&quot;Probit Robust&quot;</span> <span class="ot">=</span> probit_robust,</span>
-<span id="cb41-14"><a href="estimating-and-reporting.html#cb41-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">statistics =</span> <span class="fu">c</span>(<span class="at">N =</span> <span class="st">&quot;nobs&quot;</span>,</span>
-<span id="cb41-15"><a href="estimating-and-reporting.html#cb41-15" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Clusters =</span> <span class="st">&quot;n_clusters&quot;</span>, </span>
-<span id="cb41-16"><a href="estimating-and-reporting.html#cb41-16" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Adj. R2&quot;</span> <span class="ot">=</span> <span class="st">&quot;adj.r.squared&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb41-17"><a href="estimating-and-reporting.html#cb41-17" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_number_format</span>(<span class="at">row=</span><span class="dv">9</span>,<span class="at">value=</span><span class="dv">0</span>)</span>
-<span id="cb41-18"><a href="estimating-and-reporting.html#cb41-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-19"><a href="estimating-and-reporting.html#cb41-19" aria-hidden="true" tabindex="-1"></a>reg_table</span></code></pre></div>
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-21">
-<caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-21">Table 4.1: </span> </caption><col><col><col><col><col><tr>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="reporting.html#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">#add the number of clusers to each</span></span>
+<span id="cb40-2"><a href="reporting.html#cb40-2" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> </span>
+<span id="cb40-3"><a href="reporting.html#cb40-3" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(lm_robust,</span>
+<span id="cb40-4"><a href="reporting.html#cb40-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
+<span id="cb40-5"><a href="reporting.html#cb40-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
+<span id="cb40-6"><a href="reporting.html#cb40-6" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> </span>
+<span id="cb40-7"><a href="reporting.html#cb40-7" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(probit_robust,</span>
+<span id="cb40-8"><a href="reporting.html#cb40-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
+<span id="cb40-9"><a href="reporting.html#cb40-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
+<span id="cb40-10"><a href="reporting.html#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="co">#make the table</span></span>
+<span id="cb40-11"><a href="reporting.html#cb40-11" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span></span>
+<span id="cb40-12"><a href="reporting.html#cb40-12" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">huxreg</span>(<span class="st">&quot;Linear&quot;</span> <span class="ot">=</span> lm,<span class="st">&quot;Linear Robust&quot;</span> <span class="ot">=</span> lm_robust,</span>
+<span id="cb40-13"><a href="reporting.html#cb40-13" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;Probit&quot;</span> <span class="ot">=</span> probit, <span class="st">&quot;Probit Robust&quot;</span> <span class="ot">=</span> probit_robust,</span>
+<span id="cb40-14"><a href="reporting.html#cb40-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">statistics =</span> <span class="fu">c</span>(<span class="at">N =</span> <span class="st">&quot;nobs&quot;</span>,</span>
+<span id="cb40-15"><a href="reporting.html#cb40-15" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Clusters =</span> <span class="st">&quot;n_clusters&quot;</span>, </span>
+<span id="cb40-16"><a href="reporting.html#cb40-16" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Adj. R2&quot;</span> <span class="ot">=</span> <span class="st">&quot;adj.r.squared&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb40-17"><a href="reporting.html#cb40-17" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_number_format</span>(<span class="at">row=</span><span class="dv">9</span>,<span class="at">value=</span><span class="dv">0</span>)</span>
+<span id="cb40-18"><a href="reporting.html#cb40-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-19"><a href="reporting.html#cb40-19" aria-hidden="true" tabindex="-1"></a>reg_table</span></code></pre></div>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-20">
+<caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-20">Table 1: </span> </caption><col><col><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Linear</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Linear Robust</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Probit</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Probit Robust</th></tr>
 <tr>
 <th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(Intercept)</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.207 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.207 **</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.813 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.813 **</td></tr>
@@ -428,9 +432,9 @@ Word. We can use <code>as_flextable()</code> to convert to flextable
 (note that I had bad results with <code>flextable::as_flextable()</code>, so make
 sure to use <code>huxtable::as_flextable()</code>), and then use flextable
 to export to docx.</p>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="estimating-and-reporting.html#cb42-1" aria-hidden="true" tabindex="-1"></a>reg_table <span class="sc">%&gt;%</span></span>
-<span id="cb42-2"><a href="estimating-and-reporting.html#cb42-2" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">as_flextable</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb42-3"><a href="estimating-and-reporting.html#cb42-3" aria-hidden="true" tabindex="-1"></a>  flextable<span class="sc">::</span><span class="fu">save_as_docx</span>(<span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;tables/regression_table.docx&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="reporting.html#cb41-1" aria-hidden="true" tabindex="-1"></a>reg_table <span class="sc">%&gt;%</span></span>
+<span id="cb41-2"><a href="reporting.html#cb41-2" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">as_flextable</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb41-3"><a href="reporting.html#cb41-3" aria-hidden="true" tabindex="-1"></a>  flextable<span class="sc">::</span><span class="fu">save_as_docx</span>(<span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;tables/regression_table.docx&quot;</span>))</span></code></pre></div>
 <p>You can find there output <a href="https://github.com/kleuveld/r_cheatsheet/raw/main/tables/regression_table.docx">here</a>.</p>
 
 </div>
@@ -440,8 +444,8 @@ to export to docx.</p>
           </div>
         </div>
       </div>
-<a href="data-wrangling.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="power-analysis-using-declaredesign.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="datawrangling.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="declaredesign.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
