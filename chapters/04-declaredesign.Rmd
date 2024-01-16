@@ -151,8 +151,9 @@ estimator1 <-
                     label = "LM")
 
 ```
-Then I use `feols()` from the fixest package to estimate a 
-Two-way fixed effects (2FE) model. 
+Then I use [`feols()`](https://lrberge.github.io/fixest/reference/feols.html)
+from the [fixest](https://lrberge.github.io/fixest/index.html)
+package to estimate a Two-way fixed effects (2FE) model. 
 This is equivalent to the model above for this case, but the 
 2FE can be more easily extended to more complex 
 designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
@@ -173,11 +174,15 @@ estimator2 <-
 ```
 
 As third estimator, I use a custom estimation function. The function
-takes the data to be analyzed as its `data` argument, and as its output
-it returns a tidy dataset created by `broom::tidy()`. As long as you make 
-sure the data can go into your custom function,
-and it returns something that looks like what [`broom::tidy()`](https://broom.tidymodels.org/articles/broom.html) would
-return, there's no limit as to how complex we can make your analysis.
+takes and equation, the data to be analyzed, and (optionally)
+the type of standard errors to compute, and as its output
+it returns a tidy dataset containing estimated coefficients 
+created by [`broom::tidy()`](https://broom.tidymodels.org/articles/broom.html). 
+As long as you make sure the data can go into your custom function 
+(using an argument called `data`),
+and it returns something that looks like what 
+[`broom::tidy()`](https://broom.tidymodels.org/articles/broom.html) would
+return, there's no limit as to how complex you can make your analysis.
 
 Here, I keep it (relatively) simple. I use the lmtest/sandwich way of estimating 
 robust standard errors, and make sure you can easily change the equation and type of
