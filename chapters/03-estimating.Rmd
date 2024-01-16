@@ -72,8 +72,7 @@ write2word(descriptive_table, here("tables/summ_stats.docx"), title = "Descripti
 
 ```
 
-
-
+You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats.docx).
 
 ## Simple regression
 
@@ -142,8 +141,6 @@ and formatting the number in the resulting table.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-#library(huxtable)
-
 #add the number of clusers to each
 lm_robust <- 
   huxtable::tidy_override(lm_robust,
@@ -174,10 +171,10 @@ to export to docx.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-#library(flextable)
-
 reg_table %>%
   huxtable::as_flextable() %>%
   flextable::save_as_docx(path = here("tables/regression_table.docx"))
 
 ```
+
+You can find there output [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/regression_table.docx).
