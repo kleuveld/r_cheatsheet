@@ -284,6 +284,7 @@ a path for me. This library is a must for shared projects!</p>
 <span id="cb32-2"><a href="estimating-and-reporting.html#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
 <span id="cb32-3"><a href="estimating-and-reporting.html#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-4"><a href="estimating-and-reporting.html#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write2word</span>(descriptive_table, <span class="fu">here</span>(<span class="st">&quot;tables/summ_stats.docx&quot;</span>), <span class="at">title =</span> <span class="st">&quot;Descriptive Statistics&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p>You can find the resulting .docx <a href="https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats.docx">here</a>.</p>
 </div>
 <div id="simple-regression" class="section level2 hasAnchor" number="4.3">
 <h2><span class="header-section-number">4.3</span> Simple regression<a href="estimating-and-reporting.html#simple-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -378,27 +379,25 @@ to the model output.</p>
 The package is extremely flexible, so check out <a href="https://cran.r-project.org/web/packages/huxtable/vignettes/huxreg.html">its website</a>.
 Some of the flexibility is seen below, by adding the number of clusters
 and formatting the number in the resulting table.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="estimating-and-reporting.html#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#library(huxtable)</span></span>
-<span id="cb41-2"><a href="estimating-and-reporting.html#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-3"><a href="estimating-and-reporting.html#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="co">#add the number of clusers to each</span></span>
-<span id="cb41-4"><a href="estimating-and-reporting.html#cb41-4" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> </span>
-<span id="cb41-5"><a href="estimating-and-reporting.html#cb41-5" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(lm_robust,</span>
-<span id="cb41-6"><a href="estimating-and-reporting.html#cb41-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
-<span id="cb41-7"><a href="estimating-and-reporting.html#cb41-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
-<span id="cb41-8"><a href="estimating-and-reporting.html#cb41-8" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> </span>
-<span id="cb41-9"><a href="estimating-and-reporting.html#cb41-9" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(probit_robust,</span>
-<span id="cb41-10"><a href="estimating-and-reporting.html#cb41-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
-<span id="cb41-11"><a href="estimating-and-reporting.html#cb41-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
-<span id="cb41-12"><a href="estimating-and-reporting.html#cb41-12" aria-hidden="true" tabindex="-1"></a><span class="co">#make the table</span></span>
-<span id="cb41-13"><a href="estimating-and-reporting.html#cb41-13" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span></span>
-<span id="cb41-14"><a href="estimating-and-reporting.html#cb41-14" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">huxreg</span>(<span class="st">&quot;Linear&quot;</span> <span class="ot">=</span> lm,<span class="st">&quot;Linear Robust&quot;</span> <span class="ot">=</span> lm_robust,</span>
-<span id="cb41-15"><a href="estimating-and-reporting.html#cb41-15" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;Probit&quot;</span> <span class="ot">=</span> probit, <span class="st">&quot;Probit Robust&quot;</span> <span class="ot">=</span> probit_robust,</span>
-<span id="cb41-16"><a href="estimating-and-reporting.html#cb41-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">statistics =</span> <span class="fu">c</span>(<span class="at">N =</span> <span class="st">&quot;nobs&quot;</span>,</span>
-<span id="cb41-17"><a href="estimating-and-reporting.html#cb41-17" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Clusters =</span> <span class="st">&quot;n_clusters&quot;</span>, </span>
-<span id="cb41-18"><a href="estimating-and-reporting.html#cb41-18" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Adj. R2&quot;</span> <span class="ot">=</span> <span class="st">&quot;adj.r.squared&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb41-19"><a href="estimating-and-reporting.html#cb41-19" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_number_format</span>(<span class="at">row=</span><span class="dv">9</span>,<span class="at">value=</span><span class="dv">0</span>)</span>
-<span id="cb41-20"><a href="estimating-and-reporting.html#cb41-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-21"><a href="estimating-and-reporting.html#cb41-21" aria-hidden="true" tabindex="-1"></a>reg_table</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="estimating-and-reporting.html#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#add the number of clusers to each</span></span>
+<span id="cb41-2"><a href="estimating-and-reporting.html#cb41-2" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> </span>
+<span id="cb41-3"><a href="estimating-and-reporting.html#cb41-3" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(lm_robust,</span>
+<span id="cb41-4"><a href="estimating-and-reporting.html#cb41-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
+<span id="cb41-5"><a href="estimating-and-reporting.html#cb41-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
+<span id="cb41-6"><a href="estimating-and-reporting.html#cb41-6" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> </span>
+<span id="cb41-7"><a href="estimating-and-reporting.html#cb41-7" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(probit_robust,</span>
+<span id="cb41-8"><a href="estimating-and-reporting.html#cb41-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
+<span id="cb41-9"><a href="estimating-and-reporting.html#cb41-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
+<span id="cb41-10"><a href="estimating-and-reporting.html#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="co">#make the table</span></span>
+<span id="cb41-11"><a href="estimating-and-reporting.html#cb41-11" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span></span>
+<span id="cb41-12"><a href="estimating-and-reporting.html#cb41-12" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">huxreg</span>(<span class="st">&quot;Linear&quot;</span> <span class="ot">=</span> lm,<span class="st">&quot;Linear Robust&quot;</span> <span class="ot">=</span> lm_robust,</span>
+<span id="cb41-13"><a href="estimating-and-reporting.html#cb41-13" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;Probit&quot;</span> <span class="ot">=</span> probit, <span class="st">&quot;Probit Robust&quot;</span> <span class="ot">=</span> probit_robust,</span>
+<span id="cb41-14"><a href="estimating-and-reporting.html#cb41-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">statistics =</span> <span class="fu">c</span>(<span class="at">N =</span> <span class="st">&quot;nobs&quot;</span>,</span>
+<span id="cb41-15"><a href="estimating-and-reporting.html#cb41-15" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Clusters =</span> <span class="st">&quot;n_clusters&quot;</span>, </span>
+<span id="cb41-16"><a href="estimating-and-reporting.html#cb41-16" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Adj. R2&quot;</span> <span class="ot">=</span> <span class="st">&quot;adj.r.squared&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-17"><a href="estimating-and-reporting.html#cb41-17" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_number_format</span>(<span class="at">row=</span><span class="dv">9</span>,<span class="at">value=</span><span class="dv">0</span>)</span>
+<span id="cb41-18"><a href="estimating-and-reporting.html#cb41-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-19"><a href="estimating-and-reporting.html#cb41-19" aria-hidden="true" tabindex="-1"></a>reg_table</span></code></pre></div>
 <table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-21">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-21">Table 4.1: </span> </caption><col><col><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Linear</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Linear Robust</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Probit</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Probit Robust</th></tr>
@@ -429,11 +428,10 @@ Word. We can use <code>as_flextable()</code> to convert to flextable
 (note that I had bad results with <code>flextable::as_flextable()</code>, so make
 sure to use <code>huxtable::as_flextable()</code>), and then use flextable
 to export to docx.</p>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="estimating-and-reporting.html#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">#library(flextable)</span></span>
-<span id="cb42-2"><a href="estimating-and-reporting.html#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-3"><a href="estimating-and-reporting.html#cb42-3" aria-hidden="true" tabindex="-1"></a>reg_table <span class="sc">%&gt;%</span></span>
-<span id="cb42-4"><a href="estimating-and-reporting.html#cb42-4" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">as_flextable</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb42-5"><a href="estimating-and-reporting.html#cb42-5" aria-hidden="true" tabindex="-1"></a>  flextable<span class="sc">::</span><span class="fu">save_as_docx</span>(<span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;tables/regression_table.docx&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="estimating-and-reporting.html#cb42-1" aria-hidden="true" tabindex="-1"></a>reg_table <span class="sc">%&gt;%</span></span>
+<span id="cb42-2"><a href="estimating-and-reporting.html#cb42-2" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">as_flextable</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb42-3"><a href="estimating-and-reporting.html#cb42-3" aria-hidden="true" tabindex="-1"></a>  flextable<span class="sc">::</span><span class="fu">save_as_docx</span>(<span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;tables/regression_table.docx&quot;</span>))</span></code></pre></div>
+<p>You can find there output <a href="https://github.com/kleuveld/r_cheatsheet/raw/main/tables/regression_table.docx">here</a>.</p>
 
 </div>
 </div>
