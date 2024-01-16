@@ -336,8 +336,9 @@ DiD notation.</p>
 <span id="cb50-4"><a href="power-analysis-using-declaredesign.html#cb50-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">.method =</span> estimatr<span class="sc">::</span>lm_robust, </span>
 <span id="cb50-5"><a href="power-analysis-using-declaredesign.html#cb50-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">term =</span> <span class="st">&quot;t:treatment_group&quot;</span>, </span>
 <span id="cb50-6"><a href="power-analysis-using-declaredesign.html#cb50-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;LM&quot;</span>)</span></code></pre></div>
-<p>Then I use <code>feols()</code> from the fixest package to estimate a
-Two-way fixed effects (2FE) model.
+<p>Then I use <a href="https://lrberge.github.io/fixest/reference/feols.html"><code>feols()</code></a>
+from the <a href="https://lrberge.github.io/fixest/index.html">fixest</a>
+package to estimate a Two-way fixed effects (2FE) model.
 This is equivalent to the model above for this case, but the
 2FE can be more easily extended to more complex
 designs (<a href="https://doi.org/10.1017/pan.2020.33">but beware!</a>).</p>
@@ -352,11 +353,15 @@ designs (<a href="https://doi.org/10.1017/pan.2020.33">but beware!</a>).</p>
 <span id="cb51-9"><a href="power-analysis-using-declaredesign.html#cb51-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
 <span id="cb51-10"><a href="power-analysis-using-declaredesign.html#cb51-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;2FE&quot;</span>)</span></code></pre></div>
 <p>As third estimator, I use a custom estimation function. The function
-takes the data to be analyzed as its <code>data</code> argument, and as its output
-it returns a tidy dataset created by <code>broom::tidy()</code>. As long as you make
-sure the data can go into your custom function,
-and it returns something that looks like what <a href="https://broom.tidymodels.org/articles/broom.html"><code>broom::tidy()</code></a> would
-return, there’s no limit as to how complex we can make your analysis.</p>
+takes and equation, the data to be analyzed, and (optionally)
+the type of standard errors to compute, and as its output
+it returns a tidy dataset containing estimated coefficients
+created by <a href="https://broom.tidymodels.org/articles/broom.html"><code>broom::tidy()</code></a>.
+As long as you make sure the data can go into your custom function
+(using an argument called <code>data</code>),
+and it returns something that looks like what
+<a href="https://broom.tidymodels.org/articles/broom.html"><code>broom::tidy()</code></a> would
+return, there’s no limit as to how complex you can make your analysis.</p>
 <p>Here, I keep it (relatively) simple. I use the lmtest/sandwich way of estimating
 robust standard errors, and make sure you can easily change the equation and type of
 Standard Errors to use through a parameter.</p>
@@ -505,7 +510,7 @@ model 500 times and our power is simply the fraction of times we
 find a statistically significant effect.</p>
 <div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="power-analysis-using-declaredesign.html#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diagnose_design</span>(design)</span></code></pre></div>
 <pre><code>## 
-## Research design diagnosis based on 500 simulations. Diagnosis completed in 15 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
+## Research design diagnosis based on 500 simulations. Diagnosis completed in 14 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
 ## 
 ##  Design Inquiry Estimator Outcome              Term N Sims Mean Estimand
 ##  design     ATE       2FE    &lt;NA&gt;                 Z    500         14.97
