@@ -24,15 +24,20 @@ loaded with DeclareDesign:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-#start with a clean environment
+# start with a clean environment
 rm(list=ls())
 
-#load packages
-library(tidyverse)
-library(DeclareDesign)
-library(fixest)
+# load packages
+library(tidyverse) # data management
 
-#set seed for reproducibility
+library(fixest) # for estimation of fixed effects
+library(lmtest) # for computing standard errors
+library(sandwich) # provides the functions for lmtest to compute robust SEs
+
+library(DeclareDesign) # for power calculation
+library(broom) # to extract coefficients from model output
+
+# set seed for reproducibility
 set.seed(1)
 
 N = 100
@@ -126,7 +131,7 @@ so I could have just skipped this step.
 inquiry <-  
   declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0), subset = (t == 1)) 
 
-````
+```
 
 And finally, I add three estimators. If I hadn't declared an inquiry, 
 I could have declared a test here using `declare_test()`, which has 
@@ -152,10 +157,10 @@ This is equivalent to the model above for this case, but the
 2FE can be more easily extended to more complex 
 designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
 
-
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 library(fixest)
+library(broom)
 
 estimator2 <-
   declare_estimator(Y ~ Z | treatment_group + t,
@@ -178,21 +183,17 @@ Here, I keep it (relatively) simple. I use the lmtest/sandwich way of estimating
 robust standard errors, and make sure you can easily change the equation and type of
 Standard Errors to use through a parameter.
 
-
-
-
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 library(lmtest)
 library(sandwich)
 
 custom_robust <- function(equation, data, type="HC1"){
-
-  #function takes a formula, provided as the first argument
-  #of declare_estimator...
-  #.. a type of standard errors to pass to vcov (default is HC1)
-  #... and data
-  #It outputs a tidy data frame with relevant coefficients.
+  # function takes a formula, provided as the first argument
+  # of declare_estimator...
+  # .. a type of standard errors to pass to vcov (default is HC1)
+  # ... and data
+  # It outputs a tidy data frame with relevant coefficients.
 
   lm(equation, data = data) %>%
     coeftest(., vcov = vcovHC(., type=type)) %>% 
@@ -201,8 +202,8 @@ custom_robust <- function(equation, data, type="HC1"){
     filter(term == "t:treatment_group")
 }
 
-#the arguments formula and type are passed to to custom_robust()
-#as is the data on which to run the estimator. 
+# the arguments formula and type are passed to to custom_robust()
+# as is the data on which to run the estimator. 
 estimator3 <- 
   declare_estimator(equation = Y ~ t * treatment_group, 
                     handler = label_estimator(custom_robust), 
@@ -217,8 +218,8 @@ things. The previous was just declaration!
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
   
-  design <- model + assignment + inquiry + estimator1 + estimator2 + estimator3
-  summary(design)
+design <- model + assignment + inquiry + estimator1 + estimator2 + estimator3
+summary(design)
 
 ```
 
@@ -229,7 +230,7 @@ use the `draw_data()` function. This is useful to examine the properties of the 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-  draw_data(design) %>%
+draw_data(design) %>%
   as_tibble()
 
 ```
@@ -240,13 +241,15 @@ find a statistically significant effect.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-  diagnose_design(design)
+diagnose_design(design)
 
 ```
 
-Looks good! (Except for the NA in the Outcome column for the
-2FE model. To fix this, I could have created my own summary
-or handler function, but it doesn't really affect anything.)
+Looks good! (Except for some NAs for the 2FE model: this is due
+to the summary function not providing all things needed. 
+To fix this, I could have created my own summary
+or handler function, but it doesn't really affect anything,
+so this is good enough.)
 
 But what if I was too optimistic? Using the 
 `redesign()` function, you can vary various 
