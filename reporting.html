@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-01-16" />
+<meta name="date" content="2024-01-17" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -156,10 +156,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#joining-or-merging-data"><i class="fa fa-check"></i>Joining (or merging) data</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i>Summarizing over groups (or collapsing data)</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#advanced-stuff"><i class="fa fa-check"></i>Advanced stuff</a>
-<ul>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row Wise Operations</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a>
+<ul>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-loops"><i class="fa fa-check"></i>Using loops</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-map-and-pmap"><i class="fa fa-check"></i>Using map() and pmap()</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-rowwise-and-mutate"><i class="fa fa-check"></i>Using rowwise and mutate</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-separate_longer"><i class="fa fa-check"></i>Using separate_longer()</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
@@ -214,25 +217,25 @@ table.</p>
 Adoption depends on the treatment and education and a random component.
 The page on <a href="declaredesign.html#declaredesign">DeclareDesign</a> has more advanced techniques
 to generate fake data.</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="reporting.html#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb27-2"><a href="reporting.html#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb27-3"><a href="reporting.html#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-4"><a href="reporting.html#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
-<span id="cb27-5"><a href="reporting.html#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb27-6"><a href="reporting.html#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="reporting.html#cb27-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span>  </span>
-<span id="cb27-8"><a href="reporting.html#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb27-9"><a href="reporting.html#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>({.} <span class="sc">%&gt;%</span></span>
-<span id="cb27-10"><a href="reporting.html#cb27-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(village) <span class="sc">%&gt;%</span></span>
-<span id="cb27-11"><a href="reporting.html#cb27-11" aria-hidden="true" tabindex="-1"></a>            <span class="fu">distinct</span>(village) <span class="sc">%&gt;%</span></span>
-<span id="cb27-12"><a href="reporting.html#cb27-12" aria-hidden="true" tabindex="-1"></a>            rowwise <span class="sc">%&gt;%</span></span>
-<span id="cb27-13"><a href="reporting.html#cb27-13" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.5</span>)))<span class="sc">%&gt;%</span></span>
-<span id="cb27-14"><a href="reporting.html#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb27-15"><a href="reporting.html#cb27-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">educated =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.3</span>),</span>
-<span id="cb27-16"><a href="reporting.html#cb27-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">u =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.2</span>,<span class="fl">0.3</span>),<span class="dv">1</span>),</span>
-<span id="cb27-17"><a href="reporting.html#cb27-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">prob =</span> <span class="fl">0.3</span> <span class="sc">*</span> treatment <span class="sc">+</span> <span class="fl">0.1</span> <span class="sc">*</span> educated <span class="sc">+</span> u,</span>
-<span id="cb27-18"><a href="reporting.html#cb27-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">uses_fertilizer =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,prob)) <span class="sc">%&gt;%</span></span>
-<span id="cb27-19"><a href="reporting.html#cb27-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>prob,<span class="sc">-</span>u)</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="reporting.html#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb33-2"><a href="reporting.html#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb33-3"><a href="reporting.html#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="reporting.html#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb33-5"><a href="reporting.html#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb33-6"><a href="reporting.html#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="reporting.html#cb33-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span>  </span>
+<span id="cb33-8"><a href="reporting.html#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-9"><a href="reporting.html#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>({.} <span class="sc">%&gt;%</span></span>
+<span id="cb33-10"><a href="reporting.html#cb33-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(village) <span class="sc">%&gt;%</span></span>
+<span id="cb33-11"><a href="reporting.html#cb33-11" aria-hidden="true" tabindex="-1"></a>            <span class="fu">distinct</span>(village) <span class="sc">%&gt;%</span></span>
+<span id="cb33-12"><a href="reporting.html#cb33-12" aria-hidden="true" tabindex="-1"></a>            rowwise <span class="sc">%&gt;%</span></span>
+<span id="cb33-13"><a href="reporting.html#cb33-13" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.5</span>)))<span class="sc">%&gt;%</span></span>
+<span id="cb33-14"><a href="reporting.html#cb33-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb33-15"><a href="reporting.html#cb33-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">educated =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="fl">0.3</span>),</span>
+<span id="cb33-16"><a href="reporting.html#cb33-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">u =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.2</span>,<span class="fl">0.3</span>),<span class="dv">1</span>),</span>
+<span id="cb33-17"><a href="reporting.html#cb33-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">prob =</span> <span class="fl">0.3</span> <span class="sc">*</span> treatment <span class="sc">+</span> <span class="fl">0.1</span> <span class="sc">*</span> educated <span class="sc">+</span> u,</span>
+<span id="cb33-18"><a href="reporting.html#cb33-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">uses_fertilizer =</span> <span class="fu">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,prob)) <span class="sc">%&gt;%</span></span>
+<span id="cb33-19"><a href="reporting.html#cb33-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>prob,<span class="sc">-</span>u)</span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -248,15 +251,15 @@ to generate fake data.</p>
 <h2>Making a table of summary statistics<a href="reporting.html#making-a-table-of-summary-statistics" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The first table we make is a table of descriptive statistics
 using the Arsenal package:</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="reporting.html#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arsenal)</span>
-<span id="cb29-2"><a href="reporting.html#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-3"><a href="reporting.html#cb29-3" aria-hidden="true" tabindex="-1"></a>descriptive_table <span class="ot">&lt;-</span></span>
-<span id="cb29-4"><a href="reporting.html#cb29-4" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
-<span id="cb29-5"><a href="reporting.html#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(is.numeric),<span class="sc">-</span>key_ID) <span class="sc">%&gt;%</span></span>
-<span id="cb29-6"><a href="reporting.html#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tableby</span>(treatment <span class="sc">~</span> ., </span>
-<span id="cb29-7"><a href="reporting.html#cb29-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> .)</span>
-<span id="cb29-8"><a href="reporting.html#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-9"><a href="reporting.html#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(descriptive_table)</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="reporting.html#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arsenal)</span>
+<span id="cb35-2"><a href="reporting.html#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="reporting.html#cb35-3" aria-hidden="true" tabindex="-1"></a>descriptive_table <span class="ot">&lt;-</span></span>
+<span id="cb35-4"><a href="reporting.html#cb35-4" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
+<span id="cb35-5"><a href="reporting.html#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(is.numeric),<span class="sc">-</span>key_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb35-6"><a href="reporting.html#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tableby</span>(treatment <span class="sc">~</span> ., </span>
+<span id="cb35-7"><a href="reporting.html#cb35-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> .)</span>
+<span id="cb35-8"><a href="reporting.html#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="reporting.html#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(descriptive_table)</span></code></pre></div>
 <pre><code>## 
 ## 
 ## |                            |    0 (N=82)     |    1 (N=49)     |  Total (N=131)  | p value|
@@ -287,15 +290,15 @@ let’s export it to word! For this, we use Arsenal’s <code>write2word()</code
 function. I had some trouble getting it to pick up my path, so I
 am using the <a href="https://here.r-lib.org/">here library</a> to generate
 a path for me. This library is a must for shared projects!</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="reporting.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write2word</span>(descriptive_table, <span class="fu">here</span>(<span class="st">&quot;tables/summ_stats.docx&quot;</span>), <span class="at">title =</span> <span class="st">&quot;Descriptive Statistics&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="reporting.html#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write2word</span>(descriptive_table, <span class="fu">here</span>(<span class="st">&quot;tables/summ_stats.docx&quot;</span>), <span class="at">title =</span> <span class="st">&quot;Descriptive Statistics&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <p>You can find the resulting .docx <a href="https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats.docx">here</a>.</p>
 </div>
 <div id="simple-regression" class="section level2 hasAnchor">
 <h2>Simple regression<a href="reporting.html#simple-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>A simple regression uses the <code>lm()</code> function. We save the results
 in an object, which we can later include in a table we export to word.</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="reporting.html#cb32-1" aria-hidden="true" tabindex="-1"></a>lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, <span class="at">data =</span> data)</span>
-<span id="cb32-2"><a href="reporting.html#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm)</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="reporting.html#cb38-1" aria-hidden="true" tabindex="-1"></a>lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, <span class="at">data =</span> data)</span>
+<span id="cb38-2"><a href="reporting.html#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm)</span></code></pre></div>
 <pre><code>## 
 ## Call:
 ## lm(formula = uses_fertilizer ~ treatment + educated, data = data)
@@ -320,11 +323,11 @@ in an object, which we can later include in a table we export to word.</p>
 <h2>Robust standard errors<a href="reporting.html#robust-standard-errors" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>To get robust standard errors (bootstrapped) clustered at the village
 level, we can use the following:</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="reporting.html#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb34-2"><a href="reporting.html#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb34-3"><a href="reporting.html#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-4"><a href="reporting.html#cb34-4" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(lm, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(lm, <span class="at">cluster=</span><span class="sc">~</span>village))</span>
-<span id="cb34-5"><a href="reporting.html#cb34-5" aria-hidden="true" tabindex="-1"></a>lm_robust</span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="reporting.html#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb40-2"><a href="reporting.html#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb40-3"><a href="reporting.html#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="reporting.html#cb40-4" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(lm, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(lm, <span class="at">cluster=</span><span class="sc">~</span>village))</span>
+<span id="cb40-5"><a href="reporting.html#cb40-5" aria-hidden="true" tabindex="-1"></a>lm_robust</span></code></pre></div>
 <pre><code>## 
 ## t test of coefficients:
 ## 
@@ -336,11 +339,11 @@ level, we can use the following:</p>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <!-- alternatively: use lm_robust from estimatr -->
 <p>Let’s also do a probit model:</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="reporting.html#cb36-1" aria-hidden="true" tabindex="-1"></a>probit <span class="ot">&lt;-</span> <span class="fu">glm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, </span>
-<span id="cb36-2"><a href="reporting.html#cb36-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;probit&quot;</span>), </span>
-<span id="cb36-3"><a href="reporting.html#cb36-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> data)</span>
-<span id="cb36-4"><a href="reporting.html#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-5"><a href="reporting.html#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(probit)</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="reporting.html#cb42-1" aria-hidden="true" tabindex="-1"></a>probit <span class="ot">&lt;-</span> <span class="fu">glm</span>(uses_fertilizer <span class="sc">~</span> treatment <span class="sc">+</span> educated, </span>
+<span id="cb42-2"><a href="reporting.html#cb42-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;probit&quot;</span>), </span>
+<span id="cb42-3"><a href="reporting.html#cb42-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> data)</span>
+<span id="cb42-4"><a href="reporting.html#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="reporting.html#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(probit)</span></code></pre></div>
 <pre><code>## 
 ## Call:
 ## glm(formula = uses_fertilizer ~ treatment + educated, family = binomial(link = &quot;probit&quot;), 
@@ -362,8 +365,8 @@ level, we can use the following:</p>
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
 <p>And get robust SEs:</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="reporting.html#cb38-1" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(probit, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(probit,<span class="at">cluster=</span><span class="sc">~</span>village))</span>
-<span id="cb38-2"><a href="reporting.html#cb38-2" aria-hidden="true" tabindex="-1"></a>probit_robust</span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="reporting.html#cb44-1" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(probit, <span class="at">vcov =</span> <span class="fu">vcovBS</span>(probit,<span class="at">cluster=</span><span class="sc">~</span>village))</span>
+<span id="cb44-2"><a href="reporting.html#cb44-2" aria-hidden="true" tabindex="-1"></a>probit_robust</span></code></pre></div>
 <pre><code>## 
 ## z test of coefficients:
 ## 
@@ -383,27 +386,27 @@ to the model output.</p>
 The package is extremely flexible, so check out <a href="https://cran.r-project.org/web/packages/huxtable/vignettes/huxreg.html">its website</a>.
 Some of the flexibility is seen below, by adding the number of clusters
 and formatting the number in the resulting table.</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="reporting.html#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">#add the number of clusers to each</span></span>
-<span id="cb40-2"><a href="reporting.html#cb40-2" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> </span>
-<span id="cb40-3"><a href="reporting.html#cb40-3" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(lm_robust,</span>
-<span id="cb40-4"><a href="reporting.html#cb40-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
-<span id="cb40-5"><a href="reporting.html#cb40-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
-<span id="cb40-6"><a href="reporting.html#cb40-6" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> </span>
-<span id="cb40-7"><a href="reporting.html#cb40-7" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(probit_robust,</span>
-<span id="cb40-8"><a href="reporting.html#cb40-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
-<span id="cb40-9"><a href="reporting.html#cb40-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
-<span id="cb40-10"><a href="reporting.html#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="co">#make the table</span></span>
-<span id="cb40-11"><a href="reporting.html#cb40-11" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span></span>
-<span id="cb40-12"><a href="reporting.html#cb40-12" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">huxreg</span>(<span class="st">&quot;Linear&quot;</span> <span class="ot">=</span> lm,<span class="st">&quot;Linear Robust&quot;</span> <span class="ot">=</span> lm_robust,</span>
-<span id="cb40-13"><a href="reporting.html#cb40-13" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;Probit&quot;</span> <span class="ot">=</span> probit, <span class="st">&quot;Probit Robust&quot;</span> <span class="ot">=</span> probit_robust,</span>
-<span id="cb40-14"><a href="reporting.html#cb40-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">statistics =</span> <span class="fu">c</span>(<span class="at">N =</span> <span class="st">&quot;nobs&quot;</span>,</span>
-<span id="cb40-15"><a href="reporting.html#cb40-15" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Clusters =</span> <span class="st">&quot;n_clusters&quot;</span>, </span>
-<span id="cb40-16"><a href="reporting.html#cb40-16" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Adj. R2&quot;</span> <span class="ot">=</span> <span class="st">&quot;adj.r.squared&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb40-17"><a href="reporting.html#cb40-17" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_number_format</span>(<span class="at">row=</span><span class="dv">9</span>,<span class="at">value=</span><span class="dv">0</span>)</span>
-<span id="cb40-18"><a href="reporting.html#cb40-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-19"><a href="reporting.html#cb40-19" aria-hidden="true" tabindex="-1"></a>reg_table</span></code></pre></div>
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-20">
-<caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-20">Table 1: </span> </caption><col><col><col><col><col><tr>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="reporting.html#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#add the number of clusers to each</span></span>
+<span id="cb46-2"><a href="reporting.html#cb46-2" aria-hidden="true" tabindex="-1"></a>lm_robust <span class="ot">&lt;-</span> </span>
+<span id="cb46-3"><a href="reporting.html#cb46-3" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(lm_robust,</span>
+<span id="cb46-4"><a href="reporting.html#cb46-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
+<span id="cb46-5"><a href="reporting.html#cb46-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
+<span id="cb46-6"><a href="reporting.html#cb46-6" aria-hidden="true" tabindex="-1"></a>probit_robust <span class="ot">&lt;-</span> </span>
+<span id="cb46-7"><a href="reporting.html#cb46-7" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">tidy_override</span>(probit_robust,</span>
+<span id="cb46-8"><a href="reporting.html#cb46-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">glance =</span> <span class="fu">list</span>(<span class="at">n_clusters =</span> <span class="dv">4</span>),</span>
+<span id="cb46-9"><a href="reporting.html#cb46-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">extend=</span><span class="cn">TRUE</span>)</span>
+<span id="cb46-10"><a href="reporting.html#cb46-10" aria-hidden="true" tabindex="-1"></a><span class="co">#make the table</span></span>
+<span id="cb46-11"><a href="reporting.html#cb46-11" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span></span>
+<span id="cb46-12"><a href="reporting.html#cb46-12" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">huxreg</span>(<span class="st">&quot;Linear&quot;</span> <span class="ot">=</span> lm,<span class="st">&quot;Linear Robust&quot;</span> <span class="ot">=</span> lm_robust,</span>
+<span id="cb46-13"><a href="reporting.html#cb46-13" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;Probit&quot;</span> <span class="ot">=</span> probit, <span class="st">&quot;Probit Robust&quot;</span> <span class="ot">=</span> probit_robust,</span>
+<span id="cb46-14"><a href="reporting.html#cb46-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">statistics =</span> <span class="fu">c</span>(<span class="at">N =</span> <span class="st">&quot;nobs&quot;</span>,</span>
+<span id="cb46-15"><a href="reporting.html#cb46-15" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Clusters =</span> <span class="st">&quot;n_clusters&quot;</span>, </span>
+<span id="cb46-16"><a href="reporting.html#cb46-16" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Adj. R2&quot;</span> <span class="ot">=</span> <span class="st">&quot;adj.r.squared&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb46-17"><a href="reporting.html#cb46-17" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_number_format</span>(<span class="at">row=</span><span class="dv">9</span>,<span class="at">value=</span><span class="dv">0</span>)</span>
+<span id="cb46-18"><a href="reporting.html#cb46-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-19"><a href="reporting.html#cb46-19" aria-hidden="true" tabindex="-1"></a>reg_table</span></code></pre></div>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-23">
+<caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-23">Table 1: </span> </caption><col><col><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Linear</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Linear Robust</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Probit</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Probit Robust</th></tr>
 <tr>
 <th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(Intercept)</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.207 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.207 **</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.813 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.813 **</td></tr>
@@ -432,9 +435,9 @@ Word. We can use <code>as_flextable()</code> to convert to flextable
 (note that I had bad results with <code>flextable::as_flextable()</code>, so make
 sure to use <code>huxtable::as_flextable()</code>), and then use flextable
 to export to docx.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="reporting.html#cb41-1" aria-hidden="true" tabindex="-1"></a>reg_table <span class="sc">%&gt;%</span></span>
-<span id="cb41-2"><a href="reporting.html#cb41-2" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">as_flextable</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb41-3"><a href="reporting.html#cb41-3" aria-hidden="true" tabindex="-1"></a>  flextable<span class="sc">::</span><span class="fu">save_as_docx</span>(<span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;tables/regression_table.docx&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="reporting.html#cb47-1" aria-hidden="true" tabindex="-1"></a>reg_table <span class="sc">%&gt;%</span></span>
+<span id="cb47-2"><a href="reporting.html#cb47-2" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">as_flextable</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb47-3"><a href="reporting.html#cb47-3" aria-hidden="true" tabindex="-1"></a>  flextable<span class="sc">::</span><span class="fu">save_as_docx</span>(<span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;tables/regression_table.docx&quot;</span>))</span></code></pre></div>
 <p>You can find there output <a href="https://github.com/kleuveld/r_cheatsheet/raw/main/tables/regression_table.docx">here</a>.</p>
 
 </div>

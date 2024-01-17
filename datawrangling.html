@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-01-16" />
+<meta name="date" content="2024-01-17" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -156,10 +156,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#joining-or-merging-data"><i class="fa fa-check"></i>Joining (or merging) data</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i>Summarizing over groups (or collapsing data)</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#advanced-stuff"><i class="fa fa-check"></i>Advanced stuff</a>
-<ul>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row Wise Operations</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a>
+<ul>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-loops"><i class="fa fa-check"></i>Using loops</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-map-and-pmap"><i class="fa fa-check"></i>Using map() and pmap()</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-rowwise-and-mutate"><i class="fa fa-check"></i>Using rowwise and mutate</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-separate_longer"><i class="fa fa-check"></i>Using separate_longer()</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
@@ -251,16 +254,16 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    37
-##  2      1         2      0    21
-##  3      1         3      0    21
-##  4      2         1      1    59
-##  5      2         2      1    86
-##  6      2         3      1    40
-##  7      2         4      0     2
-##  8      2         5      1    39
-##  9      2         6      1    49
-## 10      2         7      1    65
+##  1      1         1      0    50
+##  2      1         2      0    50
+##  3      1         3      1    81
+##  4      2         1      0    29
+##  5      2         2      1    47
+##  6      2         3      0    73
+##  7      2         4      0    80
+##  8      2         5      1    75
+##  9      2         6      1    83
+## 10      2         7      0    60
 ## # ℹ 932 more rows</code></pre>
 </div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
@@ -274,16 +277,16 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
 ##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        1        0        0       NA       NA       NA       NA
-##  2      2        1        1        1        0        1        1        1
-##  3      3        1        1        0        1        1        1        0
-##  4      4        1        0        0        1        1        1        1
-##  5      5        1        1        0        0        1        0        0
+##  1      1        0        0        1       NA       NA       NA       NA
+##  2      2        0        1        0        0        1        1        0
+##  3      3        1        0        1        1        0        0        1
+##  4      4        1        0        1        1        0        1        1
+##  5      5        0        0        0        0        0        1        0
 ##  6      6        0        1        0       NA       NA       NA       NA
-##  7      7        0        0        0        1        1        1       NA
-##  8      8        0        0        1        1        0        0        1
-##  9      9        1        0        1        0        0        1        1
-## 10     10        0        1        0        1        1        0        0
+##  7      7        1        1        1        1        0        1       NA
+##  8      8        1        1        1        1        0        1        1
+##  9      9        1        0        1        0        0        1        0
+## 10     10        1        0        0        1        0        0        1
 ## # ℹ 121 more rows
 ## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
 ## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
@@ -312,16 +315,16 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    37
-##  2      1         2      0    21
-##  3      1         3      0    21
-##  4      2         1      1    59
-##  5      2         2      1    86
-##  6      2         3      1    40
-##  7      2         4      0     2
-##  8      2         5      1    39
-##  9      2         6      1    49
-## 10      2         7      1    65
+##  1      1         1      0    50
+##  2      1         2      0    50
+##  3      1         3      1    81
+##  4      2         1      0    29
+##  5      2         2      1    47
+##  6      2         3      0    73
+##  7      2         4      0    80
+##  8      2         5      1    75
+##  9      2         6      1    83
+## 10      2         7      0    60
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
 how I intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. I don’t really want to touch the key_ID
@@ -410,16 +413,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    37 God     2016-11-17 00:00:00
-##  2      1         2      0    21 God     2016-11-17 00:00:00
-##  3      1         3      0    21 God     2016-11-17 00:00:00
-##  4      2         1      1    59 God     2016-11-17 00:00:00
-##  5      2         2      1    86 God     2016-11-17 00:00:00
-##  6      2         3      1    40 God     2016-11-17 00:00:00
-##  7      2         4      0     2 God     2016-11-17 00:00:00
-##  8      2         5      1    39 God     2016-11-17 00:00:00
-##  9      2         6      1    49 God     2016-11-17 00:00:00
-## 10      2         7      1    65 God     2016-11-17 00:00:00
+##  1      1         1      0    50 God     2016-11-17 00:00:00
+##  2      1         2      0    50 God     2016-11-17 00:00:00
+##  3      1         3      1    81 God     2016-11-17 00:00:00
+##  4      2         1      0    29 God     2016-11-17 00:00:00
+##  5      2         2      1    47 God     2016-11-17 00:00:00
+##  6      2         3      0    73 God     2016-11-17 00:00:00
+##  7      2         4      0    80 God     2016-11-17 00:00:00
+##  8      2         5      1    75 God     2016-11-17 00:00:00
+##  9      2         6      1    83 God     2016-11-17 00:00:00
+## 10      2         7      0    60 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -434,22 +437,20 @@ compute the household size, number of women and average age in each household:</
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         1     26.3
-##  2      2       7         6     48.6
-##  3      3      10         7     45.1
-##  4      4       7         5     30.9
-##  5      5       7         3     45.6
-##  6      6       3         1     59.3
-##  7      7       6         3     34.8
-##  8      8      12         7     52.7
-##  9      9       8         4     38.2
-## 10     10      12         6     34.4
+##  1      1       3         1     60.3
+##  2      2       7         3     63.9
+##  3      3      10         5     54.6
+##  4      4       7         5     41.1
+##  5      5       7         1     26  
+##  6      6       3         1     36.3
+##  7      7       6         5     38.2
+##  8      8      12         8     47.9
+##  9      9       8         4     45.9
+## 10     10      12         5     45.2
 ## # ℹ 121 more rows</code></pre>
 </div>
-<div id="advanced-stuff" class="section level2 hasAnchor">
-<h2>Advanced stuff<a href="datawrangling.html#advanced-stuff" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<div id="row-wise-operations" class="section level3 hasAnchor">
-<h3>Row Wise Operations<a href="datawrangling.html#row-wise-operations" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="row-wise-operations" class="section level2 hasAnchor">
+<h2>Row Wise Operations<a href="datawrangling.html#row-wise-operations" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Suppose we wanted to run an operation over multiple variables. For example to
 get the household size, number of women and average age. The easiest,
 and probably best, way to do this in R is by reshaping to long, and the use
@@ -469,24 +470,24 @@ You can do similar things in R. It’s just a bit more complex than in Stata:</p
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         1     26.3
-##  2      2       7         6     48.6
-##  3      3      10         7     45.1
-##  4      4       7         5     30.9
-##  5      5       7         3     45.6
-##  6      6       3         1     59.3
-##  7      7       6         3     34.8
-##  8      8      12         7     52.7
-##  9      9       8         4     38.2
-## 10     10      12         6     34.4
+##  1      1       3         1     60.3
+##  2      2       7         3     63.9
+##  3      3      10         5     54.6
+##  4      4       7         5     41.1
+##  5      5       7         1     26  
+##  6      6       3         1     36.3
+##  7      7       6         5     38.2
+##  8      8      12         8     47.9
+##  9      9       8         4     45.9
+## 10     10      12         5     45.2
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensure all summaries are computed per row, and <code>c_across()</code>
 allows you to use <a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html">tidy select</a> syntax within the <code>mean()</code> and <code>sum()</code> functions.
 <code>sum(!is.na())</code> simply counts the non-missing values.</p>
 </div>
-<div id="splitting-multi-response-variable-into-dummies" class="section level3 hasAnchor">
-<h3>Splitting multi-response variable into dummies<a href="datawrangling.html#splitting-multi-response-variable-into-dummies" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="splitting-multi-response-variable-into-dummies" class="section level2 hasAnchor">
+<h2>Splitting multi-response variable into dummies<a href="datawrangling.html#splitting-multi-response-variable-into-dummies" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The SAFI data contains a number of columns that contain all responses selected
 in a multiple response questions. For example, the variables <code>items_owned</code> can
 contain something like <code>"bicycle;television;solar_panel;table"</code>. We want to
@@ -496,12 +497,11 @@ ways to do this:</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="datawrangling.html#cb20-1" aria-hidden="true" tabindex="-1"></a>split_without_loop <span class="ot">&lt;-</span> </span>
 <span id="cb20-2"><a href="datawrangling.html#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb20-3"><a href="datawrangling.html#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(items_owned) <span class="sc">%&gt;%</span></span>
-<span id="cb20-4"><a href="datawrangling.html#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned), </span>
-<span id="cb20-5"><a href="datawrangling.html#cb20-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">owns_bicycle =</span> <span class="fu">str_count</span>(.data<span class="sc">$</span>items_owned,<span class="st">&quot;bicycle&quot;</span>), </span>
-<span id="cb20-6"><a href="datawrangling.html#cb20-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">owns_television =</span> <span class="fu">str_count</span>(.data<span class="sc">$</span>items_owned,<span class="st">&quot;television&quot;</span>)) </span>
-<span id="cb20-7"><a href="datawrangling.html#cb20-7" aria-hidden="true" tabindex="-1"></a>           <span class="co">#etc etc.</span></span>
-<span id="cb20-8"><a href="datawrangling.html#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-9"><a href="datawrangling.html#cb20-9" aria-hidden="true" tabindex="-1"></a>split_without_loop</span></code></pre></div>
+<span id="cb20-4"><a href="datawrangling.html#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">owns_bicycle =</span> <span class="fu">str_count</span>(.data<span class="sc">$</span>items_owned,<span class="st">&quot;bicycle&quot;</span>), </span>
+<span id="cb20-5"><a href="datawrangling.html#cb20-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">owns_television =</span> <span class="fu">str_count</span>(.data<span class="sc">$</span>items_owned,<span class="st">&quot;television&quot;</span>)) </span>
+<span id="cb20-6"><a href="datawrangling.html#cb20-6" aria-hidden="true" tabindex="-1"></a>           <span class="co">#etc etc.</span></span>
+<span id="cb20-7"><a href="datawrangling.html#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="datawrangling.html#cb20-8" aria-hidden="true" tabindex="-1"></a>split_without_loop</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 3
 ##    items_owned                                      owns_bicycle owns_television
 ##    &lt;chr&gt;                                                   &lt;int&gt;           &lt;int&gt;
@@ -510,12 +510,14 @@ ways to do this:</p>
 ##  3 solar_torch                                                 0               0
 ##  4 bicycle;radio;cow_plough;solar_panel;mobile_pho…            1               0
 ##  5 motorcyle;radio;cow_plough;mobile_phone                     0               0
-##  6 None                                                        0               0
+##  6 &lt;NA&gt;                                                       NA              NA
 ##  7 motorcyle;cow_plough                                        0               0
 ##  8 motorcyle;bicycle;television;radio;cow_plough;s…            1               1
 ##  9 television;solar_panel;solar_torch                          0               1
 ## 10 cow_cart;motorcyle;bicycle;television;radio;cow…            1               1
 ## # ℹ 121 more rows</code></pre>
+<div id="using-loops" class="section level3 hasAnchor">
+<h3>Using loops<a href="datawrangling.html#using-loops" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>This gets extremely tedious, better to put everything in a loop:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="datawrangling.html#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define the vector to loop over</span></span>
 <span id="cb22-2"><a href="datawrangling.html#cb22-2" aria-hidden="true" tabindex="-1"></a>items <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;bicycle&quot;</span>,<span class="st">&quot;television&quot;</span>,<span class="st">&quot;solar_panel&quot;</span>,<span class="st">&quot;table&quot;</span>,<span class="st">&quot;cow_cart&quot;</span>,<span class="st">&quot;radio&quot;</span>,</span>
@@ -525,17 +527,16 @@ ways to do this:</p>
 <span id="cb22-6"><a href="datawrangling.html#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="co">#prepare the data</span></span>
 <span id="cb22-7"><a href="datawrangling.html#cb22-7" aria-hidden="true" tabindex="-1"></a>split_with_loop <span class="ot">&lt;-</span> </span>
 <span id="cb22-8"><a href="datawrangling.html#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb22-9"><a href="datawrangling.html#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
-<span id="cb22-10"><a href="datawrangling.html#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(items_owned)</span>
-<span id="cb22-11"><a href="datawrangling.html#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-12"><a href="datawrangling.html#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co">#and add to the data each iteration of a loop</span></span>
-<span id="cb22-13"><a href="datawrangling.html#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> items){</span>
-<span id="cb22-14"><a href="datawrangling.html#cb22-14" aria-hidden="true" tabindex="-1"></a>    split_with_loop <span class="ot">&lt;-</span></span>
-<span id="cb22-15"><a href="datawrangling.html#cb22-15" aria-hidden="true" tabindex="-1"></a>        split_with_loop <span class="sc">%&gt;%</span></span>
-<span id="cb22-16"><a href="datawrangling.html#cb22-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="st">&quot;owns_{i}&quot;</span> <span class="sc">:</span><span class="er">=</span> <span class="fu">str_count</span>(.data<span class="sc">$</span>items_owned,i))</span>
-<span id="cb22-17"><a href="datawrangling.html#cb22-17" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb22-18"><a href="datawrangling.html#cb22-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-19"><a href="datawrangling.html#cb22-19" aria-hidden="true" tabindex="-1"></a>split_with_loop</span></code></pre></div>
+<span id="cb22-9"><a href="datawrangling.html#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(items_owned)</span>
+<span id="cb22-10"><a href="datawrangling.html#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="datawrangling.html#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co">#and add to the data each iteration of a loop</span></span>
+<span id="cb22-12"><a href="datawrangling.html#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> items){</span>
+<span id="cb22-13"><a href="datawrangling.html#cb22-13" aria-hidden="true" tabindex="-1"></a>    split_with_loop <span class="ot">&lt;-</span></span>
+<span id="cb22-14"><a href="datawrangling.html#cb22-14" aria-hidden="true" tabindex="-1"></a>        split_with_loop <span class="sc">%&gt;%</span></span>
+<span id="cb22-15"><a href="datawrangling.html#cb22-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="st">&quot;owns_{i}&quot;</span> <span class="sc">:</span><span class="er">=</span> <span class="fu">str_count</span>(.data<span class="sc">$</span>items_owned,i))</span>
+<span id="cb22-16"><a href="datawrangling.html#cb22-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb22-17"><a href="datawrangling.html#cb22-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-18"><a href="datawrangling.html#cb22-18" aria-hidden="true" tabindex="-1"></a>split_with_loop</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 18
 ##    items_owned          owns_bicycle owns_television owns_solar_panel owns_table
 ##    &lt;chr&gt;                       &lt;int&gt;           &lt;int&gt;            &lt;int&gt;      &lt;int&gt;
@@ -544,7 +545,7 @@ ways to do this:</p>
 ##  3 solar_torch                     0               0                0          0
 ##  4 bicycle;radio;cow_p…            1               0                1          0
 ##  5 motorcyle;radio;cow…            0               0                0          0
-##  6 None                            0               0                0          0
+##  6 &lt;NA&gt;                           NA              NA               NA         NA
 ##  7 motorcyle;cow_plough            0               0                0          0
 ##  8 motorcyle;bicycle;t…            1               1                1          1
 ##  9 television;solar_pa…            0               1                1          0
@@ -556,20 +557,111 @@ ways to do this:</p>
 ## #   owns_sofa_set &lt;int&gt;, owns_lorry &lt;int&gt;, owns_sterio &lt;int&gt;,
 ## #   owns_computer &lt;int&gt;, owns_car &lt;int&gt;</code></pre>
 <p>Note how we used <code>"owns_{i}" :=</code> to dynamically create variable names in the <code>mutate()</code> function.</p>
-<p>Writing a vector with possible values is still tedious, so to prevent even that,
-split the string variable using <code>separate_rows()</code>, which outputs a long table; and then
-pivot back to household level, making sure to fill in NAs with 0.</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="datawrangling.html#cb24-1" aria-hidden="true" tabindex="-1"></a>prefix <span class="ot">&lt;-</span> <span class="st">&quot;owns_&quot;</span></span>
-<span id="cb24-2"><a href="datawrangling.html#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-3"><a href="datawrangling.html#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb24-4"><a href="datawrangling.html#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
-<span id="cb24-5"><a href="datawrangling.html#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,items_owned) <span class="sc">%&gt;%</span></span>
-<span id="cb24-6"><a href="datawrangling.html#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate_longer_delim</span>(items_owned, <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb24-7"><a href="datawrangling.html#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb24-8"><a href="datawrangling.html#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
-<span id="cb24-9"><a href="datawrangling.html#cb24-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
-<span id="cb24-10"><a href="datawrangling.html#cb24-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">names_glue =</span> <span class="st">&quot;{prefix}{items_owned}&quot;</span>,</span>
-<span id="cb24-11"><a href="datawrangling.html#cb24-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) </span></code></pre></div>
+</div>
+<div id="using-map-and-pmap" class="section level3 hasAnchor">
+<h3>Using map() and pmap()<a href="datawrangling.html#using-map-and-pmap" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Loops have the reputation of being slow, so if performance is importatn
+you can also use
+<code>map()</code> to repeat a function for every element in a vector.</p>
+<p>You can iterate over the vector of items, which is essentially
+the same thing I did with a loop above (but faster):</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="datawrangling.html#cb24-1" aria-hidden="true" tabindex="-1"></a>split_with_map <span class="ot">&lt;-</span> </span>
+<span id="cb24-2"><a href="datawrangling.html#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>)</span>
+<span id="cb24-3"><a href="datawrangling.html#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="datawrangling.html#cb24-4" aria-hidden="true" tabindex="-1"></a>items <span class="sc">%&gt;%</span></span>
+<span id="cb24-5"><a href="datawrangling.html#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble_row</span>(<span class="at">.name_repair =</span> <span class="sc">~</span><span class="fu">paste0</span>(<span class="st">&quot;owns_&quot;</span>,items)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-6"><a href="datawrangling.html#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_df</span>(\(x) <span class="fu">str_count</span>(split_with_map<span class="sc">$</span>items_owned,x))</span></code></pre></div>
+<pre><code>## # A tibble: 131 × 17
+##    owns_bicycle owns_television owns_solar_panel owns_table owns_cow_cart
+##           &lt;int&gt;           &lt;int&gt;            &lt;int&gt;      &lt;int&gt;         &lt;int&gt;
+##  1            1               1                1          1             0
+##  2            1               0                1          1             1
+##  3            0               0                0          0             0
+##  4            1               0                1          0             0
+##  5            0               0                0          0             0
+##  6           NA              NA               NA         NA            NA
+##  7            0               0                0          0             0
+##  8            1               1                1          1             0
+##  9            0               1                1          0             0
+## 10            1               1                1          1             1
+## # ℹ 121 more rows
+## # ℹ 12 more variables: owns_radio &lt;int&gt;, owns_cow_plough &lt;int&gt;,
+## #   owns_solar_torch &lt;int&gt;, owns_mobile_phone &lt;int&gt;, owns_motor_cycle &lt;int&gt;,
+## #   owns_fridge &lt;int&gt;, owns_electricity &lt;int&gt;, owns_sofa_set &lt;int&gt;,
+## #   owns_lorry &lt;int&gt;, owns_sterio &lt;int&gt;, owns_computer &lt;int&gt;, owns_car &lt;int&gt;</code></pre>
+<p>But you can also iterate over the rows in a data frame using <code>pmap()</code>,
+which may be easier to include in a pipe:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="datawrangling.html#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="datawrangling.html#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(.,</span>
+<span id="cb26-3"><a href="datawrangling.html#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pmap_dfr</span>({.}, </span>
+<span id="cb26-4"><a href="datawrangling.html#cb26-4" aria-hidden="true" tabindex="-1"></a>     <span class="cf">function</span>(items_owned,...) {</span>
+<span id="cb26-5"><a href="datawrangling.html#cb26-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">as_tibble_row</span>(<span class="fu">str_count</span>(items_owned,items),</span>
+<span id="cb26-6"><a href="datawrangling.html#cb26-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">.name_repair =</span> <span class="sc">~</span><span class="fu">paste0</span>(<span class="st">&quot;owns_&quot;</span>,items))</span>
+<span id="cb26-7"><a href="datawrangling.html#cb26-7" aria-hidden="true" tabindex="-1"></a>     })</span>
+<span id="cb26-8"><a href="datawrangling.html#cb26-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<pre><code>## # A tibble: 131 × 31
+##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
+##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
+##  1      1 God      2016-11-17 00:00:00         3         4 muddaub             
+##  2      2 God      2016-11-17 00:00:00         7         9 muddaub             
+##  3      3 God      2016-11-17 00:00:00        10        15 burntbricks         
+##  4      4 God      2016-11-17 00:00:00         7         6 burntbricks         
+##  5      5 God      2016-11-17 00:00:00         7        40 burntbricks         
+##  6      6 God      2016-11-17 00:00:00         3         3 muddaub             
+##  7      7 God      2016-11-17 00:00:00         6        38 muddaub             
+##  8      8 Chirodzo 2016-11-16 00:00:00        12        70 burntbricks         
+##  9      9 Chirodzo 2016-11-16 00:00:00         8         6 burntbricks         
+## 10     10 Chirodzo 2016-12-16 00:00:00        12        23 burntbricks         
+## # ℹ 121 more rows
+## # ℹ 25 more variables: rooms &lt;dbl&gt;, memb_assoc &lt;chr&gt;, affect_conflicts &lt;chr&gt;,
+## #   liv_count &lt;dbl&gt;, items_owned &lt;chr&gt;, no_meals &lt;dbl&gt;, months_lack_food &lt;chr&gt;,
+## #   instanceID &lt;chr&gt;, owns_bicycle &lt;int&gt;, owns_television &lt;int&gt;,
+## #   owns_solar_panel &lt;int&gt;, owns_table &lt;int&gt;, owns_cow_cart &lt;int&gt;,
+## #   owns_radio &lt;int&gt;, owns_cow_plough &lt;int&gt;, owns_solar_torch &lt;int&gt;,
+## #   owns_mobile_phone &lt;int&gt;, owns_motor_cycle &lt;int&gt;, owns_fridge &lt;int&gt;, …</code></pre>
+</div>
+<div id="using-rowwise-and-mutate" class="section level3 hasAnchor">
+<h3>Using rowwise and mutate<a href="datawrangling.html#using-rowwise-and-mutate" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>While <code>map()</code> is faster, you can use <code>mutate()</code>
+to nest a data set into a variable. That, combined with
+<code>as_tibble_row()</code>:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="datawrangling.html#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a href="datawrangling.html#cb28-2" aria-hidden="true" tabindex="-1"></a>  rowwise <span class="sc">%&gt;%</span></span>
+<span id="cb28-3"><a href="datawrangling.html#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> <span class="fu">as_tibble_row</span>(<span class="fu">str_count</span>(items_owned,items),</span>
+<span id="cb28-4"><a href="datawrangling.html#cb28-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">.name_repair =</span> <span class="sc">~</span><span class="fu">paste0</span>(<span class="st">&quot;owns_&quot;</span>,</span>
+<span id="cb28-5"><a href="datawrangling.html#cb28-5" aria-hidden="true" tabindex="-1"></a>                                                  items))) <span class="sc">%&gt;%</span></span>
+<span id="cb28-6"><a href="datawrangling.html#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols=</span><span class="fu">c</span>(x))</span></code></pre></div>
+<pre><code>## # A tibble: 131 × 31
+##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
+##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
+##  1      1 God      2016-11-17 00:00:00         3         4 muddaub             
+##  2      2 God      2016-11-17 00:00:00         7         9 muddaub             
+##  3      3 God      2016-11-17 00:00:00        10        15 burntbricks         
+##  4      4 God      2016-11-17 00:00:00         7         6 burntbricks         
+##  5      5 God      2016-11-17 00:00:00         7        40 burntbricks         
+##  6      6 God      2016-11-17 00:00:00         3         3 muddaub             
+##  7      7 God      2016-11-17 00:00:00         6        38 muddaub             
+##  8      8 Chirodzo 2016-11-16 00:00:00        12        70 burntbricks         
+##  9      9 Chirodzo 2016-11-16 00:00:00         8         6 burntbricks         
+## 10     10 Chirodzo 2016-12-16 00:00:00        12        23 burntbricks         
+## # ℹ 121 more rows
+## # ℹ 25 more variables: rooms &lt;dbl&gt;, memb_assoc &lt;chr&gt;, affect_conflicts &lt;chr&gt;,
+## #   liv_count &lt;dbl&gt;, items_owned &lt;chr&gt;, no_meals &lt;dbl&gt;, months_lack_food &lt;chr&gt;,
+## #   instanceID &lt;chr&gt;, owns_bicycle &lt;int&gt;, owns_television &lt;int&gt;,
+## #   owns_solar_panel &lt;int&gt;, owns_table &lt;int&gt;, owns_cow_cart &lt;int&gt;,
+## #   owns_radio &lt;int&gt;, owns_cow_plough &lt;int&gt;, owns_solar_torch &lt;int&gt;,
+## #   owns_mobile_phone &lt;int&gt;, owns_motor_cycle &lt;int&gt;, owns_fridge &lt;int&gt;, …</code></pre>
+</div>
+<div id="using-separate_longer" class="section level3 hasAnchor">
+<h3>Using separate_longer()<a href="datawrangling.html#using-separate_longer" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>If writing a vector with possible values is too tedious/error prone:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="datawrangling.html#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-2"><a href="datawrangling.html#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate_longer_delim</span>(items_owned, <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-3"><a href="datawrangling.html#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-4"><a href="datawrangling.html#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
+<span id="cb30-5"><a href="datawrangling.html#cb30-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
+<span id="cb30-6"><a href="datawrangling.html#cb30-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">names_glue =</span> <span class="st">&quot;owns_{items_owned}&quot;</span>,</span>
+<span id="cb30-7"><a href="datawrangling.html#cb30-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) </span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -579,26 +671,26 @@ pivot back to household level, making sure to fill in NAs with 0.</p>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre><code>## # A tibble: 131 × 19
-##    key_ID owns_bicycle owns_television owns_solar_panel owns_table owns_cow_cart
-##     &lt;dbl&gt;        &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;      &lt;dbl&gt;         &lt;dbl&gt;
-##  1      1            1               1                1          1             0
-##  2      2            1               0                1          1             1
-##  3      3            0               0                0          0             0
-##  4      4            1               0                1          0             0
-##  5      5            0               0                0          0             0
-##  6      6            0               0                0          0             0
-##  7      7            0               0                0          0             0
-##  8      8            1               1                1          1             0
-##  9      9            0               1                1          0             0
-## 10     10            1               1                1          1             1
+<pre><code>## # A tibble: 131 × 31
+##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
+##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
+##  1      1 God      2016-11-17 00:00:00         3         4 muddaub             
+##  2      2 God      2016-11-17 00:00:00         7         9 muddaub             
+##  3      3 God      2016-11-17 00:00:00        10        15 burntbricks         
+##  4      4 God      2016-11-17 00:00:00         7         6 burntbricks         
+##  5      5 God      2016-11-17 00:00:00         7        40 burntbricks         
+##  6      6 God      2016-11-17 00:00:00         3         3 muddaub             
+##  7      7 God      2016-11-17 00:00:00         6        38 muddaub             
+##  8      8 Chirodzo 2016-11-16 00:00:00        12        70 burntbricks         
+##  9      9 Chirodzo 2016-11-16 00:00:00         8         6 burntbricks         
+## 10     10 Chirodzo 2016-12-16 00:00:00        12        23 burntbricks         
 ## # ℹ 121 more rows
-## # ℹ 13 more variables: owns_radio &lt;dbl&gt;, owns_cow_plough &lt;dbl&gt;,
-## #   owns_solar_torch &lt;dbl&gt;, owns_mobile_phone &lt;dbl&gt;, owns_motorcyle &lt;dbl&gt;,
-## #   owns_None &lt;dbl&gt;, owns_fridge &lt;dbl&gt;, owns_electricity &lt;dbl&gt;,
-## #   owns_sofa_set &lt;dbl&gt;, owns_lorry &lt;dbl&gt;, owns_sterio &lt;dbl&gt;,
-## #   owns_computer &lt;dbl&gt;, owns_car &lt;dbl&gt;</code></pre>
-<p>Just leave out the line <code>select(key_ID,items_owned) %&gt;%</code> to keep your entire dataset.</p>
+## # ℹ 25 more variables: rooms &lt;dbl&gt;, memb_assoc &lt;chr&gt;, affect_conflicts &lt;chr&gt;,
+## #   liv_count &lt;dbl&gt;, no_meals &lt;dbl&gt;, months_lack_food &lt;chr&gt;, instanceID &lt;chr&gt;,
+## #   owns_bicycle &lt;dbl&gt;, owns_television &lt;dbl&gt;, owns_solar_panel &lt;dbl&gt;,
+## #   owns_table &lt;dbl&gt;, owns_cow_cart &lt;dbl&gt;, owns_radio &lt;dbl&gt;,
+## #   owns_cow_plough &lt;dbl&gt;, owns_solar_torch &lt;dbl&gt;, owns_mobile_phone &lt;dbl&gt;,
+## #   owns_motorcyle &lt;dbl&gt;, owns_NA &lt;dbl&gt;, owns_fridge &lt;dbl&gt;, …</code></pre>
 
 </div>
 </div>
