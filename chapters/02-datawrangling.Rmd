@@ -162,9 +162,8 @@ long_data %>%
     summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age))    
 ```
 
-## Advanced stuff
 
-### Row Wise Operations
+## Row Wise Operations
 
 Suppose we wanted to run an operation over multiple variables. For example to
 get the household size, number of women and average age. The easiest,
@@ -194,7 +193,7 @@ The key trick here is the combination of `rowwise()` and `c_across()`.
 allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
 `sum(!is.na())` simply counts the non-missing values.
 
-### Splitting multi-response variable into dummies
+## Splitting multi-response variable into dummies
 
 The SAFI data contains a number of columns that contain all responses selected
 in a multiple response questions. For example, the variables `items_owned` can
@@ -209,14 +208,15 @@ First, you can use `str_count()` for each possible answer:
 split_without_loop <- 
     read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     select(items_owned) %>%
-    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned), 
-           owns_bicycle = str_count(.data$items_owned,"bicycle"), 
+    mutate(owns_bicycle = str_count(.data$items_owned,"bicycle"), 
            owns_television = str_count(.data$items_owned,"television")) 
            #etc etc.
 
 split_without_loop
 
 ```
+
+### Using loops
 
 This gets extremely tedious, better to put everything in a loop:
 
@@ -230,7 +230,6 @@ items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
 #prepare the data
 split_with_loop <- 
     read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
     select(items_owned)
 
 #and add to the data each iteration of a loop
@@ -246,26 +245,72 @@ split_with_loop
 
 Note how we used `"owns_{i}" :=` to dynamically create variable names in the `mutate()` function.
 
-Writing a vector with possible values is still tedious, so to prevent even that,
-split the string variable using `separate_rows()`, which outputs a long table; and then
-pivot back to household level, making sure to fill in NAs with 0.
+
+### Using map() and pmap()
+
+Loops have the reputation of being slow, so if performance is importatn
+you can also use 
+`map()` to repeat a function for every element in a vector. 
+
+You can iterate over the vector of items, which is essentially
+the same thing I did with a loop above (but faster):
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+split_with_map <- 
+    read_csv(here("data/SAFI_clean.csv"), na = "NULL")
+
+items %>%
+  as_tibble_row(.name_repair = ~paste0("owns_",items)) %>%
+  map_df(\(x) str_count(split_with_map$items_owned,x))
+
+```
+
+But you can also iterate over the rows in a data frame using `pmap()`,
+which may be easier to include in a pipe:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  bind_cols(.,
+    pmap_dfr({.}, 
+     function(items_owned,...) {
+       as_tibble_row(str_count(items_owned,items),
+                     .name_repair = ~paste0("owns_",items))
+     })
+)
+
+```
+
+### Using rowwise and mutate
+
+While `map()` is faster,  you can use `mutate()`
+to nest a data set into a variable. That, combined with
+ `as_tibble_row()`:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  rowwise %>%
+  mutate(x = as_tibble_row(str_count(items_owned,items),
+                           .name_repair = ~paste0("owns_",
+                                                  items))) %>%
+  unnest(cols=c(x))
+
+```
+
+### Using separate_longer()
+
+If writing a vector with possible values is too tedious/error prone:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-prefix <- "owns_"
-
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-    select(key_ID,items_owned) %>%
     separate_longer_delim(items_owned, delim = ";") %>%
     mutate(value = 1) %>%
     pivot_wider(names_from = items_owned,
                 values_from = value,
-                names_glue = "{prefix}{items_owned}",
+                names_glue = "owns_{items_owned}",
                 values_fill = 0) 
 
 ```
-
-Just leave out the line `select(key_ID,items_owned) %>%` to keep your entire dataset.
-
-
