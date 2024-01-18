@@ -330,7 +330,7 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
 
 If writing a vector with possible values is too tedious/error prone/impossible:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     separate_longer_delim(items_owned, delim = ";") %>%
@@ -338,6 +338,15 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     pivot_wider(names_from = items_owned,
                 values_from = value,
                 names_glue = "owns_{items_owned}",
-                values_fill = 0) 
+                values_fill = 0)
 
 ```
+
+Note that this solution differs in how observations where `items_owned` is 
+empty are treated. Previous solutions had `NA` for all created variables in this 
+case; using this approach, a variable `owns_NA` is created, with value `1`, and
+all other variables are set to `0`.
+It's unclear which is better in this
+case: does an empty `items_owned` means the household owns nothing? Then this 
+implementation is better. Does it mean the quesitons was skipped? Then the 
+previous ones were better.
