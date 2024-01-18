@@ -163,7 +163,7 @@ long_data %>%
 ```
 
 
-## Row Wise Operations
+## Row-wise Operations
 
 Suppose we wanted to run an operation over multiple variables. For example to
 get the household size, number of women and average age. The easiest,
@@ -248,12 +248,10 @@ Note how we used `"owns_{i}" :=` to dynamically create variable names in the `mu
 
 ### Using map() and pmap()
 
-Loops have the reputation of being slow, so if performance is importatn
+Loops have the reputation of being slow, so if performance is important
 you can also use 
-`map()` to repeat a function for every element in a vector. 
-
-You can iterate over the vector of items, which is essentially
-the same thing I did with a loop above (but faster):
+`map()` to repeat a function for every element in a vector. It returns a list
+where each list item is the output of one iteration (i.e. one new column):
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
@@ -261,28 +259,57 @@ split_with_map <-
     read_csv(here("data/SAFI_clean.csv"), na = "NULL")
 
 items %>%
-  as_tibble_row(.name_repair = ~paste0("owns_",items)) %>%
-  map_df(\(x) str_count(split_with_map$items_owned,x))
+  map(\(x) str_count(split_with_map$items_owned,x))%>%
+  head(n = 2)
 
 ```
 
-But you can also iterate over the rows in a data frame using `pmap()`,
-which may be easier to include in a pipe:
+A list isn't really great in this case. `map_df()` returns its 
+items as columns in a dataframe. For this
+to work, I make sure the vector has names, which will then become
+the column names:  
+
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+items %>%
+  set_names(paste0("owns_",items)) %>%
+  map_df(\(x) str_count(split_with_map$items_owned,x)) 
+
+```
+
+One problem is our pipe started with `items`, making it a bit more difficult to
+use this is a data management pipeline. To solve this, you can also iterate 
+over the rows in a data frame using `pmap()`, so that each element in our 
+list is a row:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-  bind_cols(.,
-    pmap_dfr({.}, 
-     function(items_owned,...) {
-       as_tibble_row(str_count(items_owned,items),
-                     .name_repair = ~paste0("owns_",items))
-     })
-)
+    pmap(\(items_owned, ...) str_count(items_owned,items)) %>%
+    head(n = 2)
+                            
+```
+
+Note that pmap passes all variables in the data frame as arguments to the function. Here,
+I only need `items_owned`, so I capture all unneeded variables with `...`.
+
+To bind this together to a data frame, I need to make sure that the output 
+of each iteration of `pmap()` is a row with `as_tibble_row()`, using its
+`.name_repair` option to assing names in the same way I did to the `items`
+vector above.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL")  %>%
+  pmap_dfr(\(items_owned, ...) 
+              str_count(items_owned,items) %>%
+              as_tibble_row(.name_repair = ~paste0("owns_",items)))
 
 ```
 
-### Using rowwise and mutate
+### Using rowwise(), mutate() and unnest()
 
 While `map()` is faster,  you can use `mutate()`
 to nest a data set into a variable. That, combined with
@@ -291,7 +318,7 @@ to nest a data set into a variable. That, combined with
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-  rowwise %>%
+  rowwise() %>%
   mutate(x = as_tibble_row(str_count(items_owned,items),
                            .name_repair = ~paste0("owns_",
                                                   items))) %>%
@@ -301,7 +328,7 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
 
 ### Using separate_longer()
 
-If writing a vector with possible values is too tedious/error prone:
+If writing a vector with possible values is too tedious/error prone/impossible:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
