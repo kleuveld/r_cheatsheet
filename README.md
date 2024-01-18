@@ -1,13 +1,9 @@
 Welcome! 
 
-This is a minimal example of a book based on R Markdown and **bookdown** (https://github.com/rstudio/bookdown). 
+This repo is for a website that gives quick references to some techiques 
+that I think I may need when cleaning, analyzing, or presenting data. 
+For a more basic intro to R try 
+[the R for Social Science Data Carpentry Workshop](https://datacarpentry.org/r-socialsci/)
+, on which some of this website is based.
 
-This template provides a skeleton file structure that you can edit to create your book. 
-
-The contents inside the .Rmd files provide some pointers to help you get started, but feel free to also delete the content in each file and start fresh.
-
-Additional resources:
-
-The **bookdown** book: https://bookdown.org/yihui/bookdown/
-
-The **bookdown** package reference site: https://pkgs.rstudio.com/bookdown
+Find the webiste here: https://kleuveld.github.io/r_cheatsheet
