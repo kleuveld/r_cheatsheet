@@ -225,7 +225,7 @@ This gets extremely tedious, better to put everything in a loop:
 
 #define the vector to loop over
 items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
-           "cow_plough","solar_torch","mobile_phone","motor_cycle","fridge",
+           "cow_plough","solar_torch","mobile_phone","motor_cyle","fridge",
            "electricity","sofa_set","lorry","sterio","computer","car")
 
 #prepare the data
