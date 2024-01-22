@@ -159,7 +159,8 @@ compute the household size, number of women and average age in each household:
 
 long_data %>%
     group_by(key_ID) %>%
-    summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age))    
+    summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age))  
+
 ```
 
 
@@ -250,7 +251,9 @@ Note how we used `"owns_{i}" :=` to dynamically create variable names in the `mu
 
 Loops have the reputation of being slow, so if performance is important
 you can also use 
-`map()` to repeat a function for every element in a vector. It returns a list
+`map()` to repeat a [function](#functions) for every element in a vector ([here's an 
+excellent tutorial for `map()`](https://jennybc.github.io/purrr-tutorial/index.html). 
+`map()` returns a list
 where each list item is the output of one iteration (i.e. one new column):
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
@@ -258,54 +261,67 @@ where each list item is the output of one iteration (i.e. one new column):
 split_with_map <- 
     read_csv(here("data/SAFI_clean.csv"), na = "NULL")
 
+split_items_owned <- function(item) {
+    str_count(split_with_map$items_owned,item)
+}
+
 items %>%
-  map(\(x) str_count(split_with_map$items_owned,x))%>%
+  map(split_items_owned)%>%
   head(n = 2)
+
+
+
 
 ```
 
-A list isn't really great in this case. `map_df()` returns its 
-items as columns in a dataframe. For this
+A list isn't really great in this case. Fortunately, there's
+also `map_df()`, which returns its items as columns in a dataframe. For this
 to work, I make sure the vector has names, which will then become
-the column names:  
+the column names. Also, defining a function to use it 
+only once seems like a waste, so I use an anonyous function, defined within 
+the `map_df()` call itself: 
 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 items %>%
   set_names(paste0("owns_",items)) %>%
-  map_df(\(x) str_count(split_with_map$items_owned,x)) 
+  map_df(function(x) str_count(split_with_map$items_owned,x)) 
+
 
 ```
 
 One problem is our pipe started with `items`, making it a bit more difficult to
 use this is a data management pipeline. To solve this, you can also iterate 
 over the rows in a data frame using `pmap()`, so that each element in our 
-list is a row:
+list is a row. This also gives you access to all variables in the data set, 
+which might be needed for more complex rowwise operations:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    pmap(\(items_owned, ...) str_count(items_owned,items)) %>%
+    pmap(function(items_owned, ...) str_count(items_owned,items)) %>%
     head(n = 2)
                             
 ```
 
-Note that pmap passes all variables in the data frame as arguments to the function. Here,
+Note that `pmap()` passes all variables in the data frame as arguments to the function. Here,
 I only need `items_owned`, so I capture all unneeded variables with `...`.
 
 To bind this together to a data frame, I need to make sure that the output 
 of each iteration of `pmap()` is a row with `as_tibble_row()`, using its
 `.name_repair` option to assing names in the same way I did to the `items`
-vector above.
+vector above. I could include `as_tibble_row()` in the anonymous function.
+which would allow me to use `pmap_dfr()`, but I can also add steps to the 
+pipleine, keeping each step in the pipeline a little simpler, which I prefer.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL")  %>%
-  pmap_dfr(\(items_owned, ...) 
-              str_count(items_owned,items) %>%
-              as_tibble_row(.name_repair = ~paste0("owns_",items)))
+  pmap(function(items_owned,...) str_count(items_owned,items)) %>%
+  map(function(x) as_tibble_row(x,.name_repair = ~paste0("owns_",items))) %>%
+  list_rbind()
 
 ```
 
@@ -319,10 +335,12 @@ to nest a data set into a variable. That, combined with
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
   rowwise() %>%
-  mutate(x = as_tibble_row(str_count(items_owned,items),
-                           .name_repair = ~paste0("owns_",
-                                                  items))) %>%
-  unnest(cols=c(x))
+  mutate(x = str_count(items_owned,items) %>%
+                as_tibble_row(.name_repair = 
+                                ~paste0("owns_",
+                                        items))) %>%
+  unnest(cols=c(x)) %>%
+  select(items_owned,starts_with("owns_"))
 
 ```
 
@@ -332,13 +350,16 @@ If writing a vector with possible values is too tedious/error prone/impossible:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+cleaned_with_separate_longer <-
+    read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     separate_longer_delim(items_owned, delim = ";") %>%
     mutate(value = 1) %>%
     pivot_wider(names_from = items_owned,
                 values_from = value,
                 names_glue = "owns_{items_owned}",
                 values_fill = 0)
+
+cleaned_with_separate_longer
 
 ```
 
@@ -350,3 +371,20 @@ It's unclear which is better in this
 case: does an empty `items_owned` means the household owns nothing? Then this 
 implementation is better. Does it mean the quesitons was skipped? Then the 
 previous ones were better.
+
+
+## Column-wise operations
+
+From the last data set, to convert all created variables to `NA` if `owns_NA = =1`, 
+use [`mutate(across())`](https://dplyr.tidyverse.org/articles/colwise.html) to apply 
+a function to all columns matching a tidy-select: 
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+cleaned_with_separate_longer %>%
+    mutate(across(c(starts_with("owns_"),-owns_NA), 
+                  function(x) ifelse(owns_NA == 1,NA,x))) %>%
+    select(owns_NA,starts_with("owns_"))
+
+
+```
