@@ -7,11 +7,11 @@ Functions are great to re-use and structure your code.
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 add_two <- function(argument) {
-	# Do something with the input
-	return <- argument + 2
+  # Do something with the input
+  return <- argument + 2
 
-	#call the intended output in the last line
-	return
+  #call the intended output in the last line
+  return
 }
 
 add_two(84)
@@ -27,14 +27,14 @@ Also make sure to include a quick description of what your function does.
 library(tidyverse)
 
 add_number_column <- function(data,number=2) {
-	#This functions takes a data frame, and returns the same data frame,
-	#but with an exta column of 2sas its first variable. 
-	#The user can specify a number other than 2 using the num argument
-	#This is great if you want a column of twos as the first variable
-	#of your data set.
-	data %>%
-		mutate(bestvar = number) %>%
-		select(bestvar,everything())
+  #This functions takes a data frame, and returns the same data frame,
+  #but with an exta column of 2sas its first variable. 
+  #The user can specify a number other than 2 using the num argument
+  #This is great if you want a column of twos as the first variable
+  #of your data set.
+  data %>%
+    mutate(bestvar = number) %>%
+    select(bestvar,everything())
 }
 
 read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
@@ -53,10 +53,10 @@ does exist in the data set in the pipe.
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=TRUE}
 
 add_two_to_a_column_broken <- function(data,variable) {
-	#function that wants to add two two a column specified by the user
-	#but it doesn't work.
-	data %>%
-	mutate(variable = variable + 2)
+  #function that wants to add two two a column specified by the user
+  #but it doesn't work.
+  data %>%
+  mutate(variable = variable + 2)
 }
 
 read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
@@ -73,13 +73,13 @@ in `{{` and `}}`, and change the `=` in `mutatate` to `:=`.
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 add_two_to_a_column_fixed <- function(data,variable) {
-	#function that adds two two a column specified by the user
-	data %>%
-	mutate( {{variable}} := {{variable}} + 2)
+  #function that adds two two a column specified by the user
+  data %>%
+  mutate( {{variable}} := {{variable}} + 2)
 }
 
 read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
-	add_two_to_a_column_fixed(no_membrs)
+  add_two_to_a_column_fixed(no_membrs)
 
 ```
 
@@ -108,13 +108,13 @@ I could copy-paste the code, but the better solution is to make a function:
 
 
 create_dummies <- function(df,stringvar,prefix="",delim = ";") {
-	#Function that generates dummies from a string variable
-	#containing multi-response answers
-	#returns dataset without original var, but with dummies.
+  #Function that generates dummies from a string variable
+  #containing multi-response answers
+  #returns dataset without original var, but with dummies.
 
-	df %>%
-		separate_longer_delim({{stringvar}}, delim = delim) %>%
-	    mutate(value = 1) %>%
+  df %>%
+    separate_longer_delim({{stringvar}}, delim = delim) %>%
+      mutate(value = 1) %>%
         pivot_wider(names_from = {{stringvar}},
                     values_from = value,
                     names_prefix = prefix,
@@ -122,12 +122,69 @@ create_dummies <- function(df,stringvar,prefix="",delim = ";") {
 }
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-	mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-	create_dummies(stringvar = items_owned, prefix = "owns_") %>%
-	create_dummies(months_lack_food,"lack_food_")
+  mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+  create_dummies(stringvar = items_owned, prefix = "owns_") %>%
+  create_dummies(months_lack_food,"lack_food_")
 
 ```
 
 The code is now clear, I can update the function in one place and all variables will
 be updated accordingly. Plus, if I want to use the same code in another project, I can
 easily do it. 
+
+## Using a function factory to create multiple variables
+
+A function can also return a function. This means that you can use `map()` to
+make a list of functions. This can be handy for `mutate(across()`, which can
+take a list of function to create multiple variables. Using this to solve
+the problem of splitting strings:
+
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+
+items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
+           "cow_plough","solar_torch","mobile_phone","motor_cycle","fridge",
+           "electricity","sofa_set","lorry","sterio","computer","car")
+
+
+# define the function factory first: all it does is return another function, 
+# that can only extract one item
+make_splitfunction <- function (item) {
+  function(var){
+    str_count(var,item)
+  }
+}
+
+#make a list with one function for each item
+function_list <-
+  items %>%
+  set_names(items) %>%
+  map(make_splitfunction)
+
+
+#apply the list of functions using mutate(across)
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  mutate(across(.cols = items_owned,
+                .fns = function_list,
+                .names = "owns_{.fn}")) %>%
+  select(items_owned,starts_with("owns_"))
+
+
+```
+
+Or, if you want fewer (but more complex) steps, you can generate the function
+list on the fly within `mutate(across())`.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  mutate(across(.cols = items_owned,
+                .fns = 
+                  items %>%
+                  set_names(items) %>%
+                  map(function(item) function(var) str_count(var,item)),
+                .names = "owns_{.fn}")) %>%
+  select(items_owned,starts_with("owns_"))
+
+```
