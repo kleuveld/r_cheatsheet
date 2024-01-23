@@ -113,3 +113,21 @@ create_codebook(cars)
 
 ```
 
+
+## Correlogram
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(GGally)
+
+ggpairs(cars) 
+
+```
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+cars %>%
+  ggpairs(columns = c(1,3,4), 
+          ggplot2::aes(colour=factor(cyl))) 
+
+```
