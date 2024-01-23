@@ -1,0 +1,115 @@
+# Data Exploration
+
+## Setup
+
+Download the [cars data set from here](http://www.principlesofeconometrics.com/stata.htm)
+or run the code below:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+
+download.file(
+  "https://raw.githubusercontent.com/kleuveld/r_cheatsheet/main/data/cars.dta",
+  here("data/cars.dta"), mode = "wb"
+)
+
+```
+
+## Making a codebook from a Stata .dta
+
+In Stata variables have labels, which is great because they're more informative
+than variable names. In R, it can be a bit tricky to access the labels of imported
+dta's, but making a code book isn't that hard.
+
+
+First, load the cars data set:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(tidyverse)
+library(haven)
+
+
+cars <- read_dta(here("data/cars.dta"))
+
+```
+
+The variable labels are stored as attributes of the variables. The `attributes()`
+function returns all attributes. To see only the label use:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+attributes(cars$mpg)$label
+
+```
+
+To create a data frame with all variable labels:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+codebook <- 
+  tibble(var = colnames(cars),
+         label = map_chr(cars,function(x) attributes(x)$label)) 
+
+codebook
+
+```
+
+To make it slightly more useful, we can add some summary statistics:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+stats_to_tibble <- function(var,funs) {
+  map_dbl(funs,\(x) ifelse(is.numeric(var),x(var,na.rm = TRUE),NA)) %>%
+  as_tibble_row()
+}
+
+
+funs <- list(mean=mean,sd=sd,min=min,max=max)
+
+bind_cols(codebook,
+          cars %>%
+            map(\(x) stats_to_tibble(x,funs)) %>%
+            list_rbind())   
+
+```
+
+Put it all in a reusable function, adding some other columns, and 
+rounding the numeric outputs to make sure it's human-readable.
+
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+create_codebook <- function(.df,stats = list(mean=mean,sd=sd,min=min,max=max,
+                                            prop_miss=prop_miss)) {
+
+
+  labels <- tibble(var = imap_chr(.df,~.y),
+                   label = map_chr(.df,function(x) attributes(x)$label),
+                   type = map_chr(.df, typeof))
+
+
+  prop_miss <- function(x,na.rm = TRUE) {
+    mean(is.na(x))
+  }
+
+  stats_to_tibble <- function(var,stats) {
+    map_dbl(stats,\(x) ifelse(is.numeric(var),x(var,na.rm = TRUE),NA)) %>%
+    as_tibble_row()
+  }
+
+  sumstats <-
+    .df %>%
+    map(\(x) stats_to_tibble(x,stats)) %>%
+    list_rbind() %>%
+    mutate(across(where(is.numeric),
+                ~round(.x,2)))  
+
+   bind_cols(labels,sumstats)
+}
+
+create_codebook(cars) 
+
+
+```
+
