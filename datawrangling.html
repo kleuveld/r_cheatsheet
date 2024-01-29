@@ -52,6 +52,8 @@
 <link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
 <link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<link href="libs/tabwid-1.1.3/tabwid.css" rel="stylesheet" />
+<script src="libs/tabwid-1.1.3/tabwid.js"></script>
 
 
 <style type="text/css">
@@ -168,7 +170,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#generating-some-fake-data"><i class="fa fa-check"></i>Generating some fake data</a></li>
-<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i>Making a table of summary statistics</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i>Making a table of summary statistics</a>
+<ul>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#using-arsenal"><i class="fa fa-check"></i>Using Arsenal</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#using-flextable"><i class="fa fa-check"></i>Using Flextable</a></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#simple-regression"><i class="fa fa-check"></i>Simple regression</a></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#robust-standard-errors"><i class="fa fa-check"></i>Robust standard errors</a></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#exporting-to-word"><i class="fa fa-check"></i>Exporting to word</a></li>
@@ -254,16 +260,16 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    81
-##  2      1         2      0    52
-##  3      1         3      1    37
-##  4      2         1      1    18
-##  5      2         2      0    40
-##  6      2         3      1    42
-##  7      2         4      0    12
-##  8      2         5      1    68
-##  9      2         6      0    74
-## 10      2         7      1    59
+##  1      1         1      1    34
+##  2      1         2      0    12
+##  3      1         3      1    64
+##  4      2         1      0    49
+##  5      2         2      0    48
+##  6      2         3      1     8
+##  7      2         4      0    24
+##  8      2         5      0    83
+##  9      2         6      0     1
+## 10      2         7      0    49
 ## # ℹ 932 more rows</code></pre>
 </div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
@@ -278,15 +284,15 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 ##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
 ##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
 ##  1      1        1        0        1       NA       NA       NA       NA
-##  2      2        1        0        1        0        1        0        1
-##  3      3        0        1        1        0        1        1        1
-##  4      4        0        0        1        0        1        0        0
-##  5      5        1        0        0        1        1        1        1
-##  6      6        1        0        1       NA       NA       NA       NA
-##  7      7        1        1        0        1        0        1       NA
-##  8      8        1        1        1        0        0        0        0
-##  9      9        1        1        0        1        1        1        0
-## 10     10        1        1        0        1        1        1        0
+##  2      2        0        0        1        0        0        0        0
+##  3      3        1        1        0        0        1        0        1
+##  4      4        0        0        0        1        1        0        0
+##  5      5        0        1        1        1        0        0        0
+##  6      6        0        1        1       NA       NA       NA       NA
+##  7      7        0        1        1        0        1        1       NA
+##  8      8        1        1        1        1        0        1        0
+##  9      9        0        0        1        1        1        0        0
+## 10     10        1        1        1        0        1        1        1
 ## # ℹ 121 more rows
 ## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
 ## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
@@ -315,16 +321,16 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    81
-##  2      1         2      0    52
-##  3      1         3      1    37
-##  4      2         1      1    18
-##  5      2         2      0    40
-##  6      2         3      1    42
-##  7      2         4      0    12
-##  8      2         5      1    68
-##  9      2         6      0    74
-## 10      2         7      1    59
+##  1      1         1      1    34
+##  2      1         2      0    12
+##  3      1         3      1    64
+##  4      2         1      0    49
+##  5      2         2      0    48
+##  6      2         3      1     8
+##  7      2         4      0    24
+##  8      2         5      0    83
+##  9      2         6      0     1
+## 10      2         7      0    49
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
 how I intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. I don’t really want to touch the key_ID
@@ -413,16 +419,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    81 God     2016-11-17 00:00:00
-##  2      1         2      0    52 God     2016-11-17 00:00:00
-##  3      1         3      1    37 God     2016-11-17 00:00:00
-##  4      2         1      1    18 God     2016-11-17 00:00:00
-##  5      2         2      0    40 God     2016-11-17 00:00:00
-##  6      2         3      1    42 God     2016-11-17 00:00:00
-##  7      2         4      0    12 God     2016-11-17 00:00:00
-##  8      2         5      1    68 God     2016-11-17 00:00:00
-##  9      2         6      0    74 God     2016-11-17 00:00:00
-## 10      2         7      1    59 God     2016-11-17 00:00:00
+##  1      1         1      1    34 God     2016-11-17 00:00:00
+##  2      1         2      0    12 God     2016-11-17 00:00:00
+##  3      1         3      1    64 God     2016-11-17 00:00:00
+##  4      2         1      0    49 God     2016-11-17 00:00:00
+##  5      2         2      0    48 God     2016-11-17 00:00:00
+##  6      2         3      1     8 God     2016-11-17 00:00:00
+##  7      2         4      0    24 God     2016-11-17 00:00:00
+##  8      2         5      0    83 God     2016-11-17 00:00:00
+##  9      2         6      0     1 God     2016-11-17 00:00:00
+## 10      2         7      0    49 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -437,16 +443,16 @@ compute the household size, number of women and average age in each household:</
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     56.7
-##  2      2       7         4     44.7
-##  3      3      10         7     43.5
-##  4      4       7         2     43  
-##  5      5       7         5     51.9
-##  6      6       3         2     61  
-##  7      7       6         4     43.8
-##  8      8      12         6     37.8
-##  9      9       8         6     50.6
-## 10     10      12         6     46.6
+##  1      1       3         2     36.7
+##  2      2       7         1     37.4
+##  3      3      10         6     35.1
+##  4      4       7         2     58.4
+##  5      5       7         3     29.9
+##  6      6       3         2     45.3
+##  7      7       6         4     66.5
+##  8      8      12         6     40.2
+##  9      9       8         4     60.4
+## 10     10      12        10     52.7
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="row-wise-operations" class="section level2 hasAnchor">
@@ -470,16 +476,16 @@ You can do similar things in R. It’s just a bit more complex than in Stata:</p
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     56.7
-##  2      2       7         4     44.7
-##  3      3      10         7     43.5
-##  4      4       7         2     43  
-##  5      5       7         5     51.9
-##  6      6       3         2     61  
-##  7      7       6         4     43.8
-##  8      8      12         6     37.8
-##  9      9       8         6     50.6
-## 10     10      12         6     46.6
+##  1      1       3         2     36.7
+##  2      2       7         1     37.4
+##  3      3      10         6     35.1
+##  4      4       7         2     58.4
+##  5      5       7         3     29.9
+##  6      6       3         2     45.3
+##  7      7       6         4     66.5
+##  8      8      12         6     40.2
+##  9      9       8         4     60.4
+## 10     10      12        10     52.7
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensure all summaries are computed per row, and <code>c_across()</code>

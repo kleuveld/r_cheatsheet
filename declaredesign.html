@@ -52,6 +52,8 @@
 <link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
 <link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<link href="libs/tabwid-1.1.3/tabwid.css" rel="stylesheet" />
+<script src="libs/tabwid-1.1.3/tabwid.js"></script>
 
 
 <style type="text/css">
@@ -168,7 +170,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#generating-some-fake-data"><i class="fa fa-check"></i>Generating some fake data</a></li>
-<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i>Making a table of summary statistics</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i>Making a table of summary statistics</a>
+<ul>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#using-arsenal"><i class="fa fa-check"></i>Using Arsenal</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#using-flextable"><i class="fa fa-check"></i>Using Flextable</a></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#simple-regression"><i class="fa fa-check"></i>Simple regression</a></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#robust-standard-errors"><i class="fa fa-check"></i>Robust standard errors</a></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#exporting-to-word"><i class="fa fa-check"></i>Exporting to word</a></li>
@@ -224,28 +230,28 @@ effects.</p>
 <p>I will start off with some fake baseline data, which only contains <code>y0</code>, our outcome
 indicator. We use the <code>fabricate()</code> function, from the fabricatr library, which is
 loaded with DeclareDesign:</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="declaredesign.html#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># start with a clean environment</span></span>
-<span id="cb51-2"><a href="declaredesign.html#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
-<span id="cb51-3"><a href="declaredesign.html#cb51-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-4"><a href="declaredesign.html#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="co"># load packages</span></span>
-<span id="cb51-5"><a href="declaredesign.html#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># data management</span></span>
-<span id="cb51-6"><a href="declaredesign.html#cb51-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-7"><a href="declaredesign.html#cb51-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest) <span class="co"># for estimation of fixed effects</span></span>
-<span id="cb51-8"><a href="declaredesign.html#cb51-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest) <span class="co"># for computing standard errors</span></span>
-<span id="cb51-9"><a href="declaredesign.html#cb51-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich) <span class="co"># provides the functions for lmtest to compute robust SEs</span></span>
-<span id="cb51-10"><a href="declaredesign.html#cb51-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-11"><a href="declaredesign.html#cb51-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DeclareDesign) <span class="co"># for power calculation</span></span>
-<span id="cb51-12"><a href="declaredesign.html#cb51-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom) <span class="co"># to extract coefficients from model output</span></span>
-<span id="cb51-13"><a href="declaredesign.html#cb51-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-14"><a href="declaredesign.html#cb51-14" aria-hidden="true" tabindex="-1"></a><span class="co"># set seed for reproducibility</span></span>
-<span id="cb51-15"><a href="declaredesign.html#cb51-15" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb51-16"><a href="declaredesign.html#cb51-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-17"><a href="declaredesign.html#cb51-17" aria-hidden="true" tabindex="-1"></a>N <span class="ot">=</span> <span class="dv">100</span></span>
-<span id="cb51-18"><a href="declaredesign.html#cb51-18" aria-hidden="true" tabindex="-1"></a>fake_data <span class="ot">&lt;-</span></span>
-<span id="cb51-19"><a href="declaredesign.html#cb51-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fabricate</span>(<span class="at">N =</span> N, </span>
-<span id="cb51-20"><a href="declaredesign.html#cb51-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">y0 =</span> <span class="fu">runif</span>(N, <span class="dv">100</span>, <span class="dv">150</span>))</span>
-<span id="cb51-21"><a href="declaredesign.html#cb51-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-22"><a href="declaredesign.html#cb51-22" aria-hidden="true" tabindex="-1"></a>fake_data <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="declaredesign.html#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># start with a clean environment</span></span>
+<span id="cb57-2"><a href="declaredesign.html#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb57-3"><a href="declaredesign.html#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="declaredesign.html#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="co"># load packages</span></span>
+<span id="cb57-5"><a href="declaredesign.html#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># data management</span></span>
+<span id="cb57-6"><a href="declaredesign.html#cb57-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-7"><a href="declaredesign.html#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest) <span class="co"># for estimation of fixed effects</span></span>
+<span id="cb57-8"><a href="declaredesign.html#cb57-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest) <span class="co"># for computing standard errors</span></span>
+<span id="cb57-9"><a href="declaredesign.html#cb57-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich) <span class="co"># provides the functions for lmtest to compute robust SEs</span></span>
+<span id="cb57-10"><a href="declaredesign.html#cb57-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-11"><a href="declaredesign.html#cb57-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DeclareDesign) <span class="co"># for power calculation</span></span>
+<span id="cb57-12"><a href="declaredesign.html#cb57-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom) <span class="co"># to extract coefficients from model output</span></span>
+<span id="cb57-13"><a href="declaredesign.html#cb57-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-14"><a href="declaredesign.html#cb57-14" aria-hidden="true" tabindex="-1"></a><span class="co"># set seed for reproducibility</span></span>
+<span id="cb57-15"><a href="declaredesign.html#cb57-15" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb57-16"><a href="declaredesign.html#cb57-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-17"><a href="declaredesign.html#cb57-17" aria-hidden="true" tabindex="-1"></a>N <span class="ot">=</span> <span class="dv">100</span></span>
+<span id="cb57-18"><a href="declaredesign.html#cb57-18" aria-hidden="true" tabindex="-1"></a>fake_data <span class="ot">&lt;-</span></span>
+<span id="cb57-19"><a href="declaredesign.html#cb57-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fabricate</span>(<span class="at">N =</span> N, </span>
+<span id="cb57-20"><a href="declaredesign.html#cb57-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">y0 =</span> <span class="fu">runif</span>(N, <span class="dv">100</span>, <span class="dv">150</span>))</span>
+<span id="cb57-21"><a href="declaredesign.html#cb57-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-22"><a href="declaredesign.html#cb57-22" aria-hidden="true" tabindex="-1"></a>fake_data <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code></pre></div>
 <pre><code>## # A tibble: 100 × 2
 ##    ID       y0
 ##    &lt;chr&gt; &lt;dbl&gt;
@@ -262,14 +268,14 @@ loaded with DeclareDesign:</p>
 ## # ℹ 90 more rows</code></pre>
 <p>Now, let’s add an extra year to our data, again using <code>fabricate()</code>, just
 to demonstrate how, using <code>add_level()</code> and then <code>crosslevels()</code>:</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="declaredesign.html#cb53-1" aria-hidden="true" tabindex="-1"></a>fakedata_years <span class="ot">&lt;-</span></span>
-<span id="cb53-2"><a href="declaredesign.html#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fabricate</span>(fake_data,</span>
-<span id="cb53-3"><a href="declaredesign.html#cb53-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">years =</span> <span class="fu">add_level</span>(<span class="at">N =</span> <span class="dv">2</span>, </span>
-<span id="cb53-4"><a href="declaredesign.html#cb53-4" aria-hidden="true" tabindex="-1"></a>                              <span class="at">t =</span> <span class="fu">as.numeric</span>(years) <span class="sc">-</span> <span class="dv">1</span>, </span>
-<span id="cb53-5"><a href="declaredesign.html#cb53-5" aria-hidden="true" tabindex="-1"></a>                              <span class="at">nest=</span><span class="cn">FALSE</span>),</span>
-<span id="cb53-6"><a href="declaredesign.html#cb53-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">observations =</span> <span class="fu">cross_levels</span>(<span class="at">by =</span> <span class="fu">join_using</span>(ID, years)))</span>
-<span id="cb53-7"><a href="declaredesign.html#cb53-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-8"><a href="declaredesign.html#cb53-8" aria-hidden="true" tabindex="-1"></a>fakedata_years <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="declaredesign.html#cb59-1" aria-hidden="true" tabindex="-1"></a>fakedata_years <span class="ot">&lt;-</span></span>
+<span id="cb59-2"><a href="declaredesign.html#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fabricate</span>(fake_data,</span>
+<span id="cb59-3"><a href="declaredesign.html#cb59-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">years =</span> <span class="fu">add_level</span>(<span class="at">N =</span> <span class="dv">2</span>, </span>
+<span id="cb59-4"><a href="declaredesign.html#cb59-4" aria-hidden="true" tabindex="-1"></a>                              <span class="at">t =</span> <span class="fu">as.numeric</span>(years) <span class="sc">-</span> <span class="dv">1</span>, </span>
+<span id="cb59-5"><a href="declaredesign.html#cb59-5" aria-hidden="true" tabindex="-1"></a>                              <span class="at">nest=</span><span class="cn">FALSE</span>),</span>
+<span id="cb59-6"><a href="declaredesign.html#cb59-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">observations =</span> <span class="fu">cross_levels</span>(<span class="at">by =</span> <span class="fu">join_using</span>(ID, years)))</span>
+<span id="cb59-7"><a href="declaredesign.html#cb59-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-8"><a href="declaredesign.html#cb59-8" aria-hidden="true" tabindex="-1"></a>fakedata_years <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code></pre></div>
 <pre><code>## # A tibble: 200 × 5
 ##    ID       y0 years     t observations
 ##    &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;       
@@ -300,15 +306,15 @@ assumptions you have: you can cluster the outcomes, include
 compliance or treatment effectiveness, add more or less noise,
 make it depend on both observable and unobservable
 characteristics, etc. etc.</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="declaredesign.html#cb55-1" aria-hidden="true" tabindex="-1"></a>year_shock <span class="ot">&lt;-</span> <span class="dv">10</span></span>
-<span id="cb55-2"><a href="declaredesign.html#cb55-2" aria-hidden="true" tabindex="-1"></a>effect_size <span class="ot">&lt;-</span> <span class="dv">15</span></span>
-<span id="cb55-3"><a href="declaredesign.html#cb55-3" aria-hidden="true" tabindex="-1"></a>sd <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb55-4"><a href="declaredesign.html#cb55-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-5"><a href="declaredesign.html#cb55-5" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> </span>
-<span id="cb55-6"><a href="declaredesign.html#cb55-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_model</span>(fakedata_years,</span>
-<span id="cb55-7"><a href="declaredesign.html#cb55-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">potential_outcomes</span>(Y <span class="sc">~</span> y0 <span class="sc">+</span> t <span class="sc">*</span> year_shock <span class="sc">+</span> </span>
-<span id="cb55-8"><a href="declaredesign.html#cb55-8" aria-hidden="true" tabindex="-1"></a>                                            Z <span class="sc">*</span> effect_size <span class="sc">+</span> </span>
-<span id="cb55-9"><a href="declaredesign.html#cb55-9" aria-hidden="true" tabindex="-1"></a>                                            t <span class="sc">*</span> <span class="fu">rnorm</span>(N,<span class="at">sd =</span> sd)))</span></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="declaredesign.html#cb61-1" aria-hidden="true" tabindex="-1"></a>year_shock <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb61-2"><a href="declaredesign.html#cb61-2" aria-hidden="true" tabindex="-1"></a>effect_size <span class="ot">&lt;-</span> <span class="dv">15</span></span>
+<span id="cb61-3"><a href="declaredesign.html#cb61-3" aria-hidden="true" tabindex="-1"></a>sd <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb61-4"><a href="declaredesign.html#cb61-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-5"><a href="declaredesign.html#cb61-5" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> </span>
+<span id="cb61-6"><a href="declaredesign.html#cb61-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_model</span>(fakedata_years,</span>
+<span id="cb61-7"><a href="declaredesign.html#cb61-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">potential_outcomes</span>(Y <span class="sc">~</span> y0 <span class="sc">+</span> t <span class="sc">*</span> year_shock <span class="sc">+</span> </span>
+<span id="cb61-8"><a href="declaredesign.html#cb61-8" aria-hidden="true" tabindex="-1"></a>                                            Z <span class="sc">*</span> effect_size <span class="sc">+</span> </span>
+<span id="cb61-9"><a href="declaredesign.html#cb61-9" aria-hidden="true" tabindex="-1"></a>                                            t <span class="sc">*</span> <span class="fu">rnorm</span>(N,<span class="at">sd =</span> sd)))</span></code></pre></div>
 <p>Then it’s time to think about assignment. I need to assign treatment,
 and reveal the outcomes based on treatment assignment. Here I create
 two variables for treatment so I can toy around with different model
@@ -320,44 +326,44 @@ an indicator for actually having
 received the treatment (equivalent to <code>Z = treatment_group * t</code>).</p>
 <p>If treatment had already been known during baseline (not
 unlikely) then we would have only had to reveal the outcomes:</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="declaredesign.html#cb56-1" aria-hidden="true" tabindex="-1"></a>assignment <span class="ot">&lt;-</span></span>
-<span id="cb56-2"><a href="declaredesign.html#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_assignment</span>(<span class="at">treatment_group =</span> <span class="fu">cluster_ra</span>(<span class="at">clusters =</span> ID, <span class="at">prob =</span> <span class="fl">0.5</span>),</span>
-<span id="cb56-3"><a href="declaredesign.html#cb56-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">Z =</span> <span class="fu">ifelse</span>(treatment_group <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> t <span class="sc">==</span> <span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>),</span>
-<span id="cb56-4"><a href="declaredesign.html#cb56-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">Y =</span> <span class="fu">reveal_outcomes</span>(Y <span class="sc">~</span> Z)) </span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="declaredesign.html#cb62-1" aria-hidden="true" tabindex="-1"></a>assignment <span class="ot">&lt;-</span></span>
+<span id="cb62-2"><a href="declaredesign.html#cb62-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_assignment</span>(<span class="at">treatment_group =</span> <span class="fu">cluster_ra</span>(<span class="at">clusters =</span> ID, <span class="at">prob =</span> <span class="fl">0.5</span>),</span>
+<span id="cb62-3"><a href="declaredesign.html#cb62-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">Z =</span> <span class="fu">ifelse</span>(treatment_group <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> t <span class="sc">==</span> <span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb62-4"><a href="declaredesign.html#cb62-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">Y =</span> <span class="fu">reveal_outcomes</span>(Y <span class="sc">~</span> Z)) </span></code></pre></div>
 <p>Next, I declare my theoretical quantity of interest is the treatment
 effect in year 1. This is useful to check for bias. This is not really
 needed here, since my model will follow our data generation process exactly,
 so I could have just skipped this step.</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="declaredesign.html#cb57-1" aria-hidden="true" tabindex="-1"></a>inquiry <span class="ot">&lt;-</span>  </span>
-<span id="cb57-2"><a href="declaredesign.html#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_inquiry</span>(<span class="at">ATE =</span> <span class="fu">mean</span>(Y_Z_1 <span class="sc">-</span> Y_Z_0), <span class="at">subset =</span> (t <span class="sc">==</span> <span class="dv">1</span>)) </span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="declaredesign.html#cb63-1" aria-hidden="true" tabindex="-1"></a>inquiry <span class="ot">&lt;-</span>  </span>
+<span id="cb63-2"><a href="declaredesign.html#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_inquiry</span>(<span class="at">ATE =</span> <span class="fu">mean</span>(Y_Z_1 <span class="sc">-</span> Y_Z_0), <span class="at">subset =</span> (t <span class="sc">==</span> <span class="dv">1</span>)) </span></code></pre></div>
 <p>And finally, I add three estimators. If I hadn’t declared an inquiry,
 I could have declared a test here using <code>declare_test()</code>, which has
 the same syntax.</p>
 <p>The first estimator uses <code>lm_robust()</code>, which is included
 with DeclareDesign, to estimate a simple linear model using standard
 DiD notation.</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="declaredesign.html#cb58-1" aria-hidden="true" tabindex="-1"></a>estimator1 <span class="ot">&lt;-</span></span>
-<span id="cb58-2"><a href="declaredesign.html#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_estimator</span>(Y <span class="sc">~</span> t <span class="sc">*</span> treatment_group, </span>
-<span id="cb58-3"><a href="declaredesign.html#cb58-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
-<span id="cb58-4"><a href="declaredesign.html#cb58-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">.method =</span> estimatr<span class="sc">::</span>lm_robust, </span>
-<span id="cb58-5"><a href="declaredesign.html#cb58-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">term =</span> <span class="st">&quot;t:treatment_group&quot;</span>, </span>
-<span id="cb58-6"><a href="declaredesign.html#cb58-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;LM&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="declaredesign.html#cb64-1" aria-hidden="true" tabindex="-1"></a>estimator1 <span class="ot">&lt;-</span></span>
+<span id="cb64-2"><a href="declaredesign.html#cb64-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_estimator</span>(Y <span class="sc">~</span> t <span class="sc">*</span> treatment_group, </span>
+<span id="cb64-3"><a href="declaredesign.html#cb64-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
+<span id="cb64-4"><a href="declaredesign.html#cb64-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">.method =</span> estimatr<span class="sc">::</span>lm_robust, </span>
+<span id="cb64-5"><a href="declaredesign.html#cb64-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">term =</span> <span class="st">&quot;t:treatment_group&quot;</span>, </span>
+<span id="cb64-6"><a href="declaredesign.html#cb64-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;LM&quot;</span>)</span></code></pre></div>
 <p>Then I use <a href="https://lrberge.github.io/fixest/reference/feols.html"><code>feols()</code></a>
 from the <a href="https://lrberge.github.io/fixest/index.html">fixest</a>
 package to estimate a Two-way fixed effects (2FE) model.
 This is equivalent to the model above for this case, but the
 2FE can be more easily extended to more complex
 designs (<a href="https://doi.org/10.1017/pan.2020.33">but beware!</a>).</p>
-<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="declaredesign.html#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
-<span id="cb59-2"><a href="declaredesign.html#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
-<span id="cb59-3"><a href="declaredesign.html#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb59-4"><a href="declaredesign.html#cb59-4" aria-hidden="true" tabindex="-1"></a>estimator2 <span class="ot">&lt;-</span></span>
-<span id="cb59-5"><a href="declaredesign.html#cb59-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_estimator</span>(Y <span class="sc">~</span> Z <span class="sc">|</span> treatment_group <span class="sc">+</span> t,</span>
-<span id="cb59-6"><a href="declaredesign.html#cb59-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">vcov =</span> <span class="st">&quot;hetero&quot;</span>,</span>
-<span id="cb59-7"><a href="declaredesign.html#cb59-7" aria-hidden="true" tabindex="-1"></a>                    <span class="at">.method =</span> feols, </span>
-<span id="cb59-8"><a href="declaredesign.html#cb59-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">term =</span> <span class="st">&quot;Z&quot;</span>, </span>
-<span id="cb59-9"><a href="declaredesign.html#cb59-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
-<span id="cb59-10"><a href="declaredesign.html#cb59-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;2FE&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="declaredesign.html#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb65-2"><a href="declaredesign.html#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb65-3"><a href="declaredesign.html#cb65-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-4"><a href="declaredesign.html#cb65-4" aria-hidden="true" tabindex="-1"></a>estimator2 <span class="ot">&lt;-</span></span>
+<span id="cb65-5"><a href="declaredesign.html#cb65-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_estimator</span>(Y <span class="sc">~</span> Z <span class="sc">|</span> treatment_group <span class="sc">+</span> t,</span>
+<span id="cb65-6"><a href="declaredesign.html#cb65-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">vcov =</span> <span class="st">&quot;hetero&quot;</span>,</span>
+<span id="cb65-7"><a href="declaredesign.html#cb65-7" aria-hidden="true" tabindex="-1"></a>                    <span class="at">.method =</span> feols, </span>
+<span id="cb65-8"><a href="declaredesign.html#cb65-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">term =</span> <span class="st">&quot;Z&quot;</span>, </span>
+<span id="cb65-9"><a href="declaredesign.html#cb65-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
+<span id="cb65-10"><a href="declaredesign.html#cb65-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;2FE&quot;</span>)</span></code></pre></div>
 <p>As third estimator, I use a custom estimation function. The function
 takes and equation, the data to be analyzed, and (optionally)
 the type of standard errors to compute, and as its output
@@ -371,35 +377,35 @@ return, there’s no limit as to how complex you can make your analysis.</p>
 <p>Here, I keep it (relatively) simple. I use the lmtest/sandwich way of estimating
 robust standard errors, and make sure you can easily change the equation and type of
 Standard Errors to use through a parameter.</p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="declaredesign.html#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb60-2"><a href="declaredesign.html#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb60-3"><a href="declaredesign.html#cb60-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-4"><a href="declaredesign.html#cb60-4" aria-hidden="true" tabindex="-1"></a>custom_robust <span class="ot">&lt;-</span> <span class="cf">function</span>(equation, data, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>){</span>
-<span id="cb60-5"><a href="declaredesign.html#cb60-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># function takes a formula, provided as the first argument</span></span>
-<span id="cb60-6"><a href="declaredesign.html#cb60-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># of declare_estimator...</span></span>
-<span id="cb60-7"><a href="declaredesign.html#cb60-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># .. a type of standard errors to pass to vcov (default is HC1)</span></span>
-<span id="cb60-8"><a href="declaredesign.html#cb60-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... and data</span></span>
-<span id="cb60-9"><a href="declaredesign.html#cb60-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># It outputs a tidy data frame with relevant coefficients.</span></span>
-<span id="cb60-10"><a href="declaredesign.html#cb60-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-11"><a href="declaredesign.html#cb60-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(equation, <span class="at">data =</span> data) <span class="sc">%&gt;%</span></span>
-<span id="cb60-12"><a href="declaredesign.html#cb60-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coeftest</span>(., <span class="at">vcov =</span> <span class="fu">vcovHC</span>(., <span class="at">type=</span>type)) <span class="sc">%&gt;%</span> </span>
-<span id="cb60-13"><a href="declaredesign.html#cb60-13" aria-hidden="true" tabindex="-1"></a>    broom<span class="sc">::</span><span class="fu">tidy</span>(<span class="at">conf.int=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb60-14"><a href="declaredesign.html#cb60-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb60-15"><a href="declaredesign.html#cb60-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">&quot;t:treatment_group&quot;</span>)</span>
-<span id="cb60-16"><a href="declaredesign.html#cb60-16" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb60-17"><a href="declaredesign.html#cb60-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-18"><a href="declaredesign.html#cb60-18" aria-hidden="true" tabindex="-1"></a><span class="co"># the arguments formula and type are passed to to custom_robust()</span></span>
-<span id="cb60-19"><a href="declaredesign.html#cb60-19" aria-hidden="true" tabindex="-1"></a><span class="co"># as is the data on which to run the estimator. </span></span>
-<span id="cb60-20"><a href="declaredesign.html#cb60-20" aria-hidden="true" tabindex="-1"></a>estimator3 <span class="ot">&lt;-</span> </span>
-<span id="cb60-21"><a href="declaredesign.html#cb60-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_estimator</span>(<span class="at">equation =</span> Y <span class="sc">~</span> t <span class="sc">*</span> treatment_group, </span>
-<span id="cb60-22"><a href="declaredesign.html#cb60-22" aria-hidden="true" tabindex="-1"></a>                    <span class="at">handler =</span> <span class="fu">label_estimator</span>(custom_robust), </span>
-<span id="cb60-23"><a href="declaredesign.html#cb60-23" aria-hidden="true" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
-<span id="cb60-24"><a href="declaredesign.html#cb60-24" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;Custom&quot;</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="declaredesign.html#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb66-2"><a href="declaredesign.html#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb66-3"><a href="declaredesign.html#cb66-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-4"><a href="declaredesign.html#cb66-4" aria-hidden="true" tabindex="-1"></a>custom_robust <span class="ot">&lt;-</span> <span class="cf">function</span>(equation, data, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>){</span>
+<span id="cb66-5"><a href="declaredesign.html#cb66-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># function takes a formula, provided as the first argument</span></span>
+<span id="cb66-6"><a href="declaredesign.html#cb66-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># of declare_estimator...</span></span>
+<span id="cb66-7"><a href="declaredesign.html#cb66-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># .. a type of standard errors to pass to vcov (default is HC1)</span></span>
+<span id="cb66-8"><a href="declaredesign.html#cb66-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... and data</span></span>
+<span id="cb66-9"><a href="declaredesign.html#cb66-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># It outputs a tidy data frame with relevant coefficients.</span></span>
+<span id="cb66-10"><a href="declaredesign.html#cb66-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-11"><a href="declaredesign.html#cb66-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(equation, <span class="at">data =</span> data) <span class="sc">%&gt;%</span></span>
+<span id="cb66-12"><a href="declaredesign.html#cb66-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coeftest</span>(., <span class="at">vcov =</span> <span class="fu">vcovHC</span>(., <span class="at">type=</span>type)) <span class="sc">%&gt;%</span> </span>
+<span id="cb66-13"><a href="declaredesign.html#cb66-13" aria-hidden="true" tabindex="-1"></a>    broom<span class="sc">::</span><span class="fu">tidy</span>(<span class="at">conf.int=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb66-14"><a href="declaredesign.html#cb66-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb66-15"><a href="declaredesign.html#cb66-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">&quot;t:treatment_group&quot;</span>)</span>
+<span id="cb66-16"><a href="declaredesign.html#cb66-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb66-17"><a href="declaredesign.html#cb66-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-18"><a href="declaredesign.html#cb66-18" aria-hidden="true" tabindex="-1"></a><span class="co"># the arguments formula and type are passed to to custom_robust()</span></span>
+<span id="cb66-19"><a href="declaredesign.html#cb66-19" aria-hidden="true" tabindex="-1"></a><span class="co"># as is the data on which to run the estimator. </span></span>
+<span id="cb66-20"><a href="declaredesign.html#cb66-20" aria-hidden="true" tabindex="-1"></a>estimator3 <span class="ot">&lt;-</span> </span>
+<span id="cb66-21"><a href="declaredesign.html#cb66-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">declare_estimator</span>(<span class="at">equation =</span> Y <span class="sc">~</span> t <span class="sc">*</span> treatment_group, </span>
+<span id="cb66-22"><a href="declaredesign.html#cb66-22" aria-hidden="true" tabindex="-1"></a>                    <span class="at">handler =</span> <span class="fu">label_estimator</span>(custom_robust), </span>
+<span id="cb66-23"><a href="declaredesign.html#cb66-23" aria-hidden="true" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
+<span id="cb66-24"><a href="declaredesign.html#cb66-24" aria-hidden="true" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;Custom&quot;</span>) </span></code></pre></div>
 <p>Finally, I combine all these elements to declare my design. Note that
 it’s only here that R starts actually running the code to randomize
 things. The previous was just declaration!</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="declaredesign.html#cb61-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> model <span class="sc">+</span> assignment <span class="sc">+</span> inquiry <span class="sc">+</span> estimator1 <span class="sc">+</span> estimator2 <span class="sc">+</span> estimator3</span>
-<span id="cb61-2"><a href="declaredesign.html#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(design)</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="declaredesign.html#cb67-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> model <span class="sc">+</span> assignment <span class="sc">+</span> inquiry <span class="sc">+</span> estimator1 <span class="sc">+</span> estimator2 <span class="sc">+</span> estimator3</span>
+<span id="cb67-2"><a href="declaredesign.html#cb67-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(design)</span></code></pre></div>
 <pre><code>## 
 ## Research design declaration summary
 ## 
@@ -495,8 +501,8 @@ things. The previous was just declaration!</p>
 <p>Note that the results of my three estimators are identical, which is as expected.</p>
 <p>If you want to browse a version of the data created by your design,
 use the <code>draw_data()</code> function. This is useful to examine the properties of the data.</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="declaredesign.html#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">draw_data</span>(design) <span class="sc">%&gt;%</span></span>
-<span id="cb63-2"><a href="declaredesign.html#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="declaredesign.html#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">draw_data</span>(design) <span class="sc">%&gt;%</span></span>
+<span id="cb69-2"><a href="declaredesign.html#cb69-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
 <pre><code>## # A tibble: 200 × 10
 ##    ID       y0 years     t observations Y_Z_0 Y_Z_1 treatment_group     Z     Y
 ##    &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;           &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -514,9 +520,9 @@ use the <code>draw_data()</code> function. This is useful to examine the propert
 <p>Now to calculate our power. The <code>diagnose_design()</code> will run our
 model 500 times and our power is simply the fraction of times we
 find a statistically significant effect.</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="declaredesign.html#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diagnose_design</span>(design)</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="declaredesign.html#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diagnose_design</span>(design)</span></code></pre></div>
 <pre><code>## 
-## Research design diagnosis based on 500 simulations. Diagnosis completed in 15 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
+## Research design diagnosis based on 500 simulations. Diagnosis completed in 14 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
 ## 
 ##  Design Inquiry Estimator Outcome              Term N Sims Mean Estimand
 ##  design     ATE       2FE    &lt;NA&gt;                 Z    500         14.97
@@ -547,30 +553,30 @@ incomes in year 1) and the expected effect size.</p>
 combination of the parameters. This takes a lot of time, so I update
 my design to have only one estimator (estimator1, which is fast)
 and I’ve set the <code>sims</code> option of <code>diagnose_design()</code> to 200.</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="declaredesign.html#cb67-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> model <span class="sc">+</span> assignment <span class="sc">+</span> inquiry <span class="sc">+</span> estimator1</span>
-<span id="cb67-2"><a href="declaredesign.html#cb67-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb67-3"><a href="declaredesign.html#cb67-3" aria-hidden="true" tabindex="-1"></a>diagnosis <span class="ot">&lt;-</span></span>
-<span id="cb67-4"><a href="declaredesign.html#cb67-4" aria-hidden="true" tabindex="-1"></a>  design <span class="sc">%&gt;%</span></span>
-<span id="cb67-5"><a href="declaredesign.html#cb67-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">redesign</span>(<span class="at">effect_size =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">15</span>,</span>
-<span id="cb67-6"><a href="declaredesign.html#cb67-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">sd =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">7</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb67-7"><a href="declaredesign.html#cb67-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">diagnose_design</span>(<span class="at">sims =</span> <span class="dv">200</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="declaredesign.html#cb73-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> model <span class="sc">+</span> assignment <span class="sc">+</span> inquiry <span class="sc">+</span> estimator1</span>
+<span id="cb73-2"><a href="declaredesign.html#cb73-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-3"><a href="declaredesign.html#cb73-3" aria-hidden="true" tabindex="-1"></a>diagnosis <span class="ot">&lt;-</span></span>
+<span id="cb73-4"><a href="declaredesign.html#cb73-4" aria-hidden="true" tabindex="-1"></a>  design <span class="sc">%&gt;%</span></span>
+<span id="cb73-5"><a href="declaredesign.html#cb73-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">redesign</span>(<span class="at">effect_size =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">12</span>,</span>
+<span id="cb73-6"><a href="declaredesign.html#cb73-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">sd =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">7</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb73-7"><a href="declaredesign.html#cb73-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">diagnose_design</span>(<span class="at">sims =</span> <span class="dv">200</span>)</span></code></pre></div>
 <p>Now, I want a nice plot. For this I use the
 <code>tidy()</code> function to convert the output to a data frame, which -
 after some filtering - I pipe into <code>ggplot()</code>.
 It’s now easy to see that I should
 be able to pick up an effect size of 10 in most cases.</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="declaredesign.html#cb68-1" aria-hidden="true" tabindex="-1"></a>diagnosis <span class="sc">%&gt;%</span></span>
-<span id="cb68-2"><a href="declaredesign.html#cb68-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb68-3"><a href="declaredesign.html#cb68-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diagnosand <span class="sc">==</span> <span class="st">&quot;power&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb68-4"><a href="declaredesign.html#cb68-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(effect_size,sd,<span class="at">power =</span> estimate) <span class="sc">%&gt;%</span></span>
-<span id="cb68-5"><a href="declaredesign.html#cb68-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sd =</span> <span class="fu">factor</span>(sd)) <span class="sc">%&gt;%</span></span>
-<span id="cb68-6"><a href="declaredesign.html#cb68-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> effect_size, <span class="at">y =</span> power, </span>
-<span id="cb68-7"><a href="declaredesign.html#cb68-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> sd, <span class="at">color=</span>sd)) <span class="sc">+</span></span>
-<span id="cb68-8"><a href="declaredesign.html#cb68-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb68-9"><a href="declaredesign.html#cb68-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb68-10"><a href="declaredesign.html#cb68-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept=</span><span class="fl">0.8</span>,<span class="at">linetype=</span><span class="dv">2</span>) <span class="sc">+</span> </span>
-<span id="cb68-11"><a href="declaredesign.html#cb68-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">6</span>,<span class="dv">16</span>,<span class="dv">2</span>))</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="declaredesign.html#cb74-1" aria-hidden="true" tabindex="-1"></a>diagnosis <span class="sc">%&gt;%</span></span>
+<span id="cb74-2"><a href="declaredesign.html#cb74-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb74-3"><a href="declaredesign.html#cb74-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diagnosand <span class="sc">==</span> <span class="st">&quot;power&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb74-4"><a href="declaredesign.html#cb74-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(effect_size,sd,<span class="at">power =</span> estimate) <span class="sc">%&gt;%</span></span>
+<span id="cb74-5"><a href="declaredesign.html#cb74-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sd =</span> <span class="fu">factor</span>(sd)) <span class="sc">%&gt;%</span></span>
+<span id="cb74-6"><a href="declaredesign.html#cb74-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> effect_size, <span class="at">y =</span> power, </span>
+<span id="cb74-7"><a href="declaredesign.html#cb74-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> sd, <span class="at">color=</span>sd)) <span class="sc">+</span></span>
+<span id="cb74-8"><a href="declaredesign.html#cb74-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb74-9"><a href="declaredesign.html#cb74-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb74-10"><a href="declaredesign.html#cb74-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept=</span><span class="fl">0.8</span>,<span class="at">linetype=</span><span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb74-11"><a href="declaredesign.html#cb74-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">6</span>,<span class="dv">12</span>,<span class="dv">2</span>))</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
 
 </div>
 </div>

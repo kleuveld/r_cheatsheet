@@ -52,6 +52,8 @@
 <link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
 <link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<link href="libs/tabwid-1.1.3/tabwid.css" rel="stylesheet" />
+<script src="libs/tabwid-1.1.3/tabwid.js"></script>
 
 
 <style type="text/css">
@@ -168,7 +170,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#generating-some-fake-data"><i class="fa fa-check"></i>Generating some fake data</a></li>
-<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i>Making a table of summary statistics</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#making-a-table-of-summary-statistics"><i class="fa fa-check"></i>Making a table of summary statistics</a>
+<ul>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#using-arsenal"><i class="fa fa-check"></i>Using Arsenal</a></li>
+<li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#using-flextable"><i class="fa fa-check"></i>Using Flextable</a></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#simple-regression"><i class="fa fa-check"></i>Simple regression</a></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#robust-standard-errors"><i class="fa fa-check"></i>Robust standard errors</a></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html#exporting-to-word"><i class="fa fa-check"></i>Exporting to word</a></li>
@@ -209,36 +215,36 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Functions are great to re-use and structure your code.</p>
 <div id="basic-structure" class="section level2 hasAnchor">
 <h2>Basic structure<a href="functions.html#basic-structure" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="functions.html#cb69-1" aria-hidden="true" tabindex="-1"></a>add_two <span class="ot">&lt;-</span> <span class="cf">function</span>(argument) {</span>
-<span id="cb69-2"><a href="functions.html#cb69-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Do something with the input</span></span>
-<span id="cb69-3"><a href="functions.html#cb69-3" aria-hidden="true" tabindex="-1"></a>    return <span class="ot">&lt;-</span> argument <span class="sc">+</span> <span class="dv">2</span></span>
-<span id="cb69-4"><a href="functions.html#cb69-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb69-5"><a href="functions.html#cb69-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#call the intended output in the last line</span></span>
-<span id="cb69-6"><a href="functions.html#cb69-6" aria-hidden="true" tabindex="-1"></a>    return</span>
-<span id="cb69-7"><a href="functions.html#cb69-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb69-8"><a href="functions.html#cb69-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb69-9"><a href="functions.html#cb69-9" aria-hidden="true" tabindex="-1"></a><span class="fu">add_two</span>(<span class="dv">84</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="functions.html#cb75-1" aria-hidden="true" tabindex="-1"></a>add_two <span class="ot">&lt;-</span> <span class="cf">function</span>(argument) {</span>
+<span id="cb75-2"><a href="functions.html#cb75-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Do something with the input</span></span>
+<span id="cb75-3"><a href="functions.html#cb75-3" aria-hidden="true" tabindex="-1"></a>    return <span class="ot">&lt;-</span> argument <span class="sc">+</span> <span class="dv">2</span></span>
+<span id="cb75-4"><a href="functions.html#cb75-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-5"><a href="functions.html#cb75-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#call the intended output in the last line</span></span>
+<span id="cb75-6"><a href="functions.html#cb75-6" aria-hidden="true" tabindex="-1"></a>    return</span>
+<span id="cb75-7"><a href="functions.html#cb75-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb75-8"><a href="functions.html#cb75-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-9"><a href="functions.html#cb75-9" aria-hidden="true" tabindex="-1"></a><span class="fu">add_two</span>(<span class="dv">84</span>)</span></code></pre></div>
 <pre><code>## [1] 86</code></pre>
 </div>
 <div id="using-functions-in-a-pipe" class="section level2 hasAnchor">
 <h2>Using functions in a pipe<a href="functions.html#using-functions-in-a-pipe" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>By default, a function in a pipe uses the dataset of the pipe as its first argument.
 Also make sure to include a quick description of what your function does.</p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="functions.html#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb71-2"><a href="functions.html#cb71-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb71-3"><a href="functions.html#cb71-3" aria-hidden="true" tabindex="-1"></a>add_number_column <span class="ot">&lt;-</span> <span class="cf">function</span>(data,<span class="at">number=</span><span class="dv">2</span>) {</span>
-<span id="cb71-4"><a href="functions.html#cb71-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#This functions takes a data frame, and returns the same data frame,</span></span>
-<span id="cb71-5"><a href="functions.html#cb71-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#but with an exta column of 2sas its first variable. </span></span>
-<span id="cb71-6"><a href="functions.html#cb71-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">#The user can specify a number other than 2 using the num argument</span></span>
-<span id="cb71-7"><a href="functions.html#cb71-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">#This is great if you want a column of twos as the first variable</span></span>
-<span id="cb71-8"><a href="functions.html#cb71-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#of your data set.</span></span>
-<span id="cb71-9"><a href="functions.html#cb71-9" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
-<span id="cb71-10"><a href="functions.html#cb71-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">bestvar =</span> number) <span class="sc">%&gt;%</span></span>
-<span id="cb71-11"><a href="functions.html#cb71-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">select</span>(bestvar,<span class="fu">everything</span>())</span>
-<span id="cb71-12"><a href="functions.html#cb71-12" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb71-13"><a href="functions.html#cb71-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb71-14"><a href="functions.html#cb71-14" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb71-15"><a href="functions.html#cb71-15" aria-hidden="true" tabindex="-1"></a><span class="fu">add_number_column</span>() </span></code></pre></div>
+<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="functions.html#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb77-2"><a href="functions.html#cb77-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-3"><a href="functions.html#cb77-3" aria-hidden="true" tabindex="-1"></a>add_number_column <span class="ot">&lt;-</span> <span class="cf">function</span>(data,<span class="at">number=</span><span class="dv">2</span>) {</span>
+<span id="cb77-4"><a href="functions.html#cb77-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#This functions takes a data frame, and returns the same data frame,</span></span>
+<span id="cb77-5"><a href="functions.html#cb77-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#but with an exta column of 2sas its first variable. </span></span>
+<span id="cb77-6"><a href="functions.html#cb77-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">#The user can specify a number other than 2 using the num argument</span></span>
+<span id="cb77-7"><a href="functions.html#cb77-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">#This is great if you want a column of twos as the first variable</span></span>
+<span id="cb77-8"><a href="functions.html#cb77-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#of your data set.</span></span>
+<span id="cb77-9"><a href="functions.html#cb77-9" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb77-10"><a href="functions.html#cb77-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">bestvar =</span> number) <span class="sc">%&gt;%</span></span>
+<span id="cb77-11"><a href="functions.html#cb77-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">select</span>(bestvar,<span class="fu">everything</span>())</span>
+<span id="cb77-12"><a href="functions.html#cb77-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb77-13"><a href="functions.html#cb77-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-14"><a href="functions.html#cb77-14" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb77-15"><a href="functions.html#cb77-15" aria-hidden="true" tabindex="-1"></a><span class="fu">add_number_column</span>() </span></code></pre></div>
 <pre><code>## # A tibble: 131 × 15
 ##    bestvar key_ID village  interview_date      no_membrs years_liv
 ##      &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt;
@@ -256,8 +262,8 @@ Also make sure to include a quick description of what your function does.</p>
 ## # ℹ 9 more variables: respondent_wall_type &lt;chr&gt;, rooms &lt;dbl&gt;,
 ## #   memb_assoc &lt;chr&gt;, affect_conflicts &lt;chr&gt;, liv_count &lt;dbl&gt;,
 ## #   items_owned &lt;chr&gt;, no_meals &lt;dbl&gt;, months_lack_food &lt;chr&gt;, instanceID &lt;chr&gt;</code></pre>
-<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="functions.html#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb73-2"><a href="functions.html#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">add_number_column</span>(<span class="dv">4</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="functions.html#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb79-2"><a href="functions.html#cb79-2" aria-hidden="true" tabindex="-1"></a><span class="fu">add_number_column</span>(<span class="dv">4</span>) </span></code></pre></div>
 <pre><code>## # A tibble: 131 × 15
 ##    bestvar key_ID village  interview_date      no_membrs years_liv
 ##      &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt;
@@ -280,15 +286,15 @@ Also make sure to include a quick description of what your function does.</p>
 <h2>Passing variables to a function<a href="functions.html#passing-variables-to-a-function" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The following doesn’t work, because R can’t find <code>no_membrs</code>, even though it
 does exist in the data set in the pipe.</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="functions.html#cb75-1" aria-hidden="true" tabindex="-1"></a>add_two_to_a_column_broken <span class="ot">&lt;-</span> <span class="cf">function</span>(data,variable) {</span>
-<span id="cb75-2"><a href="functions.html#cb75-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#function that wants to add two two a column specified by the user</span></span>
-<span id="cb75-3"><a href="functions.html#cb75-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">#but it doesn&#39;t work.</span></span>
-<span id="cb75-4"><a href="functions.html#cb75-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
-<span id="cb75-5"><a href="functions.html#cb75-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variable =</span> variable <span class="sc">+</span> <span class="dv">2</span>)</span>
-<span id="cb75-6"><a href="functions.html#cb75-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb75-7"><a href="functions.html#cb75-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-8"><a href="functions.html#cb75-8" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb75-9"><a href="functions.html#cb75-9" aria-hidden="true" tabindex="-1"></a><span class="fu">add_two_to_a_column_broken</span>(no_membrs) </span></code></pre></div>
+<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="functions.html#cb81-1" aria-hidden="true" tabindex="-1"></a>add_two_to_a_column_broken <span class="ot">&lt;-</span> <span class="cf">function</span>(data,variable) {</span>
+<span id="cb81-2"><a href="functions.html#cb81-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#function that wants to add two two a column specified by the user</span></span>
+<span id="cb81-3"><a href="functions.html#cb81-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">#but it doesn&#39;t work.</span></span>
+<span id="cb81-4"><a href="functions.html#cb81-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb81-5"><a href="functions.html#cb81-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variable =</span> variable <span class="sc">+</span> <span class="dv">2</span>)</span>
+<span id="cb81-6"><a href="functions.html#cb81-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb81-7"><a href="functions.html#cb81-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-8"><a href="functions.html#cb81-8" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb81-9"><a href="functions.html#cb81-9" aria-hidden="true" tabindex="-1"></a><span class="fu">add_two_to_a_column_broken</span>(no_membrs) </span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -306,14 +312,14 @@ does exist in the data set in the pipe.</p>
 see <a href="https://dplyr.tidyverse.org/articles/programming.html">here</a>.
 To solve this, wrap the variable in your function definition
 in <code>{{</code> and <code>}}</code>, and change the <code>=</code> in <code>mutatate</code> to <code>:=</code>.</p>
-<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="functions.html#cb78-1" aria-hidden="true" tabindex="-1"></a>add_two_to_a_column_fixed <span class="ot">&lt;-</span> <span class="cf">function</span>(data,variable) {</span>
-<span id="cb78-2"><a href="functions.html#cb78-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#function that adds two two a column specified by the user</span></span>
-<span id="cb78-3"><a href="functions.html#cb78-3" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
-<span id="cb78-4"><a href="functions.html#cb78-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>( {{variable}} <span class="sc">:</span><span class="er">=</span> {{variable}} <span class="sc">+</span> <span class="dv">2</span>)</span>
-<span id="cb78-5"><a href="functions.html#cb78-5" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb78-6"><a href="functions.html#cb78-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-7"><a href="functions.html#cb78-7" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb78-8"><a href="functions.html#cb78-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">add_two_to_a_column_fixed</span>(no_membrs)</span></code></pre></div>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="functions.html#cb84-1" aria-hidden="true" tabindex="-1"></a>add_two_to_a_column_fixed <span class="ot">&lt;-</span> <span class="cf">function</span>(data,variable) {</span>
+<span id="cb84-2"><a href="functions.html#cb84-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#function that adds two two a column specified by the user</span></span>
+<span id="cb84-3"><a href="functions.html#cb84-3" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb84-4"><a href="functions.html#cb84-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>( {{variable}} <span class="sc">:</span><span class="er">=</span> {{variable}} <span class="sc">+</span> <span class="dv">2</span>)</span>
+<span id="cb84-5"><a href="functions.html#cb84-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb84-6"><a href="functions.html#cb84-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-7"><a href="functions.html#cb84-7" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>),<span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb84-8"><a href="functions.html#cb84-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">add_two_to_a_column_fixed</span>(no_membrs)</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 14
 ##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
 ##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
@@ -335,15 +341,15 @@ in <code>{{</code> and <code>}}</code>, and change the <code>=</code> in <code>m
 <div id="function-to-create-dummies-from-text" class="section level2 hasAnchor">
 <h2>Function to create dummies from text<a href="functions.html#function-to-create-dummies-from-text" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Remember our code to generate dummies based on text:</p>
-<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="functions.html#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>, <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb80-2"><a href="functions.html#cb80-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
-<span id="cb80-3"><a href="functions.html#cb80-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,items_owned) <span class="sc">%&gt;%</span></span>
-<span id="cb80-4"><a href="functions.html#cb80-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate_longer_delim</span>(items_owned, <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb80-5"><a href="functions.html#cb80-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb80-6"><a href="functions.html#cb80-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
-<span id="cb80-7"><a href="functions.html#cb80-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
-<span id="cb80-8"><a href="functions.html#cb80-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">names_prefix =</span> <span class="st">&quot;owns_&quot;</span>,</span>
-<span id="cb80-9"><a href="functions.html#cb80-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="functions.html#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>, <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb86-2"><a href="functions.html#cb86-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
+<span id="cb86-3"><a href="functions.html#cb86-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,items_owned) <span class="sc">%&gt;%</span></span>
+<span id="cb86-4"><a href="functions.html#cb86-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate_longer_delim</span>(items_owned, <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb86-5"><a href="functions.html#cb86-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb86-6"><a href="functions.html#cb86-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
+<span id="cb86-7"><a href="functions.html#cb86-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
+<span id="cb86-8"><a href="functions.html#cb86-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">names_prefix =</span> <span class="st">&quot;owns_&quot;</span>,</span>
+<span id="cb86-9"><a href="functions.html#cb86-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) </span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -374,24 +380,24 @@ in <code>{{</code> and <code>}}</code>, and change the <code>=</code> in <code>m
 ## #   owns_computer &lt;dbl&gt;, owns_car &lt;dbl&gt;</code></pre>
 <p>I now want to apply this same principle to <code>months_lack_food</code> column.
 I could copy-paste the code, but the better solution is to make a function:</p>
-<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="functions.html#cb83-1" aria-hidden="true" tabindex="-1"></a>create_dummies <span class="ot">&lt;-</span> <span class="cf">function</span>(df,stringvar,<span class="at">prefix=</span><span class="st">&quot;&quot;</span>,<span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) {</span>
-<span id="cb83-2"><a href="functions.html#cb83-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Function that generates dummies from a string variable</span></span>
-<span id="cb83-3"><a href="functions.html#cb83-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">#containing multi-response answers</span></span>
-<span id="cb83-4"><a href="functions.html#cb83-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#returns dataset without original var, but with dummies.</span></span>
-<span id="cb83-5"><a href="functions.html#cb83-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb83-6"><a href="functions.html#cb83-6" aria-hidden="true" tabindex="-1"></a>    df <span class="sc">%&gt;%</span></span>
-<span id="cb83-7"><a href="functions.html#cb83-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">separate_longer_delim</span>({{stringvar}}, <span class="at">delim =</span> delim) <span class="sc">%&gt;%</span></span>
-<span id="cb83-8"><a href="functions.html#cb83-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb83-9"><a href="functions.html#cb83-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> {{stringvar}},</span>
-<span id="cb83-10"><a href="functions.html#cb83-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">values_from =</span> value,</span>
-<span id="cb83-11"><a href="functions.html#cb83-11" aria-hidden="true" tabindex="-1"></a>                    <span class="at">names_prefix =</span> prefix,</span>
-<span id="cb83-12"><a href="functions.html#cb83-12" aria-hidden="true" tabindex="-1"></a>                    <span class="at">values_fill =</span> <span class="dv">0</span>) </span>
-<span id="cb83-13"><a href="functions.html#cb83-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb83-14"><a href="functions.html#cb83-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb83-15"><a href="functions.html#cb83-15" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb83-16"><a href="functions.html#cb83-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
-<span id="cb83-17"><a href="functions.html#cb83-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">create_dummies</span>(<span class="at">stringvar =</span> items_owned, <span class="at">prefix =</span> <span class="st">&quot;owns_&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb83-18"><a href="functions.html#cb83-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">create_dummies</span>(months_lack_food,<span class="st">&quot;lack_food_&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="functions.html#cb89-1" aria-hidden="true" tabindex="-1"></a>create_dummies <span class="ot">&lt;-</span> <span class="cf">function</span>(df,stringvar,<span class="at">prefix=</span><span class="st">&quot;&quot;</span>,<span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) {</span>
+<span id="cb89-2"><a href="functions.html#cb89-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Function that generates dummies from a string variable</span></span>
+<span id="cb89-3"><a href="functions.html#cb89-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">#containing multi-response answers</span></span>
+<span id="cb89-4"><a href="functions.html#cb89-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#returns dataset without original var, but with dummies.</span></span>
+<span id="cb89-5"><a href="functions.html#cb89-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb89-6"><a href="functions.html#cb89-6" aria-hidden="true" tabindex="-1"></a>    df <span class="sc">%&gt;%</span></span>
+<span id="cb89-7"><a href="functions.html#cb89-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">separate_longer_delim</span>({{stringvar}}, <span class="at">delim =</span> delim) <span class="sc">%&gt;%</span></span>
+<span id="cb89-8"><a href="functions.html#cb89-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb89-9"><a href="functions.html#cb89-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> {{stringvar}},</span>
+<span id="cb89-10"><a href="functions.html#cb89-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">values_from =</span> value,</span>
+<span id="cb89-11"><a href="functions.html#cb89-11" aria-hidden="true" tabindex="-1"></a>                    <span class="at">names_prefix =</span> prefix,</span>
+<span id="cb89-12"><a href="functions.html#cb89-12" aria-hidden="true" tabindex="-1"></a>                    <span class="at">values_fill =</span> <span class="dv">0</span>) </span>
+<span id="cb89-13"><a href="functions.html#cb89-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb89-14"><a href="functions.html#cb89-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb89-15"><a href="functions.html#cb89-15" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb89-16"><a href="functions.html#cb89-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
+<span id="cb89-17"><a href="functions.html#cb89-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">create_dummies</span>(<span class="at">stringvar =</span> items_owned, <span class="at">prefix =</span> <span class="st">&quot;owns_&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb89-18"><a href="functions.html#cb89-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">create_dummies</span>(months_lack_food,<span class="st">&quot;lack_food_&quot;</span>)</span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
