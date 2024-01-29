@@ -69,11 +69,11 @@ a path for me. This library is a must for shared projects!
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-write2word(descriptive_table, here("tables/summ_stats.docx"), title = "Descriptive Statistics", quiet = TRUE)
+write2word(descriptive_table, here("tables/summ_stats_arsenal.docx"), title = "Descriptive Statistics", quiet = TRUE)
 
 ```
 
-You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats.docx).
+You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats_arsenal.docx).
 
 
 ### Using Flextable
@@ -93,35 +93,119 @@ bind_rows(data %>% mutate(Treatment = ifelse(treatment," Treatment","  Control")
   group_by(Treatment) %>%
   summarize(across(everything(),
                      list(n =  ~sum(!is.na(.x)),
+                          nmiss =  ~sum(is.na(.x)),
                           mean = ~mean(.x,na.rm=TRUE),
-                          sd = ~sd(.x,na.rm=TRUE)),
+                          sd = ~sd(.x,na.rm=TRUE),
+                          min =  ~min(.x,na.rm=TRUE),
+                          max =  ~max(.x,na.rm=TRUE),
+                          iqr =  ~IQR(.x,na.rm=TRUE)),
                       .names =  "{.col}-{.fn}")) %>%
   pivot_longer(cols = -Treatment,
                  names_to = c("Variable",".value"),
                  names_sep="-") 
 
-
+summstats
 
 ```
 
 
-Then use flextable. Note that `tabulator()` sorts the columns alphabetically, so that would be
+Then use I flextable's `tabulator()` to make output that looks good in word. 
+Note that `tabulator()` sorts the columns alphabetically, so that would be
 control, overall, treatment. That doesn't make sense, so I have used spaces (`" Treatment"`) to 
-control the ordering. I also haven't found a way to find significant differences.
+control the ordering. 
 
+I've added a bunch of statistics to show the flexibility:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 library(flextable)
+
 summstats %>%
 tabulator(rows = "Variable",
-                    columns = "Treatment",
-                    `N` = as_paragraph(as_chunk(n,digits=0)),
-                    `Mean (SD)` =  as_paragraph(as_chunk(fmt_avg_dev(mean, sd, digit2 = 2)))) %>%
+          columns = "Treatment",
+          `N` = as_paragraph(as_chunk(n,digits=0)),
+          `Mean (SD)` =  as_paragraph(as_chunk(fmt_avg_dev(mean, sd, digit1=2,digit2 = 2))),
+          Range = as_paragraph(as_chunk(min), "-",as_chunk(max)) ) %>%
 as_flextable() 
 
 
 ```
+
+To add a column with differences, I first define a [function](#functions) to compute the differences
+(I use a regression rather than a ttest, so I can cluster my standard errors etc. to this if I need to). 
+Then I use `summarize(across())` in much the same way as above, now to create a dataframe called `difcol`. 
+Note that I use `.` to refer to the dataset currently in the `%>%` pipe.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+
+get_diffs <- function(.df,y,x){
+
+  reg <-  lm(y~ x) %>% broom::tidy()
+
+  coeff = round(reg[2,2],2)
+  p <- reg[2,5]
+
+  stars = case_when(p < 0.001 ~ "***",
+                    p < 0.01 ~ "**",
+                    p < 0.05 ~ "*",
+                    .default = "" )
+
+  paste0(coeff,stars)
+}
+
+
+difcol <-
+  data %>%
+  select(where(is.numeric),-key_ID,-treatment) %>%
+  summarize(across(everything(),
+                   .fns = function(x) get_diffs(.,.$x,data$treatment))) %>%
+  pivot_longer(cols =everything(),
+               names_to = "Variable",
+               values_to="Difference")  
+
+
+```
+
+Then, all I have to do is add it to `tabulator()` using its `datasup_last` argument. Below, I also
+use a few other flextable function to make the table nicer. In particular, `labelizor()` to add variable
+labels, which I define as a vector.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+#named vector with variable labels:
+labels <- c("Household members","Years lived","Rooms","N. livestock owned","Meals per day", "Educated","Uses Ferilizer")
+names(labels) <- summstats[[2]][1:7]
+
+
+descriptive_table_flex <-
+  summstats %>%
+  tabulator(rows = "Variable",
+            columns = "Treatment",
+            datasup_last = difcol,
+            `N` = as_paragraph(as_chunk(n,digits=0)),
+            `Mean (SD)` =  as_paragraph(as_chunk(fmt_avg_dev(mean, sd, digit1=2,digit2 = 2)))) %>%
+  as_flextable()  %>%
+  labelizor(j = "Variable", labels = labels, part = "all") %>% 
+  fix_border_issues() %>% 
+  autofit()
+
+descriptive_table_flex
+
+```
+
+To save it to word:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+descriptive_table_flex %>%
+  save_as_docx(path = here("tables/summs_stats_flex.docx"))
+
+```
+
+
+You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summs_stats_flex.docx).
+
 
 ## Simple regression
 
