@@ -85,7 +85,7 @@ create_codebook <- function(.df,stats = list(mean=mean,sd=sd,min=min,max=max,
 
 
   labels <- tibble(var = imap_chr(.df,~.y),
-                   label = map_chr(.df,function(x) attributes(x)$label),
+                   label = map_chr(.df,function(x) coalesce(attributes(x)$label,"")),
                    type = map_chr(.df, typeof))
 
 
