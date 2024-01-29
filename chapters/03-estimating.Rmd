@@ -34,12 +34,15 @@ data <-
          u = sample(c(0.1,0.2,0.3),1),
          prob = 0.3 * treatment + 0.1 * educated + u,
          uses_fertilizer = rbinom(1,1,prob)) %>%
-  select(-prob,-u)
+  ungroup() %>%
+  select(-prob,-u) 
 
 ```
 
 ## Making a table of summary statistics
 
+
+### Using Arsenal
 The first table we make is a table of descriptive statistics
 using the Arsenal package:
 
@@ -71,6 +74,54 @@ write2word(descriptive_table, here("tables/summ_stats.docx"), title = "Descripti
 ```
 
 You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats.docx).
+
+
+### Using Flextable
+
+For more control, the flextable package can covert data frames into good-looking table using the 
+`tabulator()` function.
+
+First, make a data frame with summarry statistics. I duplicate the data set using `bind_rows()`
+to create an overall group.
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+summstats <-
+bind_rows(data %>% mutate(Treatment = ifelse(treatment," Treatment","  Control")),
+          data %>% mutate(Treatment = "Overall")) %>% 
+  select(where(is.numeric),Treatment,-key_ID,-treatment) %>%
+  group_by(Treatment) %>%
+  summarize(across(everything(),
+                     list(n =  ~sum(!is.na(.x)),
+                          mean = ~mean(.x,na.rm=TRUE),
+                          sd = ~sd(.x,na.rm=TRUE)),
+                      .names =  "{.col}-{.fn}")) %>%
+  pivot_longer(cols = -Treatment,
+                 names_to = c("Variable",".value"),
+                 names_sep="-") 
+
+
+
+```
+
+
+Then use flextable. Note that `tabulator()` sorts the columns alphabetically, so that would be
+control, overall, treatment. That doesn't make sense, so I have used spaces (`" Treatment"`) to 
+control the ordering. I also haven't found a way to find significant differences.
+
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(flextable)
+summstats %>%
+tabulator(rows = "Variable",
+                    columns = "Treatment",
+                    `N` = as_paragraph(as_chunk(n,digits=0)),
+                    `Mean (SD)` =  as_paragraph(as_chunk(fmt_avg_dev(mean, sd, digit2 = 2)))) %>%
+as_flextable() 
+
+
+```
 
 ## Simple regression
 
