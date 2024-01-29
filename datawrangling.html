@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-01-18" />
+<meta name="date" content="2024-01-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -254,16 +254,16 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    19
-##  2      1         2      1    75
-##  3      1         3      0    23
-##  4      2         1      1    58
-##  5      2         2      0    53
-##  6      2         3      1    60
-##  7      2         4      1     1
-##  8      2         5      1    79
-##  9      2         6      0    63
-## 10      2         7      0    61
+##  1      1         1      1    81
+##  2      1         2      0    52
+##  3      1         3      1    37
+##  4      2         1      1    18
+##  5      2         2      0    40
+##  6      2         3      1    42
+##  7      2         4      0    12
+##  8      2         5      1    68
+##  9      2         6      0    74
+## 10      2         7      1    59
 ## # ℹ 932 more rows</code></pre>
 </div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
@@ -277,16 +277,16 @@ randomly generated variables: <code>female</code> and <code>age</code>.</p>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
 ##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        1        1        0       NA       NA       NA       NA
-##  2      2        1        0        1        1        1        0        0
-##  3      3        1        1        1        0        0        0        1
-##  4      4        0        0        0        1        0        1        1
-##  5      5        1        0        0        1        0        0        1
-##  6      6        1        0        0       NA       NA       NA       NA
-##  7      7        1        1        1        1        0        0       NA
-##  8      8        1        0        0        0        0        1        1
-##  9      9        1        1        1        0        0        1        0
-## 10     10        0        0        1        0        1        1        0
+##  1      1        1        0        1       NA       NA       NA       NA
+##  2      2        1        0        1        0        1        0        1
+##  3      3        0        1        1        0        1        1        1
+##  4      4        0        0        1        0        1        0        0
+##  5      5        1        0        0        1        1        1        1
+##  6      6        1        0        1       NA       NA       NA       NA
+##  7      7        1        1        0        1        0        1       NA
+##  8      8        1        1        1        0        0        0        0
+##  9      9        1        1        0        1        1        1        0
+## 10     10        1        1        0        1        1        1        0
 ## # ℹ 121 more rows
 ## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
 ## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
@@ -315,16 +315,16 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt;
-##  1      1         1      1    19
-##  2      1         2      1    75
-##  3      1         3      0    23
-##  4      2         1      1    58
-##  5      2         2      0    53
-##  6      2         3      1    60
-##  7      2         4      1     1
-##  8      2         5      1    79
-##  9      2         6      0    63
-## 10      2         7      0    61
+##  1      1         1      1    81
+##  2      1         2      0    52
+##  3      1         3      1    37
+##  4      2         1      1    18
+##  5      2         2      0    40
+##  6      2         3      1    42
+##  7      2         4      0    12
+##  8      2         5      1    68
+##  9      2         6      0    74
+## 10      2         7      1    59
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
 how I intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. I don’t really want to touch the key_ID
@@ -413,16 +413,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    19 God     2016-11-17 00:00:00
-##  2      1         2      1    75 God     2016-11-17 00:00:00
-##  3      1         3      0    23 God     2016-11-17 00:00:00
-##  4      2         1      1    58 God     2016-11-17 00:00:00
-##  5      2         2      0    53 God     2016-11-17 00:00:00
-##  6      2         3      1    60 God     2016-11-17 00:00:00
-##  7      2         4      1     1 God     2016-11-17 00:00:00
-##  8      2         5      1    79 God     2016-11-17 00:00:00
-##  9      2         6      0    63 God     2016-11-17 00:00:00
-## 10      2         7      0    61 God     2016-11-17 00:00:00
+##  1      1         1      1    81 God     2016-11-17 00:00:00
+##  2      1         2      0    52 God     2016-11-17 00:00:00
+##  3      1         3      1    37 God     2016-11-17 00:00:00
+##  4      2         1      1    18 God     2016-11-17 00:00:00
+##  5      2         2      0    40 God     2016-11-17 00:00:00
+##  6      2         3      1    42 God     2016-11-17 00:00:00
+##  7      2         4      0    12 God     2016-11-17 00:00:00
+##  8      2         5      1    68 God     2016-11-17 00:00:00
+##  9      2         6      0    74 God     2016-11-17 00:00:00
+## 10      2         7      1    59 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -437,16 +437,16 @@ compute the household size, number of women and average age in each household:</
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     39  
-##  2      2       7         4     53.6
-##  3      3      10         5     36.7
-##  4      4       7         3     56  
-##  5      5       7         3     34.3
-##  6      6       3         1     34.7
-##  7      7       6         4     49.8
-##  8      8      12         5     26.5
-##  9      9       8         4     52.5
-## 10     10      12         6     52.5
+##  1      1       3         2     56.7
+##  2      2       7         4     44.7
+##  3      3      10         7     43.5
+##  4      4       7         2     43  
+##  5      5       7         5     51.9
+##  6      6       3         2     61  
+##  7      7       6         4     43.8
+##  8      8      12         6     37.8
+##  9      9       8         6     50.6
+## 10     10      12         6     46.6
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="row-wise-operations" class="section level2 hasAnchor">
@@ -470,16 +470,16 @@ You can do similar things in R. It’s just a bit more complex than in Stata:</p
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     39  
-##  2      2       7         4     53.6
-##  3      3      10         5     36.7
-##  4      4       7         3     56  
-##  5      5       7         3     34.3
-##  6      6       3         1     34.7
-##  7      7       6         4     49.8
-##  8      8      12         5     26.5
-##  9      9       8         4     52.5
-## 10     10      12         6     52.5
+##  1      1       3         2     56.7
+##  2      2       7         4     44.7
+##  3      3      10         7     43.5
+##  4      4       7         2     43  
+##  5      5       7         5     51.9
+##  6      6       3         2     61  
+##  7      7       6         4     43.8
+##  8      8      12         6     37.8
+##  9      9       8         6     50.6
+## 10     10      12         6     46.6
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensure all summaries are computed per row, and <code>c_across()</code>
@@ -692,16 +692,7 @@ to nest a data set into a variable. That, combined with
 <span id="cb34-4"><a href="datawrangling.html#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
 <span id="cb34-5"><a href="datawrangling.html#cb34-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
 <span id="cb34-6"><a href="datawrangling.html#cb34-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">names_glue =</span> <span class="st">&quot;owns_{items_owned}&quot;</span>,</span>
-<span id="cb34-7"><a href="datawrangling.html#cb34-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) </span></code></pre></div>
-<pre><code>## Rows: 131 Columns: 14
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr  (7): village, respondent_wall_type, memb_assoc, affect_conflicts, items...
-## dbl  (6): key_ID, no_membrs, years_liv, rooms, liv_count, no_meals
-## dttm (1): interview_date
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<span id="cb34-7"><a href="datawrangling.html#cb34-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>)</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 31
 ##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
 ##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
@@ -722,6 +713,14 @@ to nest a data set into a variable. That, combined with
 ## #   owns_table &lt;dbl&gt;, owns_cow_cart &lt;dbl&gt;, owns_radio &lt;dbl&gt;,
 ## #   owns_cow_plough &lt;dbl&gt;, owns_solar_torch &lt;dbl&gt;, owns_mobile_phone &lt;dbl&gt;,
 ## #   owns_motorcyle &lt;dbl&gt;, owns_NA &lt;dbl&gt;, owns_fridge &lt;dbl&gt;, …</code></pre>
+<p>Note that this solution differs in how observations where <code>items_owned</code> is
+empty are treated. Previous solutions had <code>NA</code> for all created variables in this
+case; using this approach, a variable <code>owns_NA</code> is created, with value <code>1</code>, and
+all other variables are set to <code>0</code>.
+It’s unclear which is better in this
+case: does an empty <code>items_owned</code> means the household owns nothing? Then this
+implementation is better. Does it mean the quesitons was skipped? Then the
+previous ones were better.</p>
 
 </div>
 </div>
