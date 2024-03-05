@@ -1,11 +1,15 @@
 # Data Exploration
 
+The first step of using data is exploring it. I will use Stata data
+because it has labels, making it easy to get a sense of the data once
+you get the hang of how labels are dealt with in R.
+
 ## Setup
 
 Download the [cars data set from here](http://www.principlesofeconometrics.com/stata.htm)
 or run the code below:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r eval=FALSE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 
 download.file(
@@ -28,6 +32,7 @@ First, load the cars data set:
 
 library(tidyverse)
 library(haven)
+library(here)
 
 
 cars <- read_dta(here("data/cars.dta"))
@@ -35,7 +40,15 @@ cars <- read_dta(here("data/cars.dta"))
 ```
 
 The variable labels are stored as attributes of the variables. The `attributes()`
-function returns all attributes. To see only the label use:
+function returns all attributes:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+attributes(cars$mpg)
+
+```
+
+ To see only the label use:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
@@ -43,48 +56,73 @@ attributes(cars$mpg)$label
 
 ```
 
-To create a data frame with all variable labels:
+To create a data frame with all variable labels we can apply `attributes()`
+to all variables using `map_chr()` from the `purrr` package: 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 codebook <- 
   tibble(var = colnames(cars),
-         label = map_chr(cars,function(x) attributes(x)$label)) 
+         label = map_chr(cars,~attributes(.x)$label)) 
 
 codebook
 
 ```
 
-To make it slightly more useful, we can add some summary statistics:
+To make it slightly more useful, we can add some summary statistics. 
+I can apply a number of functions to a data frame using `map_dbl()`, 
+which returns a named vector:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+list_of_functions <- list(mean=mean,sd=sd,min=min,max=max)
+
+list_of_functions %>%
+  map_dbl(~.x(cars$mpg, na.rm = TRUE))
+
+
+```
+
+To do this for every column in a dataframe, I wrap the code above 
+in a function, and use `map()` to apply that function to the columns. 
+
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 stats_to_tibble <- function(var,funs) {
-  map_dbl(funs,\(x) ifelse(is.numeric(var),x(var,na.rm = TRUE),NA)) %>%
-  as_tibble_row()
+  funs %>%
+    map_dbl(~ifelse(is.numeric(var),.x(var,na.rm = TRUE),NA)) %>%
+    as_tibble_row()
 }
 
+summ_stats <- 
+  cars %>%
+    map(~stats_to_tibble(.x,list_of_functions)) %>%
+    list_rbind()
+summ_stats
 
-funs <- list(mean=mean,sd=sd,min=min,max=max)
 
-bind_cols(codebook,
-          cars %>%
-            map(\(x) stats_to_tibble(x,funs)) %>%
-            list_rbind())   
 
 ```
 
-Put it all in a reusable function, adding some other columns, and 
-rounding the numeric outputs to make sure it's human-readable.
+I can bind that with the codebook I had before to get a nice 
+overview of all the variables in my dataset:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+bind_cols(codebook, summ_stats)   
+
+```
+
+Here's a re-usable function that add more columns, handles empty labels
+(using `coalesce()`) and rounds the output so it's human-readable:
 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 create_codebook <- function(.df,stats = list(mean=mean,sd=sd,min=min,max=max,
                                             prop_miss=prop_miss)) {
-
-
-  labels <- tibble(var = imap_chr(.df,~.y),
+  labels <- tibble(var = colnames(.df),
                    label = map_chr(.df,function(x) coalesce(attributes(x)$label,"")),
                    type = map_chr(.df, typeof))
 
@@ -94,13 +132,13 @@ create_codebook <- function(.df,stats = list(mean=mean,sd=sd,min=min,max=max,
   }
 
   stats_to_tibble <- function(var,stats) {
-    map_dbl(stats,\(x) ifelse(is.numeric(var),x(var,na.rm = TRUE),NA)) %>%
+    map_dbl(stats,~ifelse(is.numeric(var),.x(var,na.rm = TRUE),NA)) %>%
     as_tibble_row()
   }
 
   sumstats <-
     .df %>%
-    map(\(x) stats_to_tibble(x,stats)) %>%
+    map(~stats_to_tibble(.x,stats)) %>%
     list_rbind() %>%
     mutate(across(where(is.numeric),
                 ~round(.x,2)))  
@@ -113,8 +151,11 @@ create_codebook(cars)
 
 ```
 
-
 ## Correlogram
+
+Another great data exploration tool is the correlogram, which displays
+the correlations between many variables. To create one, I use `ggpairs()`
+from the `GGally` package:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
@@ -123,6 +164,10 @@ library(GGally)
 ggpairs(cars) 
 
 ```
+
+You can also split the correlogram by a variable, like I do with the number
+of cylinders below:
+
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 

@@ -89,13 +89,13 @@ characteristics, etc. etc.
 
 year_shock <- 10
 effect_size <- 15
-sd <- 5
+stdev <- 5
 
 model <- 
   declare_model(fakedata_years,
                 potential_outcomes(Y ~ y0 + t * year_shock + 
                                             Z * effect_size + 
-                                            t * rnorm(N,sd = sd)))
+                                            t * rnorm(N,sd = stdev)))
 
 ```
 
@@ -260,7 +260,7 @@ But what if I was too optimistic? Using the
 `redesign()` function, you can vary various 
 parameters of your design, and test all their combinations.
 Here I check a few plausible values for 
-the `sd` variable (giving the variation of the error term for 
+the `stdev` variable (giving the variation of the error term for 
 incomes in year 1) and the expected effect size.
 
 Note that by default, this runs all estimators, 500 times for each
@@ -275,7 +275,7 @@ design <- model + assignment + inquiry + estimator1
 diagnosis <-
   design %>%
   redesign(effect_size = 6:12,
-           sd = c(3,5,7)) %>%
+           stdev = c(3,5,7)) %>%
   diagnose_design(sims = 200)
 
 ```
@@ -291,10 +291,10 @@ be able to pick up an effect size of 10 in most cases.
 diagnosis %>%
   tidy() %>%
   filter(diagnosand == "power") %>%
-  select(effect_size,sd,power = estimate) %>%
-  mutate(sd = factor(sd)) %>%
+  select(effect_size,stdev,power = estimate) %>%
+  mutate(stdev = factor(stdev)) %>%
   ggplot(aes(x = effect_size, y = power, 
-             shape = sd, color=sd)) +
+             shape = stdev, color=stdev)) +
     geom_line() +
     geom_point() +
     geom_hline(yintercept=0.8,linetype=2) + 
