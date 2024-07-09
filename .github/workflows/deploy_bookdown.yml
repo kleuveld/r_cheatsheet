@@ -31,6 +31,7 @@ jobs:
             any::DeclareDesign
             any::fixest
             any::GGally
+            any::modelsummary
       - name: Render Book
         run: Rscript -e 'bookdown::render_book("index.Rmd")'
       - name: Deploy to GitHub Pages
