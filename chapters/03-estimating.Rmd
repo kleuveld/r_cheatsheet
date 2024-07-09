@@ -191,8 +191,8 @@ labels, which I define as a vector.
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 #named vector with variable labels:
-labels <- c("Household members","Years lived","Rooms","N. livestock owned","Meals per day", "Educated","Uses Ferilizer")
-names(labels) <- summstats[[2]][1:7]
+# labels <- c("Household members","Years lived","Rooms","N. livestock owned","Meals per day", "Educated","Uses Ferilizer")
+# names(labels) <- summstats[[2]][1:7]
 
 
 descriptive_table_flex <-
@@ -269,7 +269,7 @@ modelsummary(list("LM" = lm, "Robust" = lmrobust),
 ```
 
 If you want to add the number of clusters, you will need to do some
-work. It gets the N etc. from the `broom::glance()` function. For
+work. `modelsummary()` gets the N etc. from the `broom::glance()` function. For
 `lm_robust()` models, this doesn't report the number of clusters.
 However, you can make sure that it does, by making a custom 
 glance methods for lm_robust objects (see 
