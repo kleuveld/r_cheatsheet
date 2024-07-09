@@ -41,42 +41,59 @@ data <-
 
 ## Making a table of summary statistics
 
+### Using modelsummary and flextable
 
-### Using Arsenal
-The first table we make is a table of descriptive statistics
-using the Arsenal package:
+The `modelsummary` package is the most convenient to create tables. To convert them
+to word, I use the `flextable` package.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-library(arsenal)
+library(modelsummary)
+library(flextable)
 
-descriptive_table <-
-  data %>%
-  select(where(is.numeric),-key_ID) %>%
-  tableby(treatment ~ ., 
-          data = .)
+labels = c(no_membrs = "# HH Members",
+           years_liv = "Year in village",
+           rooms = "# Rooms",
+           liv_count = "# Livestock",
+           no_meals = "# Meals",
+           treatment = "Treated",
+           educated = "Educated",
+           uses_fertilizer = "Uses fertilizer",
+           `(Intercept)` = "Constant")
 
-summary(descriptive_table)
-
-```
-
-That summary looks okay, even as raw text, and does what we want, so
-let's export it to word! For this, we use Arsenal's `write2word()`
-function. I had some trouble getting it to pick up my path, so I 
-am using the [here library](https://here.r-lib.org/) to generate 
-a path for me. This library is a must for shared projects!
-
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
-
-write2word(descriptive_table, here("tables/summ_stats_arsenal.docx"), title = "Descriptive Statistics", quiet = TRUE)
+# descriptive stats
+data %>%
+  select(where(is.numeric), -ends_with("ID")) %>%
+  datasummary(All(.) ~ Mean + SD + min + max + Histogram , data = ., output = "flextable") %>%
+  labelizor(j =1,labels = labels, part = "all")%>% 
+    fix_border_issues() %>% 
+    autofit()
 
 ```
 
-You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summ_stats_arsenal.docx).
+Flextables can be easily exported to Word using the `save_as_docx()` function.
 
 
-### Using Flextable
+### Balance Table
+
+Using `modelsummary`'s `datasummary_balance()` table function, it is easy
+to create a balance table:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+treat_labels <- c("0" = "Control", "1" = "Treated")
+
+# balance table
+data %>%
+select(where(is.numeric), -ends_with("ID")) %>%
+datasummary_balance( ~ treatment , data = ., output = "flextable", start = TRUE, dinm = TRUE, dinm_statistic = "p.value") %>%
+labelizor(j =1,labels = labels, part = "all")%>%
+labelizor(labels = treat_labels, part = "header")%>% 
+  fix_border_issues() %>% 
+  autofit()
+```
+
+### Advanced: Using only Flextable
 
 For more control, the flextable package can covert data frames into good-looking table using the 
 `tabulator()` function.
@@ -207,196 +224,101 @@ descriptive_table_flex %>%
 You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summs_stats_flex.docx).
 
 
-### Using
-
 ## Simple regression
 
-A simple regression uses the `lm()` function. We save the results
-in an object, which we can later include in a table we export to word.
+A simple regression uses the `lm()` function. I use the `modelsummary()`
+function to display it:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 lm <- lm(uses_fertilizer ~ treatment + educated, data = data)
-summary(lm)
+modelsummary(lm, output = "flextable")
 
 
 ```
 
 ## Robust standard errors
 
-To get robust standard errors (bootstrapped) clustered at the village
-level, we can use the following:
+To get robust standard errors clustered at the village
+level, using the same procedures Stata uses, I use the `lm_robust()`
+function:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-library(lmtest)
-library(sandwich)
-
-lm_robust <- coeftest(lm, vcov = vcovBS(lm, cluster=~village))
-lm_robust
-
-```
-<!-- alternatively: use lm_robust from estimatr -->
+library(estimatr)
+lmrobust <-
+  lm_robust(uses_fertilizer ~ treatment + educated, 
+            data = data, cluster = village, se_type = "stata")
 
 
-Let's also do a probit model:
-
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-probit <- glm(uses_fertilizer ~ treatment + educated, 
-                family = binomial(link = "probit"), 
-                data = data)
-
-summary(probit)
-
-```
-
-And get robust SEs:
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-
-probit_robust <- coeftest(probit, vcov = vcovBS(probit,cluster=~village))
-probit_robust
+modelsummary(list("LM" = lm, "Robust" = lmrobust), output = "flextable")
 
 ```
 
 
-## Exporting to word
-
-To make a good looking regression table, I use the huxtable 
-library. Note the use of `tidy_override()` to add statistics
-to the model output.
-
-To export the resulting tables to word, I use the huxtable package.
-The package is extremely flexible, so check out [its website](https://cran.r-project.org/web/packages/huxtable/vignettes/huxreg.html).
-Some of the flexibility is seen below, by adding the number of clusters
-and formatting the number in the resulting table.
+I'd like to have just the N, r-squared and Adjusted R-squared:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-#add the number of clusers to each
-lm_robust <- 
-  huxtable::tidy_override(lm_robust,
-                glance = list(n_clusters = 4),
-                extend=TRUE)
-probit_robust <- 
-  huxtable::tidy_override(probit_robust,
-                glance = list(n_clusters = 4),
-                extend=TRUE)
-#make the table
-reg_table <-
-  huxtable::huxreg("Linear" = lm,"Linear Robust" = lm_robust,
-         "Probit" = probit, "Probit Robust" = probit_robust,
-         statistics = c(N = "nobs",
-                        Clusters = "n_clusters", 
-                        "Adj. R2" = "adj.r.squared")) %>% 
-  huxtable::set_number_format(row=9,value=0)
 
-reg_table
+modelsummary(list("LM" = lm, "Robust" = lmrobust), 
+             gof_map = c("nobs","r.squared","adj.r.squared"),
+             output = "flextable")
+
 
 ```
 
-That looks decent! However, huxtable doesn't work well with
-Word. We can use `as_flextable()` to convert to flextable
-(note that I had bad results with `flextable::as_flextable()`, so make
-sure to use `huxtable::as_flextable()`), and then use flextable
-to export to docx. 
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
-
-reg_table %>%
-  huxtable::as_flextable() %>%
-  flextable::save_as_docx(path = here("tables/regression_table.docx"))
-
-```
-
-You can find there output [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/regression_table.docx).
-
-## modelsummary
-
-
-### Descriptive statistics
+If you want to add the number of clusters, you will need to do some
+work. It gets the N etc. from the `broom::glance()` function. For
+`lm_robust()` models, this doesn't report the number of clusters.
+However, you can make sure that it does, by making a custom 
+glance methods for lm_robust objects (see 
+[here](https://modelsummary.com/articles/modelsummary.html) 
+for details):
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-library(modelsummary)
-library(tinytable)
-library(flextable)
-
-labels = c(no_membrs = "# HH Members",
-           years_liv = "Year in village",
-           rooms = "# Rooms",
-           liv_count = "# Livestock",
-           no_meals = "# Meals",
-           treatment = "Treated",
-           educated = "Educated",
-           uses_fertilizer = "Uses fertilizer")
-
-# descriptive stats
-data %>%
-select(where(is.numeric), -ends_with("ID")) %>%
-datasummary(All(.) ~ Mean + SD + min + max + Histogram , data = ., output = "flextable") %>%
-labelizor(j =1,labels = labels, part = "all")%>% 
-  fix_border_issues() %>% 
-  autofit()
-
-treat_labels <- c("0" = "Control", "1" = "Treated")
-
-# balance table
-data %>%
-select(where(is.numeric), -ends_with("ID")) %>%
-datasummary_balance( ~ treatment , data = ., output = "flextable", start = TRUE, dinm = TRUE, dinm_statistic = "p.value") %>%
-labelizor(j =1,labels = labels, part = "all")%>%
-labelizor(labels = treat_labels, part = "header")%>% 
-  fix_border_issues() %>% 
-  autofit()
-
-
-# regression table
-library(estimatr)
-
-lm <- lm(uses_fertilizer ~ treatment + educated, data = data)
-
-
-lmrobust <- lm_robust(uses_fertilizer ~ treatment + educated, data = data, cluster = village, se_type = "stata")
-
-
-# adding number of columns to glance output:
 glance_custom.lm_robust <- function(x) {
+  # this function takes glance() output, and adds a nclusters column
   glance(x) %>%
-  mutate(ncluster = x$nclusters)
+  mutate(nclusters = x$nclusters)
 }
 
-
-# creating a map of statistics
-stats_map <- tribble(
-  ~raw,        ~clean,      ~fmt,
-  "nobs",      "N",         0,
-  "r.squared", "R Squared", 2,
-  "adj.r.squared", "Adj. R Squared", 2,
-  "ncluster","No. Clusters",0)
-
-# creating the table
-modelsummary(list("1" = lm, "2" = lmrobust),
-            gof_map = stats_map,
-            output = "flextable") %>%
-autofit()
+modelsummary(list("LM" = lm, "Robust" = lmrobust), 
+             gof_map = c("nobs","r.squared","adj.r.squared", "nclusters"),
+             output = "flextable")
 
 
+```
 
-# now for a probit model
+Now lets add  a probit model!
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
 probit <- glm(uses_fertilizer ~ treatment + educated, 
                 family = binomial(link = "probit"), 
                 data = data)
 
-# robust is a bit more diffuclt, lm_robust does not have a namesake.
-# we can make one!
-# some helper functions
+modelsummary(list("LM" = lm, "Robust" = lmrobust, "Probit"  = probit), 
+             gof_map = c("nobs","r.squared","adj.r.squared", "nclusters"),
+             output = "flextable")
+
+
+```
+
+
+Adding cluster-robust standard errors to the probit model is a bit more complex.
+There is no `glm_robust()` function. However, you can create one, including
+`tidy()` and `glance()` methods that return the right statistics to `modelsummary()`:
+
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
 
 glm_robust <- function(formula,family,data,cluster) {
+  library(lmtest)
+  library(sandwich)
+
   probit <- glm(formula, 
                family = family, 
                 data = data)
@@ -406,6 +328,8 @@ glm_robust <- function(formula,family,data,cluster) {
   model <- 
     coeftest(probit, vcov = vcovBS(probit,cluster=cluster_formula))
 
+  class(model) <- "glm_robust"
+
   attr(model,"nclusters") <- 
     data[row.names(model.frame(probit)),cluster] %>% unique() %>% nrow()
 
@@ -413,7 +337,7 @@ glm_robust <- function(formula,family,data,cluster) {
 }
 
 
-tidy_custom.coeftest <- function(x){
+tidy.glm_robust <- function(x, ...){
   x[,] %>% as_tibble() %>%
   mutate(term = attr(x,"dimnames")[[1]]) %>%
   select(term,
@@ -423,7 +347,7 @@ tidy_custom.coeftest <- function(x){
          p.value = `Pr(>|z|)`) 
 }
 
-glance_custom.coeftest <- function(x){
+glance.glm_robust <- function(x, ...){
   tibble(nobs = attr(x,"nobs"),
          logLik = as.numeric(attr(x,"logLik")),
         nclusters = attr(x,"nclusters")
@@ -436,9 +360,12 @@ glance_custom.coeftest <- function(x){
 probitrobust <- glm_robust(uses_fertilizer ~ treatment + educated, family = binomial(link = "probit"), 
                 data = data, cluster="village")
 
-modelsummary(list("1" = probit, "2" = probitrobust),
-             gof_map = c("nobs","n_clusters","logLik"),
-            output = "flextable") %>%
+
+modelsummary(list("LM" = lm, "LM Robust" = lmrobust, "Probit"  = probit, "Probit Robust" = probitrobust), 
+             gof_map = c("nobs","r.squared","adj.r.squared", "nclusters"),
+             coef_map = labels,
+             stars = TRUE,
+             output = "flextable") %>%
 autofit()
 
 ```
