@@ -207,6 +207,8 @@ descriptive_table_flex %>%
 You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summs_stats_flex.docx).
 
 
+### Using
+
 ## Simple regression
 
 A simple regression uses the `lm()` function. We save the results
@@ -311,3 +313,132 @@ reg_table %>%
 ```
 
 You can find there output [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/regression_table.docx).
+
+## modelsummary
+
+
+### Descriptive statistics
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(modelsummary)
+library(tinytable)
+library(flextable)
+
+labels = c(no_membrs = "# HH Members",
+           years_liv = "Year in village",
+           rooms = "# Rooms",
+           liv_count = "# Livestock",
+           no_meals = "# Meals",
+           treatment = "Treated",
+           educated = "Educated",
+           uses_fertilizer = "Uses fertilizer")
+
+# descriptive stats
+data %>%
+select(where(is.numeric), -ends_with("ID")) %>%
+datasummary(All(.) ~ Mean + SD + min + max + Histogram , data = ., output = "flextable") %>%
+labelizor(j =1,labels = labels, part = "all")%>% 
+  fix_border_issues() %>% 
+  autofit()
+
+treat_labels <- c("0" = "Control", "1" = "Treated")
+
+# balance table
+data %>%
+select(where(is.numeric), -ends_with("ID")) %>%
+datasummary_balance( ~ treatment , data = ., output = "flextable", start = TRUE, dinm = TRUE, dinm_statistic = "p.value") %>%
+labelizor(j =1,labels = labels, part = "all")%>%
+labelizor(labels = treat_labels, part = "header")%>% 
+  fix_border_issues() %>% 
+  autofit()
+
+
+# regression table
+library(estimatr)
+
+lm <- lm(uses_fertilizer ~ treatment + educated, data = data)
+
+
+lmrobust <- lm_robust(uses_fertilizer ~ treatment + educated, data = data, cluster = village, se_type = "stata")
+
+
+# adding number of columns to glance output:
+glance_custom.lm_robust <- function(x) {
+  glance(x) %>%
+  mutate(ncluster = x$nclusters)
+}
+
+
+# creating a map of statistics
+stats_map <- tribble(
+  ~raw,        ~clean,      ~fmt,
+  "nobs",      "N",         0,
+  "r.squared", "R Squared", 2,
+  "adj.r.squared", "Adj. R Squared", 2,
+  "ncluster","No. Clusters",0)
+
+# creating the table
+modelsummary(list("1" = lm, "2" = lmrobust),
+            gof_map = stats_map,
+            output = "flextable") %>%
+autofit()
+
+
+
+# now for a probit model
+
+probit <- glm(uses_fertilizer ~ treatment + educated, 
+                family = binomial(link = "probit"), 
+                data = data)
+
+# robust is a bit more diffuclt, lm_robust does not have a namesake.
+# we can make one!
+# some helper functions
+
+glm_robust <- function(formula,family,data,cluster) {
+  probit <- glm(formula, 
+               family = family, 
+                data = data)
+  
+  cluster_formula <- as.formula(paste0("~", cluster))
+
+  model <- 
+    coeftest(probit, vcov = vcovBS(probit,cluster=cluster_formula))
+
+  attr(model,"nclusters") <- 
+    data[row.names(model.frame(probit)),cluster] %>% unique() %>% nrow()
+
+  model
+}
+
+
+tidy_custom.coeftest <- function(x){
+  x[,] %>% as_tibble() %>%
+  mutate(term = attr(x,"dimnames")[[1]]) %>%
+  select(term,
+         estimate = Estimate,
+         std.error = `Std. Error`,
+         statistic = `z value`,
+         p.value = `Pr(>|z|)`) 
+}
+
+glance_custom.coeftest <- function(x){
+  tibble(nobs = attr(x,"nobs"),
+         logLik = as.numeric(attr(x,"logLik")),
+        nclusters = attr(x,"nclusters")
+        )
+}
+
+
+
+
+probitrobust <- glm_robust(uses_fertilizer ~ treatment + educated, family = binomial(link = "probit"), 
+                data = data, cluster="village")
+
+modelsummary(list("1" = probit, "2" = probitrobust),
+             gof_map = c("nobs","n_clusters","logLik"),
+            output = "flextable") %>%
+autofit()
+
+```
