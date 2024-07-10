@@ -46,11 +46,18 @@ data <-
 The `modelsummary` package is the most convenient to create tables. To convert them
 to word, I use the `flextable` package.
 
+For a simple table of descriptive statistics, use the `datasummary()` function. I also
+define a vector with variable labels, which I use throughout this chapter. Below, I use
+it in the `labelizor()` function, which applies labels to a flextable object. I also 
+apply the `autofit()` and `fix_border_issues()` functions to make the table look nicer.
+
+
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 library(modelsummary)
 library(flextable)
 
+# vector for labelling variable names
 labels = c(no_membrs = "# HH Members",
            years_liv = "Year in village",
            rooms = "# Rooms",
@@ -66,8 +73,8 @@ data %>%
   select(where(is.numeric), -ends_with("ID")) %>%
   datasummary(All(.) ~ Mean + SD + min + max + Histogram , data = ., output = "flextable") %>%
   labelizor(j =1,labels = labels, part = "all")%>% 
-    fix_border_issues() %>% 
-    autofit()
+  fix_border_issues() %>% 
+  autofit()
 
 ```
 
@@ -85,12 +92,15 @@ treat_labels <- c("0" = "Control", "1" = "Treated")
 
 # balance table
 data %>%
-select(where(is.numeric), -ends_with("ID")) %>%
-datasummary_balance( ~ treatment , data = ., output = "flextable", start = TRUE, dinm = TRUE, dinm_statistic = "p.value") %>%
-labelizor(j =1,labels = labels, part = "all")%>%
-labelizor(labels = treat_labels, part = "header")%>% 
+  select(where(is.numeric), -ends_with("ID")) %>%
+  datasummary_balance( ~ treatment , data = ., 
+                      output = "flextable", stars = TRUE, 
+                      dinm = TRUE, dinm_statistic = "p.value") %>%
+  labelizor(j =1,labels = labels, part = "all")%>%
+  labelizor(labels = treat_labels, part = "header")%>% 
   fix_border_issues() %>% 
   autofit()
+
 ```
 
 ### Advanced: Using only Flextable
@@ -98,14 +108,15 @@ labelizor(labels = treat_labels, part = "header")%>%
 For more control, the flextable package can covert data frames into good-looking table using the 
 `tabulator()` function.
 
-First, make a data frame with summarry statistics. I duplicate the data set using `bind_rows()`
-to create an overall group.
+First, make a data frame with summary statistics. I duplicate the data set using `bind_rows()`
+to create an overall group. Then I use `[summarize(across(...))](https://dplyr.tidyverse.org/reference/across.html)` to apply summarizing functions
+to a number of variables. 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 summstats <-
-bind_rows(data %>% mutate(Treatment = ifelse(treatment," Treatment","  Control")),
-          data %>% mutate(Treatment = "Overall")) %>% 
+  bind_rows(data %>% mutate(Treatment = ifelse(treatment," Treatment","  Control")),
+            data %>% mutate(Treatment = "Overall")) %>% 
   select(where(is.numeric),Treatment,-key_ID,-treatment) %>%
   group_by(Treatment) %>%
   summarize(across(everything(),
@@ -151,14 +162,15 @@ as_flextable()
 To add a column with differences, I first define a [function](#functions) to compute the differences
 (I use a regression rather than a ttest, so I can cluster my standard errors etc. to this if I need to). 
 Then I use `summarize(across())` in much the same way as above, now to create a dataframe called `difcol`. 
-Note that I use `.` to refer to the dataset currently in the `%>%` pipe.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 
-get_diffs <- function(.df,y,x){
+get_diffs <- function(var,by){
 
-  reg <-  lm(y~ x) %>% broom::tidy()
+  reg <-  
+    lm(var ~ by) %>% 
+    broom::tidy()
 
   coeff = round(reg[2,2],2)
   p <- reg[2,5]
@@ -171,29 +183,22 @@ get_diffs <- function(.df,y,x){
   paste0(coeff,stars)
 }
 
-
 difcol <-
   data %>%
-  select(where(is.numeric),-key_ID,-treatment) %>%
-  summarize(across(everything(),
-                   .fns = function(x) get_diffs(.,.$x,data$treatment))) %>%
+  select(where(is.numeric),-key_ID,treatment) %>%
+  summarize(across(.cols = c(everything(), -treatment),
+                   .fns = ~get_diffs(var = .x, by = treatment))) %>%
   pivot_longer(cols =everything(),
                names_to = "Variable",
                values_to="Difference")  
-
 
 ```
 
 Then, all I have to do is add it to `tabulator()` using its `datasup_last` argument. Below, I also
 use a few other flextable function to make the table nicer. In particular, `labelizor()` to add variable
-labels, which I define as a vector.
+labels, for which I use a vector I defined above.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-#named vector with variable labels:
-# labels <- c("Household members","Years lived","Rooms","N. livestock owned","Meals per day", "Educated","Uses Ferilizer")
-# names(labels) <- summstats[[2]][1:7]
-
 
 descriptive_table_flex <-
   summstats %>%
@@ -211,17 +216,7 @@ descriptive_table_flex
 
 ```
 
-To save it to word:
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-descriptive_table_flex %>%
-  save_as_docx(path = here("tables/summs_stats_flex.docx"))
-
-```
-
-
-You can find the resulting .docx [here](https://github.com/kleuveld/r_cheatsheet/raw/main/tables/summs_stats_flex.docx).
+Again, simply save it to workd using `save_as_docx(path = "my/file.docx")`.
 
 
 ## Simple regression
