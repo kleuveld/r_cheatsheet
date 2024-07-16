@@ -31,18 +31,21 @@ print(4)
 
 ```
 
-But it's much easier to maintain!
+But it's much easier to maintain! Imagine having to do 86 iterations: you would
+need to copy paste the code 85 times every time you want to update something. 
+Using loops, you don't need to copy-paste a thing, leading to fewer errors.
 
-In general, most R programmers prefer not to use loops, but instead use functions
-such as `lapply()` and `map()`. However, loops can be a perfectly fine way of 
-doing repeated work.
+While loops can be a perfectly fine way of  doing repeated work, most R 
+programmers prefer not to use loops, but instead use functions such as 
+`lapply()` and `map()`. However, for this you will need to know functions.
 
 ## Functions
 
 ### Basic Functions
 
-A function is an R object that takes an input (or argument) and returns something.
-The argument is always provided within parentheses. The  `sqrt()` functions, for 
+A function is an R object that's essentially a shortcut to run a bit of code. 
+Usually, a function takes an argument (the input), and returns an output. The 
+argument is always provided within parentheses. The  `sqrt()` function, for 
 example, takes a number as its argument and returns the square root.
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
@@ -51,7 +54,8 @@ sqrt(4)
 
 ```
 
-The beauty of functions is that they allow you to define a set of operations in one place, and re-use it as often as you want. If you then need to update the
+The beauty of functions is that they allow you to define a set of operations in 
+one place, and re-use it as often as you want. If you then need to update the
 operations, all you need to do is update the function, instead of hunting down 
 every instance of the operations throughout your script.
 
@@ -72,8 +76,16 @@ variable1_cleaned
 
 ```
 
-This works, but I need to do this at many different places in my code, and 
-it's easy to make typos. It's better to wrap this in a function:
+This works, but I need to do this at many different places in my code, and when
+copying the code to other places, it's easy to make small mistakes. Moreover, if
+I notice my procedure for cleaning missing data is wrong, I will have to hunt 
+down all the places I've copied this code to, and change it (which, again, is 
+an error prone process). 
+
+A common piece of advice is to put any code that you
+have to copy-paste more than twice in a function. Once I do that, I can just 
+call  the function wherever I need to clean data; if I want to change how I deal 
+with missings, I now only have to make changes in one place:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
@@ -87,27 +99,50 @@ clean_missing <- function(input_data) {
 
 ```
 
-Here I've pretty much copied the code I had above, but made sure the argument
-of the function has a name (defined in the parenteses after function) that makes sense. 
+I've pretty much copied the code I had above. Note that I could have used any 
+name for my argument (defined in the parentheses after function); I just thought 
+`input_data` made sense. I use the `return()` function to return data.
 
 I can now just use the `clean_data()` wherever I want:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-clean_missing(variable1)
+variable1_cleaned <- clean_missing(variable1)
+
+variable1_cleaned
 
 ```
 
-Note that any variables we created in the function are kept within the function, and you can't access them later:
+Note that any variables we created in the function are kept within the function, 
+and you can't access them later:
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 variable1_clean <- clean_missing(variable1)
 returned_data
 
+
 ```
 
-This keeps your working environment nice and clean, which again prevents problems.
+This keeps your working environment nice and clean, which again prevents 
+problems.
+
+Above I used the return function. This is not needed. Anything on the 
+last line of the function that would normally be returned to the console, is
+used a return value of the function:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+clean_missing <- function(input_data) {
+
+	if_else(input_data == -99, NA, input_data)
+	
+}
+
+clean_missing(variable1)
+
+
+```
 
 ### Functions and the tidyverse
 
@@ -125,8 +160,6 @@ data_frame <- tibble(variable1 = variable1)
 data_frame %>%
 	mutate(variable1 = if_else(variable1 == -99,NA,variable1))
 
-
-
 ```
 
 Let's try to put that in a function. The function will need to take 
@@ -138,8 +171,8 @@ a data frame and a variable name as its arguments:
 clean_missing_df <- function(input_dataframe, variablename){
 	returned_data <- 
 		input_dataframe %>%
-		mutate(variablename = variablename + 1)
-
+		mutate(variablename = if_else(variablename == -99,NA,variablename))
+	
 	return(returned_data)
 }
 
@@ -150,89 +183,31 @@ clean_missing_df(variable1)
 
 ```
 
-
-## Basic structure
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-add_two <- function(argument) {
-	# Do something with the input
-	return <- argument + 2
-
-	#call the intended output in the last line
-	return
-}
-
-add_two(84)
-
-```
-
-## Using functions in a pipe
-
-By default, a function in a pipe uses the dataset of the pipe as its first argument.
-Also make sure to include a quick description of what your function does.
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-library(tidyverse)
-
-add_number_column <- function(data,number=2) {
-	#This functions takes a data frame, and returns the same data frame,
-	#but with an exta column of 2sas its first variable. 
-	#The user can specify a number other than 2 using the num argument
-	#This is great if you want a column of twos as the first variable
-	#of your data set.
-	data %>%
-		mutate(bestvar = number) %>%
-		select(bestvar,everything())
-}
-
-read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
-add_number_column() 
-
-read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
-add_number_column(4) 
-
-```
-
-## Passing variables to a function
-
-The following doesn't work, because R can't find `no_membrs`, even though it 
-does exist in the data set in the pipe.
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=TRUE}
-
-add_two_to_a_column_broken <- function(data,variable) {
-	#function that wants to add two two a column specified by the user
-	#but it doesn't work.
-	data %>%
-	mutate(variable = variable + 2)
-}
-
-read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
-add_two_to_a_column_broken(no_membrs) 
-
-```
-
-For a technical note on why this is, 
-see [here](https://dplyr.tidyverse.org/articles/programming.html).
+Wait, something went wrong! R just created a new variable called "variablename".
+For a technical note on why this is, see 
+[here](https://dplyr.tidyverse.org/articles/programming.html).
 To solve this, wrap the variable in your function definition
 in `{{` and `}}`, and change the `=` in `mutatate` to `:=`. 
 
-
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-add_two_to_a_column_fixed <- function(data,variable) {
-	#function that adds two two a column specified by the user
-	data %>%
-	mutate( {{variable}} := {{variable}} + 2)
+
+clean_missing_df <- function(input_dataframe, variablename){
+	returned_data <- 
+		input_dataframe %>%
+		mutate({{ variablename }} := if_else(variablename == -99,NA,variablename))
+	
+	return(returned_data)
 }
 
-read_csv(here("data/SAFI_clean.csv"),na = "NULL") %>%
-	add_two_to_a_column_fixed(no_membrs)
+
+data_frame %>%
+	clean_missing_df(variable1)
+
 
 ```
 
-## Function to create dummies from text
+### Example: Function to create dummies from text
 
 Remember our code to generate dummies based on text:
 
@@ -262,12 +237,12 @@ create_dummies <- function(df,stringvar,prefix="",delim = ";") {
 	#returns dataset without original var, but with dummies.
 
 	df %>%
-		separate_longer_delim({{stringvar}}, delim = delim) %>%
+		separate_longer_delim({{ stringvar }}, delim = delim) %>%
 	    mutate(value = 1) %>%
-        pivot_wider(names_from = {{stringvar}},
-                    values_from = value,
-                    names_prefix = prefix,
-                    values_fill = 0) 
+	    pivot_wider(names_from = {{stringvar}},
+	                values_from = value,
+	                names_prefix = prefix,
+	                values_fill = 0) 
 }
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
@@ -280,3 +255,62 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
 The code is now clear, I can update the function in one place and all variables will
 be updated accordingly. Plus, if I want to use the same code in another project, I can
 easily do it. 
+
+
+## Map()
+
+`map()` works just like loop, but generally faster. It takes two arguments:
+
+- An iterable object, like a vector or list
+- A function
+
+It will then apply the function to each element of the object. It will return
+a list with the results of each iteration.
+
+For example, to get the the square root for each of the numbers in a vector:
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+vector <- c(4,9,16) 
+map(vector,sqrt)
+
+```
+
+You may not quite like the fact that map returns a list, but quite a few things in
+R use lists. `modelsummary()` for example. Suppose I want to regress the same y on
+a number of combinations of independent variables, I can put the combination of
+varaibles in a list, and then run my model for each element of the list.
+
+I use `reformulate()` to convert strings into a formula 'lm()' can use. Also,
+I use `~` to create 
+[a purrr-style inline anonymous function](https://adv-r.hadley.nz/functionals.html#purrr-shortcuts)
+within `map()`. 
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(modelsummary)
+
+# generate some sample data
+df <- tibble(y = rnorm(50),x1 = rnorm(50),x2 = rnorm(50))
+
+
+# define a list of models: 
+# the left-hand sides are the labels
+# the right-hand sides the independent variables I will pass to reformulate.
+
+models <-
+list("X1 only" = "x1", 
+	 "X2 only" = "x2", 
+	  "Both" = c("x1","x2"))
+
+
+# map() works nicely in  dplyr pipe!
+# the ~ creates a purrr-style anonymous function, where .x is current element of the list
+models %>%
+	map(~lm(reformulate(.x, response="y"),data = df)) %>%
+	modelsummary(output = "flextable")
+
+
+```
+
+
