@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-07-11" />
+<meta name="date" content="2024-07-17" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -31,7 +31,7 @@
   
   
 <link rel="prev" href="reporting.html"/>
-<link rel="next" href="functions.html"/>
+<link rel="next" href="programming.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -183,12 +183,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#diff-in-diff"><i class="fa fa-check"></i>Diff-in-Diff</a></li>
 </ul></li>
-<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html"><i class="fa fa-check"></i>Functions</a>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html"><i class="fa fa-check"></i>Programming with R</a>
 <ul>
-<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#basic-structure"><i class="fa fa-check"></i>Basic structure</a></li>
-<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#using-functions-in-a-pipe"><i class="fa fa-check"></i>Using functions in a pipe</a></li>
-<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#passing-variables-to-a-function"><i class="fa fa-check"></i>Passing variables to a function</a></li>
-<li class="chapter" data-level="" data-path="functions.html"><a href="functions.html#function-to-create-dummies-from-text"><i class="fa fa-check"></i>Function to create dummies from text</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#loops"><i class="fa fa-check"></i>Loops</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions"><i class="fa fa-check"></i>Functions</a>
+<ul>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#basic-functions"><i class="fa fa-check"></i>Basic Functions</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions-and-the-tidyverse"><i class="fa fa-check"></i>Functions and the tidyverse</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#example-function-to-create-dummies-from-text"><i class="fa fa-check"></i>Example: Function to create dummies from text</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#map"><i class="fa fa-check"></i>Map()</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="data-exploration.html"><a href="data-exploration.html"><i class="fa fa-check"></i>Data Exploration</a>
 <ul>
@@ -528,7 +532,7 @@ model 500 times and our power is simply the fraction of times we
 find a statistically significant effect.</p>
 <div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="declaredesign.html#cb70-1" tabindex="-1"></a><span class="fu">diagnose_design</span>(design)</span></code></pre></div>
 <pre><code>## 
-## Research design diagnosis based on 500 simulations. Diagnosis completed in 15 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
+## Research design diagnosis based on 500 simulations. Diagnosis completed in 14 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
 ## 
 ##  Design Inquiry Estimator Outcome              Term N Sims Mean Estimand
 ##  design     ATE       2FE    &lt;NA&gt;                 Z    500         14.97
@@ -592,7 +596,7 @@ be able to pick up an effect size of 10 in most cases.</p>
         </div>
       </div>
 <a href="reporting.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="functions.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="programming.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
