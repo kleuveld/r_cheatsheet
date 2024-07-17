@@ -160,8 +160,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i>Summarizing over groups (or collapsing data)</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row-wise Operations</a>
 <ul>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across"><i class="fa fa-check"></i>Across: doing the same operations on multiple variables using across</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across: passing values from multiple variables to summarizing functions</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across"><i class="fa fa-check"></i>across(): doing the same operations on multiple variables using across</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across(): passing values from multiple variables to summarizing functions</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
 </ul></li>
@@ -269,16 +269,16 @@ be <code>-99</code>, which should be considered missing.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      0    31
-##  2      1         2      1    64
-##  3      1         3      1    38
-##  4      2         1      0    74
-##  5      2         2      1    70
-##  6      2         3      0    74
-##  7      2         4      1    65
-##  8      2         5      0    39
-##  9      2         6      1   -99
-## 10      2         7      0    40
+##  1      1         1      1    61
+##  2      1         2      0     0
+##  3      1         3      0    38
+##  4      2         1      1    59
+##  5      2         2      0    70
+##  6      2         3      1    59
+##  7      2         4      0    26
+##  8      2         5      0    25
+##  9      2         6      0    77
+## 10      2         7      0    74
 ## # ℹ 932 more rows</code></pre>
 </div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
@@ -292,16 +292,16 @@ be <code>-99</code>, which should be considered missing.</p>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
 ##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        0        1        1       NA       NA       NA       NA
-##  2      2        0        1        0        1        0        1        0
-##  3      3        1        1        1        0        0        1        1
-##  4      4        1        0        0        0        1        1        0
-##  5      5        1        0        0        1        1        0        1
-##  6      6        0        0        0       NA       NA       NA       NA
-##  7      7        0        1        1        1        0        1       NA
-##  8      8        0        0        1        0        1        1        1
-##  9      9        0        0        1        0        1        0        0
-## 10     10        1        1        0        1        1        1        1
+##  1      1        1        0        0       NA       NA       NA       NA
+##  2      2        1        0        1        0        0        0        0
+##  3      3        0        0        1        0        0        0        1
+##  4      4        0        0        0        1        1        1        0
+##  5      5        1        1        1        0        0        1        1
+##  6      6        0        1        0       NA       NA       NA       NA
+##  7      7        1        0        1        0        1        0       NA
+##  8      8        1        0        0        0        1        1        1
+##  9      9        0        1        0        1        1        0        0
+## 10     10        0        0        1        0        1        0        1
 ## # ℹ 121 more rows
 ## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
 ## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
@@ -330,16 +330,16 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      0    31
-##  2      1         2      1    64
-##  3      1         3      1    38
-##  4      2         1      0    74
-##  5      2         2      1    70
-##  6      2         3      0    74
-##  7      2         4      1    65
-##  8      2         5      0    39
-##  9      2         6      1   -99
-## 10      2         7      0    40
+##  1      1         1      1    61
+##  2      1         2      0     0
+##  3      1         3      0    38
+##  4      2         1      1    59
+##  5      2         2      0    70
+##  6      2         3      1    59
+##  7      2         4      0    26
+##  8      2         5      0    25
+##  9      2         6      0    77
+## 10      2         7      0    74
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
 how I intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. I don’t really want to touch the key_ID
@@ -428,16 +428,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      0    31 God     2016-11-17 00:00:00
-##  2      1         2      1    64 God     2016-11-17 00:00:00
-##  3      1         3      1    38 God     2016-11-17 00:00:00
-##  4      2         1      0    74 God     2016-11-17 00:00:00
-##  5      2         2      1    70 God     2016-11-17 00:00:00
-##  6      2         3      0    74 God     2016-11-17 00:00:00
-##  7      2         4      1    65 God     2016-11-17 00:00:00
-##  8      2         5      0    39 God     2016-11-17 00:00:00
-##  9      2         6      1   -99 God     2016-11-17 00:00:00
-## 10      2         7      0    40 God     2016-11-17 00:00:00
+##  1      1         1      1    61 God     2016-11-17 00:00:00
+##  2      1         2      0     0 God     2016-11-17 00:00:00
+##  3      1         3      0    38 God     2016-11-17 00:00:00
+##  4      2         1      1    59 God     2016-11-17 00:00:00
+##  5      2         2      0    70 God     2016-11-17 00:00:00
+##  6      2         3      1    59 God     2016-11-17 00:00:00
+##  7      2         4      0    26 God     2016-11-17 00:00:00
+##  8      2         5      0    25 God     2016-11-17 00:00:00
+##  9      2         6      0    77 God     2016-11-17 00:00:00
+## 10      2         7      0    74 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -446,8 +446,8 @@ roster data, is equally easy:</p>
 <p>To compute summary statistics (sums, counts, means etc.) over a group,
 we use the <code>group_by()</code> and <code>summarize()</code> functions. For example, to
 compute the household size, number of women and average age in each household.
-But before doing anything, I make sure the <code>-99</code>s in the <code>age</code> variables are treated
-as missing, using a simple <code>mutate()</code></p>
+But before doing anything, I make sure the <code>-99</code>s in the <code>age</code> variable are treated
+as missing, using a simple <code>mutate()</code> to conver them to <code>NA</code>.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="datawrangling.html#cb16-1" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span> </span>
 <span id="cb16-2"><a href="datawrangling.html#cb16-2" tabindex="-1"></a>    <span class="fu">group_by</span>(key_ID) <span class="sc">%&gt;%</span></span>
 <span id="cb16-3"><a href="datawrangling.html#cb16-3" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">age =</span> <span class="fu">if_else</span>(age <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>,age)) <span class="sc">%&gt;%</span></span>
@@ -455,16 +455,16 @@ as missing, using a simple <code>mutate()</code></p>
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     44.3
-##  2      2       7         3     60.3
-##  3      3      10         7     41.7
-##  4      4       7         3     49.7
-##  5      5       7         4     57.4
-##  6      6       3         0     64.7
-##  7      7       6         4     20.2
-##  8      8      12         8     41.8
-##  9      9       8         3     50  
-## 10     10      12        10     39.6
+##  1      1       3         1     33  
+##  2      2       7         2     55.7
+##  3      3      10         3     27.6
+##  4      4       7         3     31.7
+##  5      5       7         5     58.4
+##  6      6       3         1     46  
+##  7      7       6         3     62.7
+##  8      8      12         6     40  
+##  9      9       8         4     40.1
+## 10     10      12         7     53.9
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="row-wise-operations" class="section level2 hasAnchor">
@@ -476,10 +476,10 @@ and then use summarize, like we did above. But in Stata you would probably use s
 <code>egen</code> function, so that may come natural.
 You can do similar things in R. It’s just a bit more complex than in Stata.</p>
 <div id="across-doing-the-same-operations-on-multiple-variables-using-across" class="section level3 hasAnchor">
-<h3>Across: doing the same operations on multiple variables using across<a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<h3>across(): doing the same operations on multiple variables using across<a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>First, we need to make sure we update <code>-99</code> to <code>NA</code> in <em>all</em> <code>age_</code> variables.
 I use the <code>across()</code> function, which takes two arguments: a column specifcation
-(for which I use tidy select](<a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html" class="uri">https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html</a>)
+(for which I use <a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html">tidy select</a>
 syntax), and a <a href="programming.html#functions">function</a>: basically, the syntax is the same as in the <code>mutate()</code>
 step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> and <code>.x</code> instead of the variable name.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="datawrangling.html#cb18-1" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
@@ -488,16 +488,16 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
 ##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        0        1        1       NA       NA       NA       NA
-##  2      2        0        1        0        1        0        1        0
-##  3      3        1        1        1        0        0        1        1
-##  4      4        1        0        0        0        1        1        0
-##  5      5        1        0        0        1        1        0        1
-##  6      6        0        0        0       NA       NA       NA       NA
-##  7      7        0        1        1        1        0        1       NA
-##  8      8        0        0        1        0        1        1        1
-##  9      9        0        0        1        0        1        0        0
-## 10     10        1        1        0        1        1        1        1
+##  1      1        1        0        0       NA       NA       NA       NA
+##  2      2        1        0        1        0        0        0        0
+##  3      3        0        0        1        0        0        0        1
+##  4      4        0        0        0        1        1        1        0
+##  5      5        1        1        1        0        0        1        1
+##  6      6        0        1        0       NA       NA       NA       NA
+##  7      7        1        0        1        0        1        0       NA
+##  8      8        1        0        0        0        1        1        1
+##  9      9        0        1        0        1        1        0        0
+## 10     10        0        0        1        0        1        0        1
 ## # ℹ 121 more rows
 ## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
 ## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
@@ -512,7 +512,7 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 </ul>
 </div>
 <div id="c_across-passing-values-from-multiple-variables-to-summarizing-functions" class="section level3 hasAnchor">
-<h3>c_across: passing values from multiple variables to summarizing functions<a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<h3>c_across(): passing values from multiple variables to summarizing functions<a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Then I have to pass all the <code>female_</code> and <code>age_</code> variables to <code>sum()</code> and <code>mean()</code>:</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="datawrangling.html#cb20-1" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
 <span id="cb20-2"><a href="datawrangling.html#cb20-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>),</span>
@@ -528,16 +528,16 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     44.3
-##  2      2       7         3     60.3
-##  3      3      10         7     41.7
-##  4      4       7         3     49.7
-##  5      5       7         4     57.4
-##  6      6       3         0     64.7
-##  7      7       6         4     20.2
-##  8      8      12         8     41.8
-##  9      9       8         3     50  
-## 10     10      12        10     39.6
+##  1      1       3         1     33  
+##  2      2       7         2     55.7
+##  3      3      10         3     27.6
+##  4      4       7         3     31.7
+##  5      5       7         5     58.4
+##  6      6       3         1     46  
+##  7      7       6         3     62.7
+##  8      8      12         6     40  
+##  9      9       8         4     40.1
+## 10     10      12         7     53.9
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensures all summaries are computed per row, and <code>c_across()</code>
@@ -558,27 +558,11 @@ ways to do this, but the most convenient is using <code>sepate_longer()</code></
 <span id="cb22-4"><a href="datawrangling.html#cb22-4" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
 <span id="cb22-5"><a href="datawrangling.html#cb22-5" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
 <span id="cb22-6"><a href="datawrangling.html#cb22-6" tabindex="-1"></a>                <span class="at">names_glue =</span> <span class="st">&quot;owns_{items_owned}&quot;</span>,</span>
-<span id="cb22-7"><a href="datawrangling.html#cb22-7" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>)</span></code></pre></div>
-<pre><code>## # A tibble: 131 × 31
-##    key_ID village  interview_date      no_membrs years_liv respondent_wall_type
-##     &lt;dbl&gt; &lt;chr&gt;    &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;               
-##  1      1 God      2016-11-17 00:00:00         3         4 muddaub             
-##  2      2 God      2016-11-17 00:00:00         7         9 muddaub             
-##  3      3 God      2016-11-17 00:00:00        10        15 burntbricks         
-##  4      4 God      2016-11-17 00:00:00         7         6 burntbricks         
-##  5      5 God      2016-11-17 00:00:00         7        40 burntbricks         
-##  6      6 God      2016-11-17 00:00:00         3         3 muddaub             
-##  7      7 God      2016-11-17 00:00:00         6        38 muddaub             
-##  8      8 Chirodzo 2016-11-16 00:00:00        12        70 burntbricks         
-##  9      9 Chirodzo 2016-11-16 00:00:00         8         6 burntbricks         
-## 10     10 Chirodzo 2016-12-16 00:00:00        12        23 burntbricks         
-## # ℹ 121 more rows
-## # ℹ 25 more variables: rooms &lt;dbl&gt;, memb_assoc &lt;chr&gt;, affect_conflicts &lt;chr&gt;,
-## #   liv_count &lt;dbl&gt;, no_meals &lt;dbl&gt;, months_lack_food &lt;chr&gt;, instanceID &lt;chr&gt;,
-## #   owns_bicycle &lt;dbl&gt;, owns_television &lt;dbl&gt;, owns_solar_panel &lt;dbl&gt;,
-## #   owns_table &lt;dbl&gt;, owns_cow_cart &lt;dbl&gt;, owns_radio &lt;dbl&gt;,
-## #   owns_cow_plough &lt;dbl&gt;, owns_solar_torch &lt;dbl&gt;, owns_mobile_phone &lt;dbl&gt;,
-## #   owns_motorcyle &lt;dbl&gt;, owns_NA &lt;dbl&gt;, owns_fridge &lt;dbl&gt;, …</code></pre>
+<span id="cb22-7"><a href="datawrangling.html#cb22-7" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-8"><a href="datawrangling.html#cb22-8" tabindex="-1"></a>    <span class="fu">select</span>(items_owned, <span class="fu">starts_with</span>(<span class="st">&quot;owns_&quot;</span>))</span></code></pre></div>
+<pre><code>## Error in `select()`:
+## ! Can&#39;t select columns that don&#39;t exist.
+## ✖ Column `items_owned` doesn&#39;t exist.</code></pre>
 
 </div>
 </div>
