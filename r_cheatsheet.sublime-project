@@ -5,4 +5,11 @@
 			"path": "."
 		},
 	],
+	"build_systems":
+  [
+      {
+        "name": "Render R Cheatsheet with docker",
+        "cmd": ["docker","run", "--rm", "-v", "$project_path:/doc", "koenleuveld/rmarkdown2pdf:latest", "index.Rmd"]
+      }
+  ]
 }
