@@ -158,14 +158,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#joining-or-merging-data"><i class="fa fa-check"></i>Joining (or merging) data</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i>Summarizing over groups (or collapsing data)</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row-wise Operations</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row-wise Operations</a>
 <ul>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-loops"><i class="fa fa-check"></i>Using loops</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-map-and-pmap"><i class="fa fa-check"></i>Using map() and pmap()</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-rowwise-mutate-and-unnest"><i class="fa fa-check"></i>Using rowwise(), mutate() and unnest()</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-separate_longer"><i class="fa fa-check"></i>Using separate_longer()</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across"><i class="fa fa-check"></i>Across: doing the same operations on multiple variables using across</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across: passing values from multiple variables to summarizing functions</a></li>
 </ul></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
@@ -228,9 +226,9 @@ while saving you time.</p>
 <div id="loops" class="section level2 hasAnchor">
 <h2>Loops<a href="programming.html#loops" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Loops repeat code a number of time, they have the following structure:</p>
-<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="programming.html#cb74-1" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>){</span>
-<span id="cb74-2"><a href="programming.html#cb74-2" tabindex="-1"></a>    <span class="fu">print</span>(i)</span>
-<span id="cb74-3"><a href="programming.html#cb74-3" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="programming.html#cb62-1" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>){</span>
+<span id="cb62-2"><a href="programming.html#cb62-2" tabindex="-1"></a>    <span class="fu">print</span>(i)</span>
+<span id="cb62-3"><a href="programming.html#cb62-3" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## [1] 1
 ## [1] 2
 ## [1] 3
@@ -238,13 +236,13 @@ while saving you time.</p>
 <p>The <code>i</code> is the iterator, and each iteration of the loop it takes on the value of
 a different element of the object that follows the <code>in</code>; in this case, <code>i</code> takes
 on 1,2,3 and finally 4 as its values. Therefore, this code is equivalent to:</p>
-<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="programming.html#cb76-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="programming.html#cb64-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">1</span>)</span></code></pre></div>
 <pre><code>## [1] 1</code></pre>
-<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="programming.html#cb78-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="programming.html#cb66-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">2</span>)</span></code></pre></div>
 <pre><code>## [1] 2</code></pre>
-<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="programming.html#cb80-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="programming.html#cb68-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">3</span>)</span></code></pre></div>
 <pre><code>## [1] 3</code></pre>
-<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="programming.html#cb82-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">4</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="programming.html#cb70-1" tabindex="-1"></a><span class="fu">print</span>(<span class="dv">4</span>)</span></code></pre></div>
 <pre><code>## [1] 4</code></pre>
 <p>But it’s much easier to maintain! Imagine having to do 86 iterations: you would
 need to copy paste the code 85 times every time you want to update something.
@@ -261,21 +259,21 @@ programmers prefer not to use loops, but instead use functions such as
 Usually, a function takes an argument (the input), and returns an output. The
 argument is always provided within parentheses. The <code>sqrt()</code> function, for
 example, takes a number as its argument and returns the square root.</p>
-<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="programming.html#cb84-1" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="dv">4</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="programming.html#cb72-1" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="dv">4</span>)</span></code></pre></div>
 <pre><code>## [1] 2</code></pre>
 <p>The beauty of functions is that they allow you to define a set of operations in
 one place, and re-use it as often as you want. If you then need to update the
 operations, all you need to do is update the function, instead of hunting down
 every instance of the operations throughout your script.</p>
 <p>Take for example the following code that cleans missing data.</p>
-<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="programming.html#cb86-1" tabindex="-1"></a><span class="co">#define an example variable</span></span>
-<span id="cb86-2"><a href="programming.html#cb86-2" tabindex="-1"></a>variable1 <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="sc">-</span><span class="dv">99</span>,<span class="dv">5</span>,<span class="dv">6</span>)</span>
-<span id="cb86-3"><a href="programming.html#cb86-3" tabindex="-1"></a></span>
-<span id="cb86-4"><a href="programming.html#cb86-4" tabindex="-1"></a></span>
-<span id="cb86-5"><a href="programming.html#cb86-5" tabindex="-1"></a><span class="co">#change missing</span></span>
-<span id="cb86-6"><a href="programming.html#cb86-6" tabindex="-1"></a>variable1_cleaned <span class="ot">=</span> <span class="fu">if_else</span>(variable1 <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>,variable1)</span>
-<span id="cb86-7"><a href="programming.html#cb86-7" tabindex="-1"></a></span>
-<span id="cb86-8"><a href="programming.html#cb86-8" tabindex="-1"></a>variable1_cleaned </span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="programming.html#cb74-1" tabindex="-1"></a><span class="co">#define an example variable</span></span>
+<span id="cb74-2"><a href="programming.html#cb74-2" tabindex="-1"></a>variable1 <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="sc">-</span><span class="dv">99</span>,<span class="dv">5</span>,<span class="dv">6</span>)</span>
+<span id="cb74-3"><a href="programming.html#cb74-3" tabindex="-1"></a></span>
+<span id="cb74-4"><a href="programming.html#cb74-4" tabindex="-1"></a></span>
+<span id="cb74-5"><a href="programming.html#cb74-5" tabindex="-1"></a><span class="co">#change missing</span></span>
+<span id="cb74-6"><a href="programming.html#cb74-6" tabindex="-1"></a>variable1_cleaned <span class="ot">=</span> <span class="fu">if_else</span>(variable1 <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>,variable1)</span>
+<span id="cb74-7"><a href="programming.html#cb74-7" tabindex="-1"></a></span>
+<span id="cb74-8"><a href="programming.html#cb74-8" tabindex="-1"></a>variable1_cleaned </span></code></pre></div>
 <pre><code>## [1]  1  2  3 NA  5  6</code></pre>
 <p>This works, but I need to do this at many different places in my code, and when
 copying the code to other places, it’s easy to make small mistakes. Moreover, if
@@ -286,37 +284,37 @@ an error prone process).</p>
 have to copy-paste more than twice in a function. Once I do that, I can just
 call the function wherever I need to clean data; if I want to change how I deal
 with missings, I now only have to make changes in one place:</p>
-<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="programming.html#cb88-1" tabindex="-1"></a>clean_missing <span class="ot">&lt;-</span> <span class="cf">function</span>(input_data) {</span>
-<span id="cb88-2"><a href="programming.html#cb88-2" tabindex="-1"></a></span>
-<span id="cb88-3"><a href="programming.html#cb88-3" tabindex="-1"></a>    returned_data <span class="ot">&lt;-</span> <span class="fu">if_else</span>(input_data <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>, input_data)</span>
-<span id="cb88-4"><a href="programming.html#cb88-4" tabindex="-1"></a>    </span>
-<span id="cb88-5"><a href="programming.html#cb88-5" tabindex="-1"></a>    <span class="fu">return</span>(returned_data)</span>
-<span id="cb88-6"><a href="programming.html#cb88-6" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="programming.html#cb76-1" tabindex="-1"></a>clean_missing <span class="ot">&lt;-</span> <span class="cf">function</span>(input_data) {</span>
+<span id="cb76-2"><a href="programming.html#cb76-2" tabindex="-1"></a></span>
+<span id="cb76-3"><a href="programming.html#cb76-3" tabindex="-1"></a>    returned_data <span class="ot">&lt;-</span> <span class="fu">if_else</span>(input_data <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>, input_data)</span>
+<span id="cb76-4"><a href="programming.html#cb76-4" tabindex="-1"></a>    </span>
+<span id="cb76-5"><a href="programming.html#cb76-5" tabindex="-1"></a>    <span class="fu">return</span>(returned_data)</span>
+<span id="cb76-6"><a href="programming.html#cb76-6" tabindex="-1"></a>}</span></code></pre></div>
 <p>I’ve pretty much copied the code I had above. Note that I could have used any
 name for my argument (defined in the parentheses after function); I just thought
 <code>input_data</code> made sense. I use the <code>return()</code> function to return data.</p>
 <p>I can now just use the <code>clean_data()</code> wherever I want:</p>
-<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="programming.html#cb89-1" tabindex="-1"></a>variable1_cleaned <span class="ot">&lt;-</span> <span class="fu">clean_missing</span>(variable1)</span>
-<span id="cb89-2"><a href="programming.html#cb89-2" tabindex="-1"></a></span>
-<span id="cb89-3"><a href="programming.html#cb89-3" tabindex="-1"></a>variable1_cleaned</span></code></pre></div>
+<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="programming.html#cb77-1" tabindex="-1"></a>variable1_cleaned <span class="ot">&lt;-</span> <span class="fu">clean_missing</span>(variable1)</span>
+<span id="cb77-2"><a href="programming.html#cb77-2" tabindex="-1"></a></span>
+<span id="cb77-3"><a href="programming.html#cb77-3" tabindex="-1"></a>variable1_cleaned</span></code></pre></div>
 <pre><code>## [1]  1  2  3 NA  5  6</code></pre>
 <p>Note that any variables we created in the function are kept within the function,
 and you can’t access them later:</p>
-<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="programming.html#cb91-1" tabindex="-1"></a>variable1_clean <span class="ot">&lt;-</span> <span class="fu">clean_missing</span>(variable1)</span>
-<span id="cb91-2"><a href="programming.html#cb91-2" tabindex="-1"></a>returned_data</span></code></pre></div>
+<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="programming.html#cb79-1" tabindex="-1"></a>variable1_clean <span class="ot">&lt;-</span> <span class="fu">clean_missing</span>(variable1)</span>
+<span id="cb79-2"><a href="programming.html#cb79-2" tabindex="-1"></a>returned_data</span></code></pre></div>
 <pre><code>## Error in eval(expr, envir, enclos): object &#39;returned_data&#39; not found</code></pre>
 <p>This keeps your working environment nice and clean, which again prevents
 problems.</p>
 <p>Above I used the return function. This is not needed. Anything on the
 last line of the function that would normally be returned to the console, is
 used a return value of the function:</p>
-<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="programming.html#cb93-1" tabindex="-1"></a>clean_missing <span class="ot">&lt;-</span> <span class="cf">function</span>(input_data) {</span>
-<span id="cb93-2"><a href="programming.html#cb93-2" tabindex="-1"></a></span>
-<span id="cb93-3"><a href="programming.html#cb93-3" tabindex="-1"></a>    <span class="fu">if_else</span>(input_data <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>, input_data)</span>
-<span id="cb93-4"><a href="programming.html#cb93-4" tabindex="-1"></a>    </span>
-<span id="cb93-5"><a href="programming.html#cb93-5" tabindex="-1"></a>}</span>
-<span id="cb93-6"><a href="programming.html#cb93-6" tabindex="-1"></a></span>
-<span id="cb93-7"><a href="programming.html#cb93-7" tabindex="-1"></a><span class="fu">clean_missing</span>(variable1)</span></code></pre></div>
+<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="programming.html#cb81-1" tabindex="-1"></a>clean_missing <span class="ot">&lt;-</span> <span class="cf">function</span>(input_data) {</span>
+<span id="cb81-2"><a href="programming.html#cb81-2" tabindex="-1"></a></span>
+<span id="cb81-3"><a href="programming.html#cb81-3" tabindex="-1"></a>    <span class="fu">if_else</span>(input_data <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>, input_data)</span>
+<span id="cb81-4"><a href="programming.html#cb81-4" tabindex="-1"></a>    </span>
+<span id="cb81-5"><a href="programming.html#cb81-5" tabindex="-1"></a>}</span>
+<span id="cb81-6"><a href="programming.html#cb81-6" tabindex="-1"></a></span>
+<span id="cb81-7"><a href="programming.html#cb81-7" tabindex="-1"></a><span class="fu">clean_missing</span>(variable1)</span></code></pre></div>
 <pre><code>## [1]  1  2  3 NA  5  6</code></pre>
 </div>
 <div id="functions-and-the-tidyverse" class="section level3 hasAnchor">
@@ -325,10 +323,10 @@ used a return value of the function:</p>
 in a data cleaning pipe?</p>
 <p>It’s useful to start with the code without a function, and then to generalize
 from there:</p>
-<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="programming.html#cb95-1" tabindex="-1"></a>data_frame <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">variable1 =</span> variable1)</span>
-<span id="cb95-2"><a href="programming.html#cb95-2" tabindex="-1"></a></span>
-<span id="cb95-3"><a href="programming.html#cb95-3" tabindex="-1"></a>data_frame <span class="sc">%&gt;%</span></span>
-<span id="cb95-4"><a href="programming.html#cb95-4" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variable1 =</span> <span class="fu">if_else</span>(variable1 <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>,variable1))</span></code></pre></div>
+<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="programming.html#cb83-1" tabindex="-1"></a>data_frame <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">variable1 =</span> variable1)</span>
+<span id="cb83-2"><a href="programming.html#cb83-2" tabindex="-1"></a></span>
+<span id="cb83-3"><a href="programming.html#cb83-3" tabindex="-1"></a>data_frame <span class="sc">%&gt;%</span></span>
+<span id="cb83-4"><a href="programming.html#cb83-4" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variable1 =</span> <span class="fu">if_else</span>(variable1 <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>,variable1))</span></code></pre></div>
 <pre><code>## # A tibble: 6 × 1
 ##   variable1
 ##       &lt;dbl&gt;
@@ -342,14 +340,14 @@ from there:</p>
 a data frame and a variable name as its arguments. Results from one step in the
 pipe, are passed as the first argument for the next step. So make sure the data
 is the first argument!</p>
-<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="programming.html#cb97-1" tabindex="-1"></a>clean_missing_df <span class="ot">&lt;-</span> <span class="cf">function</span>(input_dataframe, variablename){</span>
-<span id="cb97-2"><a href="programming.html#cb97-2" tabindex="-1"></a>    input_dataframe <span class="sc">%&gt;%</span></span>
-<span id="cb97-3"><a href="programming.html#cb97-3" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">variablename =</span> <span class="fu">if_else</span>(variablename <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>, variablename))</span>
-<span id="cb97-4"><a href="programming.html#cb97-4" tabindex="-1"></a>    </span>
-<span id="cb97-5"><a href="programming.html#cb97-5" tabindex="-1"></a>}</span>
-<span id="cb97-6"><a href="programming.html#cb97-6" tabindex="-1"></a></span>
-<span id="cb97-7"><a href="programming.html#cb97-7" tabindex="-1"></a>data_frame <span class="sc">%&gt;%</span></span>
-<span id="cb97-8"><a href="programming.html#cb97-8" tabindex="-1"></a>    <span class="fu">clean_missing_df</span>(variable1)</span></code></pre></div>
+<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb85-1"><a href="programming.html#cb85-1" tabindex="-1"></a>clean_missing_df <span class="ot">&lt;-</span> <span class="cf">function</span>(input_dataframe, variablename){</span>
+<span id="cb85-2"><a href="programming.html#cb85-2" tabindex="-1"></a>    input_dataframe <span class="sc">%&gt;%</span></span>
+<span id="cb85-3"><a href="programming.html#cb85-3" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">variablename =</span> <span class="fu">if_else</span>(variablename <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>, variablename))</span>
+<span id="cb85-4"><a href="programming.html#cb85-4" tabindex="-1"></a>    </span>
+<span id="cb85-5"><a href="programming.html#cb85-5" tabindex="-1"></a>}</span>
+<span id="cb85-6"><a href="programming.html#cb85-6" tabindex="-1"></a></span>
+<span id="cb85-7"><a href="programming.html#cb85-7" tabindex="-1"></a>data_frame <span class="sc">%&gt;%</span></span>
+<span id="cb85-8"><a href="programming.html#cb85-8" tabindex="-1"></a>    <span class="fu">clean_missing_df</span>(variable1)</span></code></pre></div>
 <pre><code>## # A tibble: 6 × 2
 ##   variable1 variablename
 ##       &lt;dbl&gt;        &lt;dbl&gt;
@@ -365,17 +363,17 @@ For a technical note on why this is, see
 R too look what’s <em>in</em> <code>variablename</code>, not just use it as is. To do so, wrap the
 variable name in your function definition
 in <code>{{</code> and <code>}}</code>, and change the <code>=</code> in <code>mutatate</code> to <code>:=</code>.</p>
-<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="programming.html#cb99-1" tabindex="-1"></a>clean_missing_df <span class="ot">&lt;-</span> <span class="cf">function</span>(input_dataframe, variablename){</span>
-<span id="cb99-2"><a href="programming.html#cb99-2" tabindex="-1"></a>        input_dataframe <span class="sc">%&gt;%</span></span>
-<span id="cb99-3"><a href="programming.html#cb99-3" tabindex="-1"></a>        <span class="fu">mutate</span>({{ variablename }} <span class="sc">:=</span> <span class="fu">if_else</span>({{ variablename }} <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,</span>
-<span id="cb99-4"><a href="programming.html#cb99-4" tabindex="-1"></a>                                             <span class="cn">NA</span>,</span>
-<span id="cb99-5"><a href="programming.html#cb99-5" tabindex="-1"></a>                                             {{ variablename }}))</span>
-<span id="cb99-6"><a href="programming.html#cb99-6" tabindex="-1"></a>    </span>
-<span id="cb99-7"><a href="programming.html#cb99-7" tabindex="-1"></a>}</span>
-<span id="cb99-8"><a href="programming.html#cb99-8" tabindex="-1"></a></span>
-<span id="cb99-9"><a href="programming.html#cb99-9" tabindex="-1"></a></span>
-<span id="cb99-10"><a href="programming.html#cb99-10" tabindex="-1"></a>data_frame <span class="sc">%&gt;%</span></span>
-<span id="cb99-11"><a href="programming.html#cb99-11" tabindex="-1"></a>    <span class="fu">clean_missing_df</span>(variable1)</span></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="programming.html#cb87-1" tabindex="-1"></a>clean_missing_df <span class="ot">&lt;-</span> <span class="cf">function</span>(input_dataframe, variablename){</span>
+<span id="cb87-2"><a href="programming.html#cb87-2" tabindex="-1"></a>        input_dataframe <span class="sc">%&gt;%</span></span>
+<span id="cb87-3"><a href="programming.html#cb87-3" tabindex="-1"></a>        <span class="fu">mutate</span>({{ variablename }} <span class="sc">:=</span> <span class="fu">if_else</span>({{ variablename }} <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,</span>
+<span id="cb87-4"><a href="programming.html#cb87-4" tabindex="-1"></a>                                             <span class="cn">NA</span>,</span>
+<span id="cb87-5"><a href="programming.html#cb87-5" tabindex="-1"></a>                                             {{ variablename }}))</span>
+<span id="cb87-6"><a href="programming.html#cb87-6" tabindex="-1"></a>    </span>
+<span id="cb87-7"><a href="programming.html#cb87-7" tabindex="-1"></a>}</span>
+<span id="cb87-8"><a href="programming.html#cb87-8" tabindex="-1"></a></span>
+<span id="cb87-9"><a href="programming.html#cb87-9" tabindex="-1"></a></span>
+<span id="cb87-10"><a href="programming.html#cb87-10" tabindex="-1"></a>data_frame <span class="sc">%&gt;%</span></span>
+<span id="cb87-11"><a href="programming.html#cb87-11" tabindex="-1"></a>    <span class="fu">clean_missing_df</span>(variable1)</span></code></pre></div>
 <pre><code>## # A tibble: 6 × 1
 ##   variable1
 ##       &lt;dbl&gt;
@@ -389,15 +387,15 @@ in <code>{{</code> and <code>}}</code>, and change the <code>=</code> in <code>m
 <div id="example-function-to-create-dummies-from-text" class="section level3 hasAnchor">
 <h3>Example: Function to create dummies from text<a href="programming.html#example-function-to-create-dummies-from-text" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Remember our code to generate dummies based on text:</p>
-<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb101-1"><a href="programming.html#cb101-1" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>, <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb101-2"><a href="programming.html#cb101-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
-<span id="cb101-3"><a href="programming.html#cb101-3" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,items_owned) <span class="sc">%&gt;%</span></span>
-<span id="cb101-4"><a href="programming.html#cb101-4" tabindex="-1"></a>    <span class="fu">separate_longer_delim</span>(items_owned, <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb101-5"><a href="programming.html#cb101-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb101-6"><a href="programming.html#cb101-6" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
-<span id="cb101-7"><a href="programming.html#cb101-7" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
-<span id="cb101-8"><a href="programming.html#cb101-8" tabindex="-1"></a>                <span class="at">names_prefix =</span> <span class="st">&quot;owns_&quot;</span>,</span>
-<span id="cb101-9"><a href="programming.html#cb101-9" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="programming.html#cb89-1" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>, <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb89-2"><a href="programming.html#cb89-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
+<span id="cb89-3"><a href="programming.html#cb89-3" tabindex="-1"></a>    <span class="fu">select</span>(key_ID,items_owned) <span class="sc">%&gt;%</span></span>
+<span id="cb89-4"><a href="programming.html#cb89-4" tabindex="-1"></a>    <span class="fu">separate_longer_delim</span>(items_owned, <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb89-5"><a href="programming.html#cb89-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb89-6"><a href="programming.html#cb89-6" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> items_owned,</span>
+<span id="cb89-7"><a href="programming.html#cb89-7" tabindex="-1"></a>                <span class="at">values_from =</span> value,</span>
+<span id="cb89-8"><a href="programming.html#cb89-8" tabindex="-1"></a>                <span class="at">names_prefix =</span> <span class="st">&quot;owns_&quot;</span>,</span>
+<span id="cb89-9"><a href="programming.html#cb89-9" tabindex="-1"></a>                <span class="at">values_fill =</span> <span class="dv">0</span>) </span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -428,24 +426,24 @@ in <code>{{</code> and <code>}}</code>, and change the <code>=</code> in <code>m
 ## #   owns_computer &lt;dbl&gt;, owns_car &lt;dbl&gt;</code></pre>
 <p>I now want to apply this same principle to <code>months_lack_food</code> column.
 I could copy-paste the code, but the better solution is to make a function:</p>
-<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="programming.html#cb104-1" tabindex="-1"></a>create_dummies <span class="ot">&lt;-</span> <span class="cf">function</span>(df,stringvar,<span class="at">prefix=</span><span class="st">&quot;&quot;</span>,<span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) {</span>
-<span id="cb104-2"><a href="programming.html#cb104-2" tabindex="-1"></a>    <span class="co">#Function that generates dummies from a string variable</span></span>
-<span id="cb104-3"><a href="programming.html#cb104-3" tabindex="-1"></a>    <span class="co">#containing multi-response answers</span></span>
-<span id="cb104-4"><a href="programming.html#cb104-4" tabindex="-1"></a>    <span class="co">#returns dataset without original var, but with dummies.</span></span>
-<span id="cb104-5"><a href="programming.html#cb104-5" tabindex="-1"></a></span>
-<span id="cb104-6"><a href="programming.html#cb104-6" tabindex="-1"></a>    df <span class="sc">%&gt;%</span></span>
-<span id="cb104-7"><a href="programming.html#cb104-7" tabindex="-1"></a>        <span class="fu">separate_longer_delim</span>({{ stringvar }}, <span class="at">delim =</span> delim) <span class="sc">%&gt;%</span></span>
-<span id="cb104-8"><a href="programming.html#cb104-8" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb104-9"><a href="programming.html#cb104-9" tabindex="-1"></a>        <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> {{stringvar}},</span>
-<span id="cb104-10"><a href="programming.html#cb104-10" tabindex="-1"></a>                    <span class="at">values_from =</span> value,</span>
-<span id="cb104-11"><a href="programming.html#cb104-11" tabindex="-1"></a>                    <span class="at">names_prefix =</span> prefix,</span>
-<span id="cb104-12"><a href="programming.html#cb104-12" tabindex="-1"></a>                    <span class="at">values_fill =</span> <span class="dv">0</span>) </span>
-<span id="cb104-13"><a href="programming.html#cb104-13" tabindex="-1"></a>}</span>
-<span id="cb104-14"><a href="programming.html#cb104-14" tabindex="-1"></a></span>
-<span id="cb104-15"><a href="programming.html#cb104-15" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb104-16"><a href="programming.html#cb104-16" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
-<span id="cb104-17"><a href="programming.html#cb104-17" tabindex="-1"></a>    <span class="fu">create_dummies</span>(<span class="at">stringvar =</span> items_owned, <span class="at">prefix =</span> <span class="st">&quot;owns_&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb104-18"><a href="programming.html#cb104-18" tabindex="-1"></a>    <span class="fu">create_dummies</span>(months_lack_food,<span class="st">&quot;lack_food_&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="programming.html#cb92-1" tabindex="-1"></a>create_dummies <span class="ot">&lt;-</span> <span class="cf">function</span>(df,stringvar,<span class="at">prefix=</span><span class="st">&quot;&quot;</span>,<span class="at">delim =</span> <span class="st">&quot;;&quot;</span>) {</span>
+<span id="cb92-2"><a href="programming.html#cb92-2" tabindex="-1"></a>    <span class="co">#Function that generates dummies from a string variable</span></span>
+<span id="cb92-3"><a href="programming.html#cb92-3" tabindex="-1"></a>    <span class="co">#containing multi-response answers</span></span>
+<span id="cb92-4"><a href="programming.html#cb92-4" tabindex="-1"></a>    <span class="co">#returns dataset without original var, but with dummies.</span></span>
+<span id="cb92-5"><a href="programming.html#cb92-5" tabindex="-1"></a></span>
+<span id="cb92-6"><a href="programming.html#cb92-6" tabindex="-1"></a>    df <span class="sc">%&gt;%</span></span>
+<span id="cb92-7"><a href="programming.html#cb92-7" tabindex="-1"></a>        <span class="fu">separate_longer_delim</span>({{ stringvar }}, <span class="at">delim =</span> delim) <span class="sc">%&gt;%</span></span>
+<span id="cb92-8"><a href="programming.html#cb92-8" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">value =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb92-9"><a href="programming.html#cb92-9" tabindex="-1"></a>        <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> {{stringvar}},</span>
+<span id="cb92-10"><a href="programming.html#cb92-10" tabindex="-1"></a>                    <span class="at">values_from =</span> value,</span>
+<span id="cb92-11"><a href="programming.html#cb92-11" tabindex="-1"></a>                    <span class="at">names_prefix =</span> prefix,</span>
+<span id="cb92-12"><a href="programming.html#cb92-12" tabindex="-1"></a>                    <span class="at">values_fill =</span> <span class="dv">0</span>) </span>
+<span id="cb92-13"><a href="programming.html#cb92-13" tabindex="-1"></a>}</span>
+<span id="cb92-14"><a href="programming.html#cb92-14" tabindex="-1"></a></span>
+<span id="cb92-15"><a href="programming.html#cb92-15" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb92-16"><a href="programming.html#cb92-16" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items_owned =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(items_owned),<span class="st">&quot;None&quot;</span>,items_owned)) <span class="sc">%&gt;%</span></span>
+<span id="cb92-17"><a href="programming.html#cb92-17" tabindex="-1"></a>    <span class="fu">create_dummies</span>(<span class="at">stringvar =</span> items_owned, <span class="at">prefix =</span> <span class="st">&quot;owns_&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb92-18"><a href="programming.html#cb92-18" tabindex="-1"></a>    <span class="fu">create_dummies</span>(months_lack_food,<span class="st">&quot;lack_food_&quot;</span>)</span></code></pre></div>
 <pre><code>## Rows: 131 Columns: 14
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -490,8 +488,8 @@ easily do it.</p>
 <p>It will then apply the function to each element of the object. It will return
 a list with the results of each iteration.</p>
 <p>For example, to get the the square root for each of the numbers in a vector:</p>
-<div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="programming.html#cb107-1" tabindex="-1"></a>vector <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">9</span>,<span class="dv">16</span>) </span>
-<span id="cb107-2"><a href="programming.html#cb107-2" tabindex="-1"></a><span class="fu">map</span>(vector,sqrt)</span></code></pre></div>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="programming.html#cb95-1" tabindex="-1"></a>vector <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">9</span>,<span class="dv">16</span>) </span>
+<span id="cb95-2"><a href="programming.html#cb95-2" tabindex="-1"></a><span class="fu">map</span>(vector,sqrt)</span></code></pre></div>
 <pre><code>## [[1]]
 ## [1] 2
 ## 
@@ -508,28 +506,28 @@ varaibles in a list, and then run my model for each element of the list.</p>
 I use <code>~</code> to create
 <a href="https://adv-r.hadley.nz/functionals.html#purrr-shortcuts">a purrr-style inline anonymous function</a>
 within <code>map()</code>.</p>
-<div class="sourceCode" id="cb109"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb109-1"><a href="programming.html#cb109-1" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
-<span id="cb109-2"><a href="programming.html#cb109-2" tabindex="-1"></a></span>
-<span id="cb109-3"><a href="programming.html#cb109-3" tabindex="-1"></a><span class="co"># generate some sample data</span></span>
-<span id="cb109-4"><a href="programming.html#cb109-4" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">rnorm</span>(<span class="dv">50</span>),<span class="at">x1 =</span> <span class="fu">rnorm</span>(<span class="dv">50</span>),<span class="at">x2 =</span> <span class="fu">rnorm</span>(<span class="dv">50</span>))</span>
-<span id="cb109-5"><a href="programming.html#cb109-5" tabindex="-1"></a></span>
-<span id="cb109-6"><a href="programming.html#cb109-6" tabindex="-1"></a></span>
-<span id="cb109-7"><a href="programming.html#cb109-7" tabindex="-1"></a><span class="co"># define a list of models: </span></span>
-<span id="cb109-8"><a href="programming.html#cb109-8" tabindex="-1"></a><span class="co"># the left-hand sides are the labels</span></span>
-<span id="cb109-9"><a href="programming.html#cb109-9" tabindex="-1"></a><span class="co"># the right-hand sides the independent variables I will pass to reformulate.</span></span>
-<span id="cb109-10"><a href="programming.html#cb109-10" tabindex="-1"></a></span>
-<span id="cb109-11"><a href="programming.html#cb109-11" tabindex="-1"></a>models <span class="ot">&lt;-</span></span>
-<span id="cb109-12"><a href="programming.html#cb109-12" tabindex="-1"></a><span class="fu">list</span>(<span class="st">&quot;X1 only&quot;</span> <span class="ot">=</span> <span class="st">&quot;x1&quot;</span>, </span>
-<span id="cb109-13"><a href="programming.html#cb109-13" tabindex="-1"></a>     <span class="st">&quot;X2 only&quot;</span> <span class="ot">=</span> <span class="st">&quot;x2&quot;</span>, </span>
-<span id="cb109-14"><a href="programming.html#cb109-14" tabindex="-1"></a>      <span class="st">&quot;Both&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>,<span class="st">&quot;x2&quot;</span>))</span>
-<span id="cb109-15"><a href="programming.html#cb109-15" tabindex="-1"></a></span>
-<span id="cb109-16"><a href="programming.html#cb109-16" tabindex="-1"></a></span>
-<span id="cb109-17"><a href="programming.html#cb109-17" tabindex="-1"></a><span class="co"># map() works nicely in  dplyr pipe!</span></span>
-<span id="cb109-18"><a href="programming.html#cb109-18" tabindex="-1"></a><span class="co"># the ~ creates a purrr-style anonymous function, where .x is current element of the list</span></span>
-<span id="cb109-19"><a href="programming.html#cb109-19" tabindex="-1"></a>models <span class="sc">%&gt;%</span></span>
-<span id="cb109-20"><a href="programming.html#cb109-20" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span><span class="fu">lm</span>(<span class="fu">reformulate</span>(.x, <span class="at">response=</span><span class="st">&quot;y&quot;</span>),<span class="at">data =</span> df)) <span class="sc">%&gt;%</span></span>
-<span id="cb109-21"><a href="programming.html#cb109-21" tabindex="-1"></a>    <span class="fu">modelsummary</span>(<span class="at">output =</span> <span class="st">&quot;flextable&quot;</span>)</span></code></pre></div>
-<div class="tabwid"><style>.cl-f2d3a6c4{}.cl-f2ccfcc0{font-family:'DejaVu Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-f2d076c0{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f2d087dc{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2d087e6{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2d087e7{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2d087f0{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing='true' class='cl-f2d3a6c4'><thead><tr style="overflow-wrap:break-word;"><th class="cl-f2d087dc"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"> </span></p></th><th class="cl-f2d087dc"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">X1 only</span></p></th><th class="cl-f2d087dc"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">X2 only</span></p></th><th class="cl-f2d087dc"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">Both</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(Intercept)</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.208</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.201</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.205</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"></span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(0.140)</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(0.137)</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(0.141)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">x1</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.015</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"></span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.032</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"></span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(0.176)</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"></span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(0.178)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">x2</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"></span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.127</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.131</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"></span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0"></span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(0.159)</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">(0.162)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e7"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">Num.Obs.</span></p></td><td class="cl-f2d087e7"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">50</span></p></td><td class="cl-f2d087e7"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">50</span></p></td><td class="cl-f2d087e7"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">50</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">R2</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.000</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.013</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.014</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">R2 Adj.</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.021</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.007</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-0.028</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">AIC</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">143.5</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">142.9</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">144.8</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">BIC</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">149.3</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">148.6</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">152.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">Log.Lik.</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-68.760</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-68.433</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">-68.416</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">F</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.007</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.640</span></p></td><td class="cl-f2d087e6"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.329</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2d087f0"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">RMSE</span></p></td><td class="cl-f2d087f0"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.96</span></p></td><td class="cl-f2d087f0"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.95</span></p></td><td class="cl-f2d087f0"><p class="cl-f2d076c0"><span class="cl-f2ccfcc0">0.95</span></p></td></tr></tbody></table></div>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="programming.html#cb97-1" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb97-2"><a href="programming.html#cb97-2" tabindex="-1"></a></span>
+<span id="cb97-3"><a href="programming.html#cb97-3" tabindex="-1"></a><span class="co"># generate some sample data</span></span>
+<span id="cb97-4"><a href="programming.html#cb97-4" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">rnorm</span>(<span class="dv">50</span>),<span class="at">x1 =</span> <span class="fu">rnorm</span>(<span class="dv">50</span>),<span class="at">x2 =</span> <span class="fu">rnorm</span>(<span class="dv">50</span>))</span>
+<span id="cb97-5"><a href="programming.html#cb97-5" tabindex="-1"></a></span>
+<span id="cb97-6"><a href="programming.html#cb97-6" tabindex="-1"></a></span>
+<span id="cb97-7"><a href="programming.html#cb97-7" tabindex="-1"></a><span class="co"># define a list of models: </span></span>
+<span id="cb97-8"><a href="programming.html#cb97-8" tabindex="-1"></a><span class="co"># the left-hand sides are the labels</span></span>
+<span id="cb97-9"><a href="programming.html#cb97-9" tabindex="-1"></a><span class="co"># the right-hand sides the independent variables I will pass to reformulate.</span></span>
+<span id="cb97-10"><a href="programming.html#cb97-10" tabindex="-1"></a></span>
+<span id="cb97-11"><a href="programming.html#cb97-11" tabindex="-1"></a>models <span class="ot">&lt;-</span></span>
+<span id="cb97-12"><a href="programming.html#cb97-12" tabindex="-1"></a><span class="fu">list</span>(<span class="st">&quot;X1 only&quot;</span> <span class="ot">=</span> <span class="st">&quot;x1&quot;</span>, </span>
+<span id="cb97-13"><a href="programming.html#cb97-13" tabindex="-1"></a>     <span class="st">&quot;X2 only&quot;</span> <span class="ot">=</span> <span class="st">&quot;x2&quot;</span>, </span>
+<span id="cb97-14"><a href="programming.html#cb97-14" tabindex="-1"></a>      <span class="st">&quot;Both&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>,<span class="st">&quot;x2&quot;</span>))</span>
+<span id="cb97-15"><a href="programming.html#cb97-15" tabindex="-1"></a></span>
+<span id="cb97-16"><a href="programming.html#cb97-16" tabindex="-1"></a></span>
+<span id="cb97-17"><a href="programming.html#cb97-17" tabindex="-1"></a><span class="co"># map() works nicely in  dplyr pipe!</span></span>
+<span id="cb97-18"><a href="programming.html#cb97-18" tabindex="-1"></a><span class="co"># the ~ creates a purrr-style anonymous function, where .x is current element of the list</span></span>
+<span id="cb97-19"><a href="programming.html#cb97-19" tabindex="-1"></a>models <span class="sc">%&gt;%</span></span>
+<span id="cb97-20"><a href="programming.html#cb97-20" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span><span class="fu">lm</span>(<span class="fu">reformulate</span>(.x, <span class="at">response=</span><span class="st">&quot;y&quot;</span>),<span class="at">data =</span> df)) <span class="sc">%&gt;%</span></span>
+<span id="cb97-21"><a href="programming.html#cb97-21" tabindex="-1"></a>    <span class="fu">modelsummary</span>(<span class="at">output =</span> <span class="st">&quot;flextable&quot;</span>)</span></code></pre></div>
+<div class="tabwid"><style>.cl-fd3a3d3e{}.cl-fd34ecbc{font-family:'DejaVu Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-fd371b22{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-fd372d56{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-fd372d60{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-fd372d6a{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-fd372d6b{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing='true' class='cl-fd3a3d3e'><thead><tr style="overflow-wrap:break-word;"><th class="cl-fd372d56"><p class="cl-fd371b22"><span class="cl-fd34ecbc"> </span></p></th><th class="cl-fd372d56"><p class="cl-fd371b22"><span class="cl-fd34ecbc">X1 only</span></p></th><th class="cl-fd372d56"><p class="cl-fd371b22"><span class="cl-fd34ecbc">X2 only</span></p></th><th class="cl-fd372d56"><p class="cl-fd371b22"><span class="cl-fd34ecbc">Both</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(Intercept)</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.208</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.201</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.205</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc"></span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(0.140)</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(0.137)</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(0.141)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">x1</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.015</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc"></span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.032</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc"></span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(0.176)</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc"></span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(0.178)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">x2</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc"></span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.127</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.131</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc"></span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc"></span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(0.159)</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">(0.162)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d6a"><p class="cl-fd371b22"><span class="cl-fd34ecbc">Num.Obs.</span></p></td><td class="cl-fd372d6a"><p class="cl-fd371b22"><span class="cl-fd34ecbc">50</span></p></td><td class="cl-fd372d6a"><p class="cl-fd371b22"><span class="cl-fd34ecbc">50</span></p></td><td class="cl-fd372d6a"><p class="cl-fd371b22"><span class="cl-fd34ecbc">50</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">R2</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.000</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.013</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.014</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">R2 Adj.</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.021</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.007</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-0.028</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">AIC</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">143.5</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">142.9</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">144.8</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">BIC</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">149.3</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">148.6</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">152.5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">Log.Lik.</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-68.760</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-68.433</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">-68.416</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">F</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.007</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.640</span></p></td><td class="cl-fd372d60"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.329</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-fd372d6b"><p class="cl-fd371b22"><span class="cl-fd34ecbc">RMSE</span></p></td><td class="cl-fd372d6b"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.96</span></p></td><td class="cl-fd372d6b"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.95</span></p></td><td class="cl-fd372d6b"><p class="cl-fd371b22"><span class="cl-fd34ecbc">0.95</span></p></td></tr></tbody></table></div>
 
 </div>
 </div>
