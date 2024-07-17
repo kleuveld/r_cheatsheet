@@ -163,41 +163,40 @@ data_frame %>%
 ```
 
 Let's try to put that in a function. The function will need to take 
-a data frame and a variable name as its arguments:
+a data frame and a variable name as its arguments. Results from one step in the 
+pipe, are passed as the first argument for the next step. So make sure the data 
+is the first argument! 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
-
 clean_missing_df <- function(input_dataframe, variablename){
-	returned_data <- 
-		input_dataframe %>%
-		mutate(variablename = if_else(variablename == -99,NA,variablename))
+	input_dataframe %>%
+		mutate(variablename = if_else(variablename == -99,NA, variablename))
 	
-	return(returned_data)
 }
 
-
 data_frame %>%
-clean_missing_df(variable1)
+	clean_missing_df(variable1)
 
 
 ```
 
 Wait, something went wrong! R just created a new variable called "variablename".
 For a technical note on why this is, see 
-[here](https://dplyr.tidyverse.org/articles/programming.html).
-To solve this, wrap the variable in your function definition
+[here](https://dplyr.tidyverse.org/articles/programming.html). In short, we want
+R too look what's *in* `variablename`, not just use it as is. To do so, wrap the 
+variable name in your function definition
 in `{{` and `}}`, and change the `=` in `mutatate` to `:=`. 
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 
 clean_missing_df <- function(input_dataframe, variablename){
-	returned_data <- 
 		input_dataframe %>%
-		mutate({{ variablename }} := if_else(variablename == -99,NA,variablename))
+		mutate({{ variablename }} := if_else({{ variablename }} == -99,
+											 NA,
+											 {{ variablename }}))
 	
-	return(returned_data)
 }
 
 
