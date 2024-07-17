@@ -174,7 +174,7 @@ estimator2 <-
 ```
 
 As third estimator, I use a custom estimation function. The function
-takes and equation, the data to be analyzed, and (optionally)
+takes an equation, the data to be analyzed, and (optionally)
 the type of standard errors to compute, and as its output
 it returns a tidy dataset containing estimated coefficients 
 created by [`broom::tidy()`](https://broom.tidymodels.org/articles/broom.html). 
