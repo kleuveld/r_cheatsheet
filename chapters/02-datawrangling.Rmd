@@ -156,8 +156,8 @@ Note that here I only merged in two variables, by using `select` and a pipe with
 To compute summary statistics (sums, counts, means etc.) over a group,
 we use the `group_by()` and `summarize()` functions. For example, to
 compute the household size, number of women and average age in each household. 
-But before doing anything, I make sure the `-99`s in the `age` variables are treated 
-as missing, using a simple `mutate()`
+But before doing anything, I make sure the `-99`s in the `age` variable are treated 
+as missing, using a simple `mutate()` to conver them to `NA`.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
@@ -178,11 +178,11 @@ and then use summarize, like we did above. But in Stata you would probably use s
 `egen` function, so that may come natural.
 You can do similar things in R. It's just a bit more complex than in Stata.
 
-### Across: doing the same operations on multiple variables using across
+### across(): doing the same operations on multiple variables using across
 
 First, we need to make sure we update `-99` to `NA` in *all* `age_` variables.
 I use the `across()` function, which takes two arguments: a column specifcation 
-(for which I use tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) 
+(for which I use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) 
 syntax), and a [function](#functions): basically, the syntax is the same as in the `mutate()` 
 step above, but with a tilde (`~`) in front of `ifelse()` and `.x` instead of the variable name.
 
@@ -200,7 +200,7 @@ Notes:
 - You can also combine `across()` with `summarize()` to summarize multiple variables more easily.
 
 
-### c_across: passing values from multiple variables to summarizing functions
+### c_across(): passing values from multiple variables to summarizing functions
 
 Then I have to pass all the `female_` and `age_` variables to `sum()` and `mean()`:
 
@@ -243,6 +243,7 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     pivot_wider(names_from = items_owned,
                 values_from = value,
                 names_glue = "owns_{items_owned}",
-                values_fill = 0)
+                values_fill = 0) %>%
+    select(items_owned, starts_with("owns_"))
 
 ```
