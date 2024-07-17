@@ -1,4 +1,4 @@
-# Programming with R {#functions}
+# Programming with R {#programming}
 
 You can improve your R code by using programming features such as 
 loops and functions to make your code reusable. This prevents errors, 
@@ -39,7 +39,7 @@ While loops can be a perfectly fine way of  doing repeated work, most R
 programmers prefer not to use loops, but instead use functions such as 
 `lapply()` and `map()`. However, for this you will need to know functions.
 
-## Functions
+## Functions {#functions}
 
 ### Basic Functions
 
