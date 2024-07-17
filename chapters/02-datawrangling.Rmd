@@ -33,7 +33,8 @@ it with the household data.
 First, I create sa fake household roster, based on the SAFI data,
 making sure that the household roster has a number of lines
 for each household that is equal to the household size, and has two
-randomly generated variables: `female` and `age`.
+randomly generated variables: `female` and `age`. Note that `age` may
+be `-99`, which should be considered missing.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
@@ -46,10 +47,11 @@ long_data <-
     rowwise() %>%
     mutate(female = sample(0:1,1),
            age = case_when(member_ID == 1 ~ sample(18:86,1),
-                          .default = sample(0:86,1))) %>%
+                          .default = sample(c(0:86,-99),1))) %>%
     ungroup()
 
 long_data
+
 
 ```
 
@@ -63,7 +65,7 @@ wide_data <-
     long_data %>% 
     pivot_wider(names_from = member_ID,
                 values_from = !ends_with("_ID"))
-wide_data
+wide_data 
 
 ```
 
@@ -153,35 +155,66 @@ Note that here I only merged in two variables, by using `select` and a pipe with
 
 To compute summary statistics (sums, counts, means etc.) over a group,
 we use the `group_by()` and `summarize()` functions. For example, to
-compute the household size, number of women and average age in each household:
+compute the household size, number of women and average age in each household. 
+But before doing anything, I make sure the `-99`s in the `age` variables are treated 
+as missing, using a simple `mutate()`
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-long_data %>%
+long_data %>% 
     group_by(key_ID) %>%
-    summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age))    
+    mutate(age = if_else(age == -99,NA,age)) %>%
+    summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age, na.rm = TRUE))
+
 ```
 
 
-## Row-wise Operations
+## Row-wise Operations 
 
 Suppose we wanted to run an operation over multiple variables. For example to
-get the household size, number of women and average age. The easiest,
-and probably best, way to do this in R is by reshaping to long, and the use
-summarize, like we did above. But in Stata you would probably use some sort of 
+get the household size, number of women and average age from our wide data. 
+The easiest, and probably best, way to do this in R is by reshaping to long, 
+and then use summarize, like we did above. But in Stata you would probably use some sort of 
 `egen` function, so that may come natural.
-You can do similar things in R. It's just a bit more complex than in Stata:
+You can do similar things in R. It's just a bit more complex than in Stata.
+
+### Across: doing the same operations on multiple variables using across
+
+First, we need to make sure we update `-99` to `NA` in *all* `age_` variables.
+I use the `across()` function, which takes two arguments: a column specifcation 
+(for which I use tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) 
+syntax), and a [function](#functions): basically, the syntax is the same as in the `mutate()` 
+step above, but with a tilde (`~`) in front of `ifelse()` and `.x` instead of the variable name.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 wide_data %>%
+    mutate(across(.cols = starts_with("age_"),
+                  .fns = ~if_else(.x == -99,NA,.x)))
+
+```
+
+Notes:
+
+- You can use `across(.cols = where(is.numeric), .fn = ...)` to apply a function to all numeric variables.
+- You can also combine `across()` with `summarize()` to summarize multiple variables more easily.
+
+
+### c_across: passing values from multiple variables to summarizing functions
+
+Then I have to pass all the `female_` and `age_` variables to `sum()` and `mean()`:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+wide_data %>%
+    mutate(across(.cols = starts_with("age_"),
+                  .fn = ~if_else(.x == -99,NA,.x))) %>%
     rowwise() %>%
     mutate(mean_age = mean(c_across(starts_with("age_")),
                            na.rm=TRUE),
            num_women = sum(c_across(starts_with("female_")),
                            na.rm=TRUE),
-           hh_size = sum(!is.na(c_across(starts_with("female_"))),
-                         na.rm=TRUE)) %>%
+           hh_size = sum(!is.na(c_across(starts_with("female_"))))) %>%
     select(key_ID,hh_size,num_women,mean_age) %>%
     ungroup()
 
@@ -189,9 +222,10 @@ wide_data %>%
 ```
 
 The key trick here is the combination of `rowwise()` and `c_across()`.
-`rowwise()` ensure all summaries are computed per row, and `c_across()`
+`rowwise()` ensures all summaries are computed per row, and `c_across()`
 allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
 `sum(!is.na())` simply counts the non-missing values.
+
 
 ## Splitting multi-response variable into dummies
 
@@ -199,136 +233,7 @@ The SAFI data contains a number of columns that contain all responses selected
 in a multiple response questions. For example, the variables `items_owned` can
 contain something like `"bicycle;television;solar_panel;table"`. We want to 
 split this into dummies: one for each possible answers. There's a number of 
-ways to do this: 
-
-First, you can use `str_count()` for each possible answer: 
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
-
-split_without_loop <- 
-    read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    select(items_owned) %>%
-    mutate(owns_bicycle = str_count(.data$items_owned,"bicycle"), 
-           owns_television = str_count(.data$items_owned,"television")) 
-           #etc etc.
-
-split_without_loop
-
-```
-
-### Using loops
-
-This gets extremely tedious, better to put everything in a loop:
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
-
-#define the vector to loop over
-items <- c("bicycle","television","solar_panel","table","cow_cart","radio",
-           "cow_plough","solar_torch","mobile_phone","motor_cycle","fridge",
-           "electricity","sofa_set","lorry","sterio","computer","car")
-
-#prepare the data
-split_with_loop <- 
-    read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    select(items_owned)
-
-#and add to the data each iteration of a loop
-for (i in items){
-    split_with_loop <-
-        split_with_loop %>%
-        mutate("owns_{i}" := str_count(.data$items_owned,i))
-}
-
-split_with_loop
-
-```
-
-Note how we used `"owns_{i}" :=` to dynamically create variable names in the `mutate()` function.
-
-
-### Using map() and pmap()
-
-Loops have the reputation of being slow, so if performance is important
-you can also use 
-`map()` to repeat a function for every element in a vector. It returns a list
-where each list item is the output of one iteration (i.e. one new column):
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-split_with_map <- 
-    read_csv(here("data/SAFI_clean.csv"), na = "NULL")
-
-items %>%
-  map(\(x) str_count(split_with_map$items_owned,x))%>%
-  head(n = 2)
-
-```
-
-A list isn't really great in this case. `map_df()` returns its 
-items as columns in a dataframe. For this
-to work, I make sure the vector has names, which will then become
-the column names:  
-
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-items %>%
-  set_names(paste0("owns_",items)) %>%
-  map_df(\(x) str_count(split_with_map$items_owned,x)) 
-
-```
-
-One problem is our pipe started with `items`, making it a bit more difficult to
-use this is a data management pipeline. To solve this, you can also iterate 
-over the rows in a data frame using `pmap()`, so that each element in our 
-list is a row:
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    pmap(\(items_owned, ...) str_count(items_owned,items)) %>%
-    head(n = 2)
-                            
-```
-
-Note that pmap passes all variables in the data frame as arguments to the function. Here,
-I only need `items_owned`, so I capture all unneeded variables with `...`.
-
-To bind this together to a data frame, I need to make sure that the output 
-of each iteration of `pmap()` is a row with `as_tibble_row()`, using its
-`.name_repair` option to assing names in the same way I did to the `items`
-vector above.
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL")  %>%
-  pmap_dfr(\(items_owned, ...) 
-              str_count(items_owned,items) %>%
-              as_tibble_row(.name_repair = ~paste0("owns_",items)))
-
-```
-
-### Using rowwise(), mutate() and unnest()
-
-While `map()` is faster,  you can use `mutate()`
-to nest a data set into a variable. That, combined with
- `as_tibble_row()`:
-
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-  rowwise() %>%
-  mutate(x = as_tibble_row(str_count(items_owned,items),
-                           .name_repair = ~paste0("owns_",
-                                                  items))) %>%
-  unnest(cols=c(x))
-
-```
-
-### Using separate_longer()
-
-If writing a vector with possible values is too tedious/error prone/impossible:
+ways to do this, but the most convenient is using `sepate_longer()`
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
@@ -341,12 +246,3 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
                 values_fill = 0)
 
 ```
-
-Note that this solution differs in how observations where `items_owned` is 
-empty are treated. Previous solutions had `NA` for all created variables in this 
-case; using this approach, a variable `owns_NA` is created, with value `1`, and
-all other variables are set to `0`.
-It's unclear which is better in this
-case: does an empty `items_owned` means the household owns nothing? Then this 
-implementation is better. Does it mean the quesitons was skipped? Then the 
-previous ones were better.
