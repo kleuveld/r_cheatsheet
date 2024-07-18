@@ -299,16 +299,16 @@ be <code>-99</code>, which should be considered missing.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      1    18
-##  2      1         2      0    19
-##  3      1         3      1    14
-##  4      2         1      0    62
-##  5      2         2      1    58
-##  6      2         3      1    18
-##  7      2         4      1     6
-##  8      2         5      0    80
-##  9      2         6      1    25
-## 10      2         7      0    68
+##  1      1         1      0    56
+##  2      1         2      1   -99
+##  3      1         3      1    45
+##  4      2         1      1    76
+##  5      2         2      1    63
+##  6      2         3      1    20
+##  7      2         4      0    65
+##  8      2         5      1     8
+##  9      2         6      1    86
+## 10      2         7      1    46
 ## # ℹ 932 more rows</code></pre>
 </div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
@@ -317,33 +317,35 @@ be <code>-99</code>, which should be considered missing.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="datawrangling.html#cb6-1" tabindex="-1"></a>wide_data <span class="ot">&lt;-</span></span>
 <span id="cb6-2"><a href="datawrangling.html#cb6-2" tabindex="-1"></a>    long_data <span class="sc">%&gt;%</span> </span>
 <span id="cb6-3"><a href="datawrangling.html#cb6-3" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> member_ID,</span>
-<span id="cb6-4"><a href="datawrangling.html#cb6-4" tabindex="-1"></a>                <span class="at">values_from =</span> <span class="sc">!</span><span class="fu">ends_with</span>(<span class="st">&quot;_ID&quot;</span>))</span>
-<span id="cb6-5"><a href="datawrangling.html#cb6-5" tabindex="-1"></a>wide_data </span></code></pre></div>
+<span id="cb6-4"><a href="datawrangling.html#cb6-4" tabindex="-1"></a>                <span class="at">values_from =</span> <span class="sc">!</span><span class="fu">ends_with</span>(<span class="st">&quot;_ID&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-5"><a href="datawrangling.html#cb6-5" tabindex="-1"></a>  <span class="fu">relocate</span>(key_ID, <span class="fu">ends_with</span>(<span class="fu">paste0</span>(<span class="st">&quot;_&quot;</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">19</span>)))</span>
+<span id="cb6-6"><a href="datawrangling.html#cb6-6" tabindex="-1"></a>wide_data </span></code></pre></div>
 <pre><code>## # A tibble: 131 × 39
-##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
-##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        1        0        1       NA       NA       NA       NA
-##  2      2        0        1        1        1        0        1        0
-##  3      3        0        1        1        0        0        1        0
-##  4      4        1        1        0        1        0        0        0
-##  5      5        0        0        0        0        0        1        0
-##  6      6        0        0        0       NA       NA       NA       NA
-##  7      7        1        0        0        0        0        0       NA
-##  8      8        1        1        1        1        0        0        1
-##  9      9        1        0        0        0        0        1        0
-## 10     10        1        0        0        1        0        1        0
+##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
+##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
+##  1      1        0    56        1   -99        1    45       NA    NA       NA
+##  2      2        1    76        1    63        1    20        0    65        1
+##  3      3        1    64        0    36        0    36        0     5        1
+##  4      4        1    69        1    33        1    82        0    45        0
+##  5      5        0    66        0    37        0    55        0    25        0
+##  6      6        1    80        0    20        1    38       NA    NA       NA
+##  7      7        0    19        0    13        0     5        0    75        0
+##  8      8        1    53        0    43        1    42        1    39        1
+##  9      9        1    62        1    29        1    39        0    84        0
+## 10     10        1    23        1    30        0     0        0    46        1
 ## # ℹ 121 more rows
-## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
-## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
-## #   female_15 &lt;int&gt;, female_16 &lt;int&gt;, female_17 &lt;int&gt;, female_18 &lt;int&gt;,
-## #   female_19 &lt;int&gt;, age_1 &lt;dbl&gt;, age_2 &lt;dbl&gt;, age_3 &lt;dbl&gt;, age_4 &lt;dbl&gt;,
-## #   age_5 &lt;dbl&gt;, age_6 &lt;dbl&gt;, age_7 &lt;dbl&gt;, age_8 &lt;dbl&gt;, age_9 &lt;dbl&gt;,
-## #   age_10 &lt;dbl&gt;, age_11 &lt;dbl&gt;, age_12 &lt;dbl&gt;, age_13 &lt;dbl&gt;, age_14 &lt;dbl&gt;, …</code></pre>
+## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
+## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
+## #   age_9 &lt;dbl&gt;, female_10 &lt;int&gt;, age_10 &lt;dbl&gt;, female_11 &lt;int&gt;, age_11 &lt;dbl&gt;,
+## #   female_12 &lt;int&gt;, age_12 &lt;dbl&gt;, female_13 &lt;int&gt;, age_13 &lt;dbl&gt;,
+## #   female_14 &lt;int&gt;, age_14 &lt;dbl&gt;, female_15 &lt;int&gt;, age_15 &lt;dbl&gt;,
+## #   female_16 &lt;int&gt;, age_16 &lt;dbl&gt;, female_17 &lt;int&gt;, age_17 &lt;dbl&gt;, …</code></pre>
 <p>We only needed to specify two options:</p>
 <ul>
 <li>names_from: this is the column that contains the names (or usually numbers)
 for each of our units of analysis. In this case, the <code>member_ID</code>.</li>
 <li>values_from: the variables containing the data. All variables you specify here, will get one column for each possible value of names_from. In our case, these variables <code>female</code> and <code>age</code>. I used <a href="https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html">tidy select syntax</a> to specify all variables except the ones ending in <code>_ID</code>.</li>
+<li>I use <code>relocate()</code> to reorder the variables.</li>
 </ul>
 </div>
 <div id="pivoting-wide-to-long" class="section level3 hasAnchor">
@@ -360,16 +362,16 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      1    18
-##  2      1         2      0    19
-##  3      1         3      1    14
-##  4      2         1      0    62
-##  5      2         2      1    58
-##  6      2         3      1    18
-##  7      2         4      1     6
-##  8      2         5      0    80
-##  9      2         6      1    25
-## 10      2         7      0    68
+##  1      1         1      0    56
+##  2      1         2      1   -99
+##  3      1         3      1    45
+##  4      2         1      1    76
+##  5      2         2      1    63
+##  6      2         3      1    20
+##  7      2         4      0    65
+##  8      2         5      1     8
+##  9      2         6      1    86
+## 10      2         7      1    46
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand than that of pivot wider. It’s good to think first what the original data looks like, and
 how I intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. I don’t really want to touch the key_ID
@@ -432,10 +434,10 @@ To merge the roster to the household data, we use the join_by function:</p>
 ## # ℹ 121 more rows
 ## # ℹ 46 more variables: rooms &lt;dbl&gt;, memb_assoc &lt;chr&gt;, affect_conflicts &lt;chr&gt;,
 ## #   liv_count &lt;dbl&gt;, items_owned &lt;chr&gt;, no_meals &lt;dbl&gt;, months_lack_food &lt;chr&gt;,
-## #   instanceID &lt;chr&gt;, female_1 &lt;int&gt;, female_2 &lt;int&gt;, female_3 &lt;int&gt;,
-## #   female_4 &lt;int&gt;, female_5 &lt;int&gt;, female_6 &lt;int&gt;, female_7 &lt;int&gt;,
-## #   female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;, female_11 &lt;int&gt;,
-## #   female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;, female_15 &lt;int&gt;, …</code></pre>
+## #   instanceID &lt;chr&gt;, female_1 &lt;int&gt;, age_1 &lt;dbl&gt;, female_2 &lt;int&gt;, age_2 &lt;dbl&gt;,
+## #   female_3 &lt;int&gt;, age_3 &lt;dbl&gt;, female_4 &lt;int&gt;, age_4 &lt;dbl&gt;, female_5 &lt;int&gt;,
+## #   age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;, female_7 &lt;int&gt;, age_7 &lt;dbl&gt;,
+## #   female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;, age_9 &lt;dbl&gt;, …</code></pre>
 <p>Note that we didn’t specify identifiers, like we would in Stata. R
 assumed that the variables that appear in both data frames are the
 identifiers, in this case <code>key_ID</code>. Use the <code>by</code> option to change this.</p>
@@ -458,16 +460,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    18 God     2016-11-17 00:00:00
-##  2      1         2      0    19 God     2016-11-17 00:00:00
-##  3      1         3      1    14 God     2016-11-17 00:00:00
-##  4      2         1      0    62 God     2016-11-17 00:00:00
-##  5      2         2      1    58 God     2016-11-17 00:00:00
-##  6      2         3      1    18 God     2016-11-17 00:00:00
-##  7      2         4      1     6 God     2016-11-17 00:00:00
-##  8      2         5      0    80 God     2016-11-17 00:00:00
-##  9      2         6      1    25 God     2016-11-17 00:00:00
-## 10      2         7      0    68 God     2016-11-17 00:00:00
+##  1      1         1      0    56 God     2016-11-17 00:00:00
+##  2      1         2      1   -99 God     2016-11-17 00:00:00
+##  3      1         3      1    45 God     2016-11-17 00:00:00
+##  4      2         1      1    76 God     2016-11-17 00:00:00
+##  5      2         2      1    63 God     2016-11-17 00:00:00
+##  6      2         3      1    20 God     2016-11-17 00:00:00
+##  7      2         4      0    65 God     2016-11-17 00:00:00
+##  8      2         5      1     8 God     2016-11-17 00:00:00
+##  9      2         6      1    86 God     2016-11-17 00:00:00
+## 10      2         7      1    46 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -485,16 +487,16 @@ as missing, using a simple <code>mutate()</code> to conver them to <code>NA</cod
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     17  
-##  2      2       7         4     45.3
-##  3      3      10         4     43.5
-##  4      4       7         3     45.6
-##  5      5       7         1     45  
-##  6      6       3         0     49.3
-##  7      7       6         1     28.2
-##  8      8      12         9     44.3
-##  9      9       8         3     45  
-## 10     10      12         6     44.2
+##  1      1       3         2     50.5
+##  2      2       7         6     52  
+##  3      3      10         5     42.6
+##  4      4       7         5     44.9
+##  5      5       7         1     51.9
+##  6      6       3         2     46  
+##  7      7       6         1     39.2
+##  8      8      12         7     50.8
+##  9      9       8         6     43.8
+## 10     10      12         5     41.7
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="row-wise-operations" class="section level2 hasAnchor">
@@ -516,25 +518,25 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 <span id="cb18-2"><a href="datawrangling.html#cb18-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>),</span>
 <span id="cb18-3"><a href="datawrangling.html#cb18-3" tabindex="-1"></a>                  <span class="at">.fns =</span> <span class="sc">~</span><span class="fu">if_else</span>(.x <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>,.x)))</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 39
-##    key_ID female_1 female_2 female_3 female_4 female_5 female_6 female_7
-##     &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-##  1      1        1        0        1       NA       NA       NA       NA
-##  2      2        0        1        1        1        0        1        0
-##  3      3        0        1        1        0        0        1        0
-##  4      4        1        1        0        1        0        0        0
-##  5      5        0        0        0        0        0        1        0
-##  6      6        0        0        0       NA       NA       NA       NA
-##  7      7        1        0        0        0        0        0       NA
-##  8      8        1        1        1        1        0        0        1
-##  9      9        1        0        0        0        0        1        0
-## 10     10        1        0        0        1        0        1        0
+##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
+##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
+##  1      1        0    56        1    NA        1    45       NA    NA       NA
+##  2      2        1    76        1    63        1    20        0    65        1
+##  3      3        1    64        0    36        0    36        0     5        1
+##  4      4        1    69        1    33        1    82        0    45        0
+##  5      5        0    66        0    37        0    55        0    25        0
+##  6      6        1    80        0    20        1    38       NA    NA       NA
+##  7      7        0    19        0    13        0     5        0    75        0
+##  8      8        1    53        0    43        1    42        1    39        1
+##  9      9        1    62        1    29        1    39        0    84        0
+## 10     10        1    23        1    30        0     0        0    46        1
 ## # ℹ 121 more rows
-## # ℹ 31 more variables: female_8 &lt;int&gt;, female_9 &lt;int&gt;, female_10 &lt;int&gt;,
-## #   female_11 &lt;int&gt;, female_12 &lt;int&gt;, female_13 &lt;int&gt;, female_14 &lt;int&gt;,
-## #   female_15 &lt;int&gt;, female_16 &lt;int&gt;, female_17 &lt;int&gt;, female_18 &lt;int&gt;,
-## #   female_19 &lt;int&gt;, age_1 &lt;dbl&gt;, age_2 &lt;dbl&gt;, age_3 &lt;dbl&gt;, age_4 &lt;dbl&gt;,
-## #   age_5 &lt;dbl&gt;, age_6 &lt;dbl&gt;, age_7 &lt;dbl&gt;, age_8 &lt;dbl&gt;, age_9 &lt;dbl&gt;,
-## #   age_10 &lt;dbl&gt;, age_11 &lt;dbl&gt;, age_12 &lt;dbl&gt;, age_13 &lt;dbl&gt;, age_14 &lt;dbl&gt;, …</code></pre>
+## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
+## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
+## #   age_9 &lt;dbl&gt;, female_10 &lt;int&gt;, age_10 &lt;dbl&gt;, female_11 &lt;int&gt;, age_11 &lt;dbl&gt;,
+## #   female_12 &lt;int&gt;, age_12 &lt;dbl&gt;, female_13 &lt;int&gt;, age_13 &lt;dbl&gt;,
+## #   female_14 &lt;int&gt;, age_14 &lt;dbl&gt;, female_15 &lt;int&gt;, age_15 &lt;dbl&gt;,
+## #   female_16 &lt;int&gt;, age_16 &lt;dbl&gt;, female_17 &lt;int&gt;, age_17 &lt;dbl&gt;, …</code></pre>
 <p>Notes:</p>
 <ul>
 <li>You can use <code>across(.cols = where(is.numeric), .fn = ...)</code> to apply a function to all numeric variables.</li>
@@ -558,16 +560,16 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         2     17  
-##  2      2       7         4     45.3
-##  3      3      10         4     43.5
-##  4      4       7         3     45.6
-##  5      5       7         1     45  
-##  6      6       3         0     49.3
-##  7      7       6         1     28.2
-##  8      8      12         9     44.3
-##  9      9       8         3     45  
-## 10     10      12         6     44.2
+##  1      1       3         2     50.5
+##  2      2       7         6     52  
+##  3      3      10         5     42.6
+##  4      4       7         5     44.9
+##  5      5       7         1     51.9
+##  6      6       3         2     46  
+##  7      7       6         1     39.2
+##  8      8      12         7     50.8
+##  9      9       8         6     43.8
+## 10     10      12         5     41.7
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensures all summaries are computed per row, and <code>c_across()</code>
