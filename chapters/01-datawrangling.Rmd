@@ -10,14 +10,25 @@ downloaded to your data folder by running the code from the [Set-up section](#se
 library(tidyverse)
 library(here)
 
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
     filter(village == "Chirodzo") %>%
     mutate(people_per_room = no_membrs / rooms,
+           years_liv = if_else(years_liv > 90, NA, years_liv),
+           respondent_wall_type = as_factor(respondent_wall_type),
+           respondent_wall_type = fct_recode(respondent_wall_type, 
+                                             "Burned bricks" = "burntbricks",
+                                             "Mud Daub" = "muddaub",
+                                             "Sun bricks" = "sunbricks"),
+           conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
+                                   affect_conflicts == "more_once" ~ 1,
+                                   affect_conflicts == "once" ~ 1,
+                                   affect_conflicts == "never" ~ 0,
+                                   .default = NA),
            day = day(interview_date),
            month = month(interview_date),
-           year = year(interview_date)) %>%
+           year = year(interview_date)) %>% 
     select(key_ID:rooms, day:people_per_room, -village) %>%
-    filter(interview_date > "2016-12-1" & interview_date < '2017-01-01')
+    filter(interview_date > "2016-11-16" & interview_date < '2017-01-01')
 
 ```
 
@@ -64,7 +75,8 @@ To merge this into our main data set, we need to make sure we go back to having 
 wide_data <-
     long_data %>% 
     pivot_wider(names_from = member_ID,
-                values_from = !ends_with("_ID"))
+                values_from = !ends_with("_ID")) %>% 
+  relocate(key_ID, ends_with(paste0("_",1:19)))
 wide_data 
 
 ```
@@ -73,7 +85,8 @@ We only needed to specify two options:
 
 - names_from: this is the column that contains the names (or usually numbers)
 for each of our units of analysis. In this case, the `member_ID`.
-- values_from: the variables containing the data. All variables you specify here, will get one column for each possible value of names_from. In our case, these variables `female` and `age`. I used [tidy select syntax](https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html) to specify all variables except the ones ending in "\_ID". 
+- values_from: the variables containing the data. All variables you specify here, will get one column for each possible value of names_from. In our case, these variables `female` and `age`. I used [tidy select syntax](https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html) to specify all variables except the ones ending in `_ID`. 
+- I use `relocate()` to reorder the variables.
 
 
 
@@ -119,10 +132,10 @@ rows that are only in `x` (area A) or only in `y` (area C).
 
 The four join functions work as follows:
 
-- `inner_join()` will only keep area B.
-- `left_join()` will keep areas A and B.
-- `right_join()` will keep areas B and C.
-- `full_join()` will keep areas A, B, and C.
+- `inner_join(x,y)` will only keep area B.
+- `left_join(x,y)` will keep areas A and B.
+- `right_join(x,y)` will keep areas B and C.
+- `full_join(x,y)` will keep areas A, B, and C.
 
 In our case, the data sets match perfectly, i.e. we only have an area B, so there is no practical difference. I chose `left_join()` so the number of 
 observations in my household survey is guaranteed to remain the same.
@@ -244,6 +257,11 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
                 values_from = value,
                 names_glue = "owns_{items_owned}",
                 values_fill = 0) %>%
-    select(items_owned, starts_with("owns_"))
+    left_join(read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% select(key_ID,items_owned)) %>%
+    select(items_owned, starts_with("owns_")) %>%
+    head()
 
 ```
+
+Note that the original `items_owned` variable is lost during the `separate_longer_delim()`
+step, so I used `left_join()` to merge it back in for demonstration purposes.
