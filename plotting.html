@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-07-18" />
+<meta name="date" content="2024-07-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -340,15 +340,19 @@ allowing you to pre-process your data anyway you want, for example to get percen
 <p>Faceting allows splitting a graph in multiple parts:</p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="plotting.html#cb56-1" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
 <span id="cb56-2"><a href="plotting.html#cb56-2" tabindex="-1"></a>    <span class="fu">group_by</span>(village) <span class="sc">%&gt;%</span></span>
-<span id="cb56-3"><a href="plotting.html#cb56-3" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;owns_&quot;</span>),<span class="sc">~</span><span class="fu">sum</span>(.x,<span class="at">na.rm=</span><span class="cn">TRUE</span>) <span class="sc">/</span> <span class="fu">n</span>() <span class="sc">*</span> <span class="dv">100</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb56-4"><a href="plotting.html#cb56-4" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="sc">-</span>village, <span class="at">names_to =</span> <span class="st">&quot;items&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;percent&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb56-5"><a href="plotting.html#cb56-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">items =</span> <span class="fu">str_replace</span>(items,<span class="st">&quot;owns_&quot;</span>,<span class="st">&quot;&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb56-6"><a href="plotting.html#cb56-6" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> village, <span class="at">y =</span> percent)) <span class="sc">+</span></span>
-<span id="cb56-7"><a href="plotting.html#cb56-7" tabindex="-1"></a>        <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
-<span id="cb56-8"><a href="plotting.html#cb56-8" tabindex="-1"></a>        <span class="fu">facet_wrap</span>(<span class="sc">~</span> items) <span class="sc">+</span></span>
-<span id="cb56-9"><a href="plotting.html#cb56-9" tabindex="-1"></a>        <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb56-10"><a href="plotting.html#cb56-10" tabindex="-1"></a>        <span class="fu">theme</span>(<span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span></code></pre></div>
+<span id="cb56-3"><a href="plotting.html#cb56-3" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;owns_&quot;</span>),</span>
+<span id="cb56-4"><a href="plotting.html#cb56-4" tabindex="-1"></a>                     <span class="at">.fns =</span> <span class="sc">~</span><span class="fu">sum</span>(.x,<span class="at">na.rm=</span><span class="cn">TRUE</span>) <span class="sc">/</span> <span class="fu">n</span>() <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb56-5"><a href="plotting.html#cb56-5" tabindex="-1"></a>                     <span class="at">.names =</span> <span class="st">&quot;{str_replace(.col, &#39;owns_&#39;, &#39;&#39;)}&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb56-6"><a href="plotting.html#cb56-6" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="sc">-</span>village, <span class="at">names_to =</span> <span class="st">&quot;items&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;percent&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb56-7"><a href="plotting.html#cb56-7" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> village, <span class="at">y =</span> percent)) <span class="sc">+</span></span>
+<span id="cb56-8"><a href="plotting.html#cb56-8" tabindex="-1"></a>        <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
+<span id="cb56-9"><a href="plotting.html#cb56-9" tabindex="-1"></a>        <span class="fu">facet_wrap</span>(<span class="sc">~</span> items) <span class="sc">+</span></span>
+<span id="cb56-10"><a href="plotting.html#cb56-10" tabindex="-1"></a>        <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb56-11"><a href="plotting.html#cb56-11" tabindex="-1"></a>        <span class="fu">theme</span>(<span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<p>Note that the <code>.names</code> argument to <code>summarize(across())</code> is specified as a
+<a href="https://glue.tidyverse.org/">glue string</a> that uses <code>str_replace()</code> to cut off the <code>"owns_"</code>
+bit of the column names.</p>
 
 </div>
 </div>
