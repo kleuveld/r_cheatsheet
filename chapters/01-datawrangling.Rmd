@@ -210,7 +210,8 @@ wide_data %>%
 Notes:
 
 - You can use `across(.cols = where(is.numeric), .fn = ...)` to apply a function to all numeric variables.
-- You can also combine `across()` with `summarize()` to summarize multiple variables more easily.
+- You can also combine `across()` with `summarize()` to summarize multiple variables more easily. See the
+section on [faceting](#faceting) for an example.
 
 
 ### c_across(): passing values from multiple variables to summarizing functions

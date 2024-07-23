@@ -159,7 +159,7 @@ wall_plot +
 
 ```
 
-## Faceting
+## Faceting {#faceting}
 
 Faceting allows splitting a graph in multiple parts:
 
@@ -167,9 +167,10 @@ Faceting allows splitting a graph in multiple parts:
 
 data %>%
     group_by(village) %>%
-    summarize(across(starts_with("owns_"),~sum(.x,na.rm=TRUE) / n() * 100)) %>%
+    summarize(across(.cols = starts_with("owns_"),
+                     .fns = ~sum(.x,na.rm=TRUE) / n() * 100,
+                     .names = "{str_replace(.col, 'owns_', '')}")) %>%
     pivot_longer(-village, names_to = "items", values_to = "percent") %>%
-    mutate(items = str_replace(items,"owns_","")) %>%
     ggplot(aes(x = village, y = percent)) +
         geom_bar(stat = "identity", position = "dodge") +
         facet_wrap(~ items) +
@@ -178,3 +179,7 @@ data %>%
 
 
 ```
+
+Note that the `.names` argument to `summarize(across())` is specified as a 
+[glue string](https://glue.tidyverse.org/) that uses `str_replace()` to cut off the `"owns_"` 
+bit of the column names.
