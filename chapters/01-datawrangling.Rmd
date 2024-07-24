@@ -76,7 +76,8 @@ wide_data <-
     long_data %>% 
     pivot_wider(names_from = member_ID,
                 values_from = !ends_with("_ID")) %>% 
-  relocate(key_ID, ends_with(paste0("_",1:19)))
+    relocate(key_ID, ends_with(paste0("_",1:19)))
+
 wide_data 
 
 ```
@@ -85,7 +86,11 @@ We only needed to specify two options:
 
 - names_from: this is the column that contains the names (or usually numbers)
 for each of our units of analysis. In this case, the `member_ID`.
-- values_from: the variables containing the data. All variables you specify here, will get one column for each possible value of names_from. In our case, these variables `female` and `age`. I used [tidy select syntax](https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html) to specify all variables except the ones ending in `_ID`. 
+- values_from: the variables containing the data. All variables you specify 
+here, will get one column for each possible value of names_from. 
+In our case, these variables `female` and `age`. 
+I used [tidy select syntax](https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html) 
+to specify all variables except the ones ending in `_ID`. 
 - I use `relocate()` to reorder the variables.
 
 
@@ -97,27 +102,58 @@ long data, we'd have to use `pivot_longer()`:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
 
-recreated_long_data <-
-    wide_data %>%
-    pivot_longer(!key_ID, 
-                 names_to = c(".value", "member_ID"),
-                 names_sep="_",
-                 values_drop_na = TRUE)
-long_data
+wide_data %>% pivot_longer(!key_ID, names_to = "name", values_to = "value")
 
 ```
 
-In this case, the syntax is a bit harder to understand than that of pivot wider. It's good to think first what the original data looks like, and 
-how I intend to transform it. The wide data has columns key_ID, age_1-19 and female_1-19. I don't really want to touch the key_ID
-column. I want to turn the columns age_1-19 and female_1-19 into three columns: female, age and Member_ID, which contains the values 1-19. This translates to the options we passed to `pivot_longer()` as follows:
+This was easy since the syntax of `pivot_longer()` is the exact opposite of 
+`pivot_wider()`, but the result is pretty useless:
+
+- The `name` column contains two things: a variable name and a `member_ID`;
+- The data is too long: I'd like `age` and `female` to be two separate variables
+; and
+- There's many empty rows: there's and age and female row for 19 possible members
+for each household, but most households are smaller than that. 
+
+I could use [`separate_wider_delim()`](https://tidyr.tidyverse.org/reference/separate_wider_delim.html), 
+`pivot_wider()`, and `filter(!is.na())` to address those, but that's not elegant 
+at all. 
+I can do all of this within the `pivot_longer()` call by using the `names_to` 
+and `names_sep` options:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+
+wide_data %>%
+    pivot_longer(!key_ID, 
+                 names_to = c(".value", "member_ID"),
+                 names_sep="_",
+                 values_drop_na = TRUE,
+                 names_transform = list(member_ID = as.integer))
+
+```
+
+In this case, the syntax is a bit harder to understand. It's good to think first 
+what the original data looks like, and how I intend to transform it. 
+The wide data has columns key_ID, age_1-19 and female_1-19. 
+I don't really want to touch the key_ID column. 
+I want to turn the columns age_1-19 and female_1-19 into three columns: 
+`female`, `age` and `member_ID`. 
+This translates to the options we passed to `pivot_longer()` as follows:
 
 - `!key_ID`: We want to pivot the data that's in all columns except key_ID. 
-- `names_to = c(".value", "member_ID")`: this specifies the new columns we want to create. It basically says that the existing column names consist of two parts: one part (i.e. female and age) that we wish to keep as column names , and one part (i.e. the numbers 1-19) which should be put into a new column which we will "member_ID".
-- `"names_sep="`: this indicates how the two parts mentioned above are 
-separated. If there is no separator (for example your variables are called age1, age2, etc.) you'll have to use the`names_pattern` option.
+- `names_to = c(".value", "member_ID")`: this specifies the new columns we want 
+to create. It basically says that the existing column names consist of two parts: 
+one part (i.e. female and age) that we wish to keep as column names of variables 
+that will contain my values, and one part (i.e. the numbers 1-19) which should 
+be put into a new column which we will "member_ID".
+- `names_sep=`: this indicates how the two parts mentioned above are 
+separated. If there is no separator (for example your variables are called 
+age1, age2, etc.) you'll have to use the`names_pattern` option.
 - `values_drop_na = TRUE`: tells R to drop rows that have missing data for 
-all variables. If we had set this to FALSE, we'd have 19 rows for each
-household, with a lot of missing data in all households smaller than 19 people.
+all variables. This prevents the issue where we hadd too many rows.
+- `names_transform`: by default, all `name` columns will be character types, but 
+`member_ID` only contains integers, so we transform it to integer. This is
+completely optional.
 
 ## Joining (or merging) data
 
@@ -226,10 +262,11 @@ wide_data %>%
     rowwise() %>%
     mutate(mean_age = mean(c_across(starts_with("age_")),
                            na.rm=TRUE),
-           num_women = sum(c_across(starts_with("female_")),
+           num_women =  sum(c_across(starts_with("female_")),
                            na.rm=TRUE),
-           hh_size = sum(!is.na(c_across(starts_with("female_"))))) %>%
-    select(key_ID,hh_size,num_women,mean_age) %>%
+           hh_size = starts_with("female_") %>% c_across() %>% is.na(.) %>% `!` %>% sum()
+          ) %>%
+    select(key_ID,hh_size,num_women, mean_age) %>%
     ungroup()
 
 
@@ -238,10 +275,10 @@ wide_data %>%
 The key trick here is the combination of `rowwise()` and `c_across()`.
 `rowwise()` ensures all summaries are computed per row, and `c_across()`
 allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
-`sum(!is.na())` simply counts the non-missing values.
+`%>% is.na(.) %>% `!` %>% sum()` is the same as `sum(!is.na())`, which simply counts the non-missing values.
 
 
-## Splitting multi-response variable into dummies
+## Splitting multi-response variable into dummies {#seperate_longer}
 
 The SAFI data contains a number of columns that contain all responses selected
 in a multiple response questions. For example, the variables `items_owned` can
