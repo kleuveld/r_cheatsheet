@@ -183,3 +183,146 @@ data %>%
 Note that the `.names` argument to `summarize(across())` is specified as a 
 [glue string](https://glue.tidyverse.org/) that uses `str_replace()` to cut off the `"owns_"` 
 bit of the column names.
+
+## Stacked bar chart with WUR template and observation counts {#stacked-wur}
+
+First, download the WUR template from [here](https://git.wur.nl/wmrkdown/ggthemewur). 
+Install it following the instruction on that page.
+
+Then we make a stacked bar chart using `position = position_fill()`. 
+I use `reverse = TRUE` because I think the ordering doesn't make 
+sense in these horizontal plots.
+
+
+```{r}
+library(ggthemewur)
+
+data %>%
+ggplot(aes(y = village, fill = respondent_wall_type)) +
+  geom_bar(position = position_fill(reverse = TRUE))  +
+  theme_wur() +
+  scale_fill_wur_discrete() +
+  scale_x_continuous(labels = scales::percent_format())
+
+
+
+
+```
+
+I like the percentages, but perhaps it's good to know how many observations we have in each village. We can do this by changing the village names:
+
+
+```{r}
+
+data %>%
+  group_by(village) %>%
+  add_count() %>%
+  mutate(village = paste0(village," (n =",n,")")) %>%
+  ggplot(aes(y = village, fill = respondent_wall_type)) +
+  geom_bar(position = position_fill(reverse = TRUE))  +
+  theme_wur() +
+  scale_fill_wur_discrete() +
+  scale_x_continuous(labels = scales::percent_format())
+
+```
+
+
+You can also put the counts inside the plot of course:
+
+```{r}
+
+data %>%
+  ggplot(aes(y = village, fill = respondent_wall_type)) +
+  geom_bar(position = position_fill(reverse = TRUE))  +
+  theme_wur() +
+  scale_fill_wur_discrete() +
+  scale_x_continuous(labels = scales::percent_format()) +
+  geom_text(stat = "count", 
+            aes(label = after_stat(count)), 
+            position = position_fill(vjust = 0.5, reverse = TRUE), 
+            color = "white") 
+
+```
+
+Use [functions](#plot-function) to make all this code easier to use.
+
+
+## Maps
+
+For maps, we use the `sf` package, and a sample data set, in geo-json format (but sf can use
+all sorts of shapefiles).
+
+```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+
+library(sf)
+
+file <- "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
+
+
+shapefile <- st_read(file)
+
+shapefile
+
+```
+
+You can use `ggplot()` and `geom_sf()` to make a map:
+
+```{r}
+
+shapefile %>%
+    ggplot() +
+    geom_sf()
+
+```
+
+You can use the shapefile as a regular data file, using any old data wrangling 
+functions on it. 
+
+
+```{r}
+
+shapefile_updated <-
+    shapefile %>%
+    mutate(x = rnorm(n = nrow(.))) 
+
+shapefile_updated
+
+```
+You can use the `fill` aesthetic to color your shapefile:
+
+```{r}
+
+shapefile_updated %>%
+    ggplot(aes(fill = x)) +
+        geom_sf(colour = NA) +  # removes borders
+        theme_void()            # removes grid
+
+```
+
+You can also make an interactive map, which you can use in html documents created with rmarkdown,
+or in shiny applications. It uses a palette I created using the `colorBin()` function.
+
+```{r}
+
+library(leaflet)
+
+
+pallete <- colorBin(
+  palette = "YlOrBr", domain = shapefile_updated$x,
+  na.color = "transparent", bins = 5
+)
+
+shapefile %>%
+    mutate(x = rnorm(n = nrow(.))) %>%
+    leaflet() %>%
+    addTiles() %>%
+    addPolygons(fillColor = ~pallete(x),
+                stroke = TRUE,
+                fillOpacity = 0.9,
+                color = "white",
+                weight = 0.3) %>%
+    addLegend(pal = pallete, values = ~x, opacity = 0.9,
+              title = "Look at these pretty colours", position = "bottomleft")
+
+
+```

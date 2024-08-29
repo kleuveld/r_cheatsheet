@@ -206,7 +206,63 @@ data_frame %>%
 
 ```
 
-### Example: Function to create dummies from text
+### Example 1: Re-using plot specifications {#plot-function}
+
+If you're writing a report that includes the same type of plot in many
+places, it makes sense to make it into a function.
+
+```{r}
+
+library(ggthemewur)
+
+stacked_bar_plot <- function(df, by, fill) {
+  # outputs a stacked bar chart
+  
+  df %>%
+    mutate( {{ by }} := count_label( {{ by }})) %>%
+
+    ggplot(aes(y = {{ by }}, fill = {{ fill }})) +
+      geom_bar(position = position_fill(reverse = TRUE)) +
+      labs(x= "") +
+      theme_wur() +
+      scale_fill_wur_discrete() +
+       geom_text(stat = "count", 
+                 aes(label = after_stat(count)), 
+                 position = position_fill(vjust = 0.5, reverse = TRUE), 
+                 color = "white") +
+      scale_x_continuous(labels = scales::percent_format()) +
+      theme(legend.position="bottom") +
+      guides(fill = guide_legend(nrow = 1, 
+                                 title.position="top", 
+                                 title.hjust = 0.5)) 
+}
+
+count_label <- function(vector) {
+  #takes a vector of strings or factor, 
+  # output a factor vector with N = N included in the labels
+  fct_recode(factor(vector), 
+             !!!vector %>%
+               as_tibble %>%
+               group_by(value) %>%
+               summarize(n = n()) %>%
+               mutate(value = as.character(value),
+                      newlabel = paste0(value,"\nn=",n)) %>%
+               pull(value, name = newlabel))
+  
+}
+
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  stacked_bar_plot(village,respondent_wall_type)
+
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  stacked_bar_plot(village,affect_conflicts)
+
+```
+
+
+### Example 2: Function to create dummies from text
 
 Remember our code to generate dummies based on text:
 
