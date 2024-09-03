@@ -395,7 +395,7 @@ sense in these horizontal plots.</p>
 <span id="cb64-8"><a href="plotting.html#cb64-8" tabindex="-1"></a>  <span class="fu">scale_fill_wur_discrete</span>() <span class="sc">+</span></span>
 <span id="cb64-9"><a href="plotting.html#cb64-9" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>())</span></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
-<p>You can also put the counts inside the plot of course:</p>
+<p>You can also put the counts inside the plot:</p>
 <div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="plotting.html#cb65-1" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
 <span id="cb65-2"><a href="plotting.html#cb65-2" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> village, <span class="at">fill =</span> respondent_wall_type)) <span class="sc">+</span></span>
 <span id="cb65-3"><a href="plotting.html#cb65-3" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="fu">position_fill</span>(<span class="at">reverse =</span> <span class="cn">TRUE</span>))  <span class="sc">+</span></span>
@@ -414,7 +414,7 @@ sense in these horizontal plots.</p>
 <span id="cb66-4"><a href="plotting.html#cb66-4" tabindex="-1"></a>  <span class="fu">theme_wur</span>() <span class="sc">+</span></span>
 <span id="cb66-5"><a href="plotting.html#cb66-5" tabindex="-1"></a>  <span class="fu">scale_fill_wur_discrete</span>() <span class="sc">+</span></span>
 <span id="cb66-6"><a href="plotting.html#cb66-6" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>()) <span class="sc">+</span></span>
-<span id="cb66-7"><a href="plotting.html#cb66-7" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">after_stat</span>(scales<span class="sc">::</span><span class="fu">percent</span>(count <span class="sc">/</span> <span class="fu">sum</span>(count)))),</span>
+<span id="cb66-7"><a href="plotting.html#cb66-7" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">after_stat</span>(scales<span class="sc">::</span><span class="fu">percent</span>(count <span class="sc">/</span> <span class="fu">sum</span>(count),<span class="at">accuracy=</span><span class="dv">1</span>))),</span>
 <span id="cb66-8"><a href="plotting.html#cb66-8" tabindex="-1"></a>            <span class="at">stat =</span> <span class="st">&quot;count&quot;</span>,</span>
 <span id="cb66-9"><a href="plotting.html#cb66-9" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_fill</span>(<span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">reverse =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb66-10"><a href="plotting.html#cb66-10" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">&quot;white&quot;</span>) </span></code></pre></div>
@@ -441,6 +441,10 @@ The order in the <code>levels</code> argument will be the order in which the lab
 <span id="cb68-6"><a href="plotting.html#cb68-6" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> village, <span class="at">fill =</span> affect_conflicts)) <span class="sc">+</span></span>
 <span id="cb68-7"><a href="plotting.html#cb68-7" tabindex="-1"></a>        <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="fu">position_fill</span>(<span class="at">reverse =</span> <span class="cn">TRUE</span>))  </span></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+<p>Note that the trick of adding group counts to string variables using <code>add_count()</code> doesn’t work with factors.
+Or rather, it works, but converts the factor back to a string.
+In the <a href="programming.html#plot-function">functions</a> chapter, I define a function called <code>count_label()</code> that adds group counts
+to factor variables using black magic.</p>
 </div>
 <div id="maps" class="section level2 hasAnchor">
 <h2>Maps<a href="plotting.html#maps" class="anchor-section" aria-label="Anchor link to header"></a></h2>
