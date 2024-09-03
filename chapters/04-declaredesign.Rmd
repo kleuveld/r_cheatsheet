@@ -266,17 +266,17 @@ incomes in year 1) and the expected effect size.
 Note that by default, this runs all estimators, 500 times for each
 combination of the parameters. This takes a lot of time, so I update
 my design to have only one estimator (estimator1, which is fast) 
-and I've set the `sims` option of `diagnose_design()` to 200.
+and I've set the `sims` option of `diagnose_design()` to 100.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r evaluate_design, eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
 design <- model + assignment + inquiry + estimator1
 
 diagnosis <-
   design %>%
-  redesign(effect_size = 6:12,
+  redesign(effect_size = 7:11,
            stdev = c(3,5,7)) %>%
-  diagnose_design(sims = 200)
+  diagnose_design(sims = 100)
 
 ```
 
@@ -298,7 +298,7 @@ diagnosis %>%
     geom_line() +
     geom_point() +
     geom_hline(yintercept=0.8,linetype=2) + 
-    scale_x_continuous(breaks=seq(6,12,2))
+    scale_x_continuous(breaks=seq(7,11,2))
 
 ```
 
