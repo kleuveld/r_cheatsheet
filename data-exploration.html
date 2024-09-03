@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-07-23" />
+<meta name="date" content="2024-09-03" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -54,6 +54,15 @@
 <script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
 <link href="libs/tabwid-1.1.3/tabwid.css" rel="stylesheet" />
 <script src="libs/tabwid-1.1.3/tabwid.js"></script>
+<link href="libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet" />
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<link href="libs/leaflet-1.3.1/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-1.3.1/leaflet.js"></script>
+<link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<script src="libs/proj4-2.6.2/proj4.min.js"></script>
+<script src="libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-binding-2.2.2/leaflet.js"></script>
 
 
 <style type="text/css">
@@ -163,7 +172,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across"><i class="fa fa-check"></i>across(): doing the same operations on multiple variables using across</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across(): passing values from multiple variables to summarizing functions</a></li>
 </ul></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#seperate_longer"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
@@ -186,6 +195,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#bar-chart"><i class="fa fa-check"></i>Bar chart</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#labels"><i class="fa fa-check"></i>Labels</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#faceting"><i class="fa fa-check"></i>Faceting</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#stacked-wur"><i class="fa fa-check"></i>Stacked bar chart with WUR template and observation counts</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#ordering-of-labels"><i class="fa fa-check"></i>Ordering of labels</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#maps"><i class="fa fa-check"></i>Maps</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html"><i class="fa fa-check"></i>Power Analysis using DeclareDesign</a>
 <ul>
@@ -204,7 +216,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#basic-functions"><i class="fa fa-check"></i>Basic Functions</a></li>
 <li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions-and-the-tidyverse"><i class="fa fa-check"></i>Functions and the tidyverse</a></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#example-function-to-create-dummies-from-text"><i class="fa fa-check"></i>Example: Function to create dummies from text</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#plot-function"><i class="fa fa-check"></i>Example 1: Re-using plot specifications</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#example-2-function-to-create-dummies-from-text"><i class="fa fa-check"></i>Example 2: Function to create dummies from text</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#map"><i class="fa fa-check"></i>Map()</a></li>
 </ul></li>
@@ -237,10 +250,10 @@ you get the hang of how labels are dealt with in R.</p>
 <h2>Setup<a href="data-exploration.html#setup-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Download the <a href="http://www.principlesofeconometrics.com/stata.htm">cars data set from here</a>
 or run the code below:</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="data-exploration.html#cb75-1" tabindex="-1"></a><span class="fu">download.file</span>(</span>
-<span id="cb75-2"><a href="data-exploration.html#cb75-2" tabindex="-1"></a>  <span class="st">&quot;https://raw.githubusercontent.com/kleuveld/r_cheatsheet/main/data/cars.dta&quot;</span>,</span>
-<span id="cb75-3"><a href="data-exploration.html#cb75-3" tabindex="-1"></a>  <span class="fu">here</span>(<span class="st">&quot;data/cars.dta&quot;</span>), <span class="at">mode =</span> <span class="st">&quot;wb&quot;</span></span>
-<span id="cb75-4"><a href="data-exploration.html#cb75-4" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="data-exploration.html#cb95-1" tabindex="-1"></a><span class="fu">download.file</span>(</span>
+<span id="cb95-2"><a href="data-exploration.html#cb95-2" tabindex="-1"></a>  <span class="st">&quot;https://raw.githubusercontent.com/kleuveld/r_cheatsheet/main/data/cars.dta&quot;</span>,</span>
+<span id="cb95-3"><a href="data-exploration.html#cb95-3" tabindex="-1"></a>  <span class="fu">here</span>(<span class="st">&quot;data/cars.dta&quot;</span>), <span class="at">mode =</span> <span class="st">&quot;wb&quot;</span></span>
+<span id="cb95-4"><a href="data-exploration.html#cb95-4" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="making-a-codebook-from-a-stata-.dta" class="section level2 hasAnchor">
 <h2>Making a codebook from a Stata .dta<a href="data-exploration.html#making-a-codebook-from-a-stata-.dta" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -248,30 +261,30 @@ or run the code below:</p>
 than variable names. In R, it can be a bit tricky to access the labels of imported
 dta’s, but making a code book isn’t that hard.</p>
 <p>First, load the cars data set:</p>
-<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="data-exploration.html#cb76-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb76-2"><a href="data-exploration.html#cb76-2" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
-<span id="cb76-3"><a href="data-exploration.html#cb76-3" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb76-4"><a href="data-exploration.html#cb76-4" tabindex="-1"></a></span>
-<span id="cb76-5"><a href="data-exploration.html#cb76-5" tabindex="-1"></a></span>
-<span id="cb76-6"><a href="data-exploration.html#cb76-6" tabindex="-1"></a>cars <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="fu">here</span>(<span class="st">&quot;data/cars.dta&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb96"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb96-1"><a href="data-exploration.html#cb96-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb96-2"><a href="data-exploration.html#cb96-2" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb96-3"><a href="data-exploration.html#cb96-3" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb96-4"><a href="data-exploration.html#cb96-4" tabindex="-1"></a></span>
+<span id="cb96-5"><a href="data-exploration.html#cb96-5" tabindex="-1"></a></span>
+<span id="cb96-6"><a href="data-exploration.html#cb96-6" tabindex="-1"></a>cars <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="fu">here</span>(<span class="st">&quot;data/cars.dta&quot;</span>))</span></code></pre></div>
 <p>The variable labels are stored as attributes of the variables. The <code>attributes()</code>
 function returns all attributes:</p>
-<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="data-exploration.html#cb77-1" tabindex="-1"></a><span class="fu">attributes</span>(cars<span class="sc">$</span>mpg)</span></code></pre></div>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="data-exploration.html#cb97-1" tabindex="-1"></a><span class="fu">attributes</span>(cars<span class="sc">$</span>mpg)</span></code></pre></div>
 <pre><code>## $label
 ## [1] &quot;miles per gallon&quot;
 ## 
 ## $format.stata
 ## [1] &quot;%9.0g&quot;</code></pre>
 <p>To see only the label use:</p>
-<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="data-exploration.html#cb79-1" tabindex="-1"></a><span class="fu">attributes</span>(cars<span class="sc">$</span>mpg)<span class="sc">$</span>label</span></code></pre></div>
+<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="data-exploration.html#cb99-1" tabindex="-1"></a><span class="fu">attributes</span>(cars<span class="sc">$</span>mpg)<span class="sc">$</span>label</span></code></pre></div>
 <pre><code>## [1] &quot;miles per gallon&quot;</code></pre>
 <p>To create a data frame with all variable labels we can apply <code>attributes()</code>
 to all variables using <code>map_chr()</code> from the <code>purrr</code> package:</p>
-<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="data-exploration.html#cb81-1" tabindex="-1"></a>codebook <span class="ot">&lt;-</span> </span>
-<span id="cb81-2"><a href="data-exploration.html#cb81-2" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">var =</span> <span class="fu">colnames</span>(cars),</span>
-<span id="cb81-3"><a href="data-exploration.html#cb81-3" tabindex="-1"></a>         <span class="at">label =</span> <span class="fu">map_chr</span>(cars,<span class="sc">~</span><span class="fu">attributes</span>(.x)<span class="sc">$</span>label)) </span>
-<span id="cb81-4"><a href="data-exploration.html#cb81-4" tabindex="-1"></a></span>
-<span id="cb81-5"><a href="data-exploration.html#cb81-5" tabindex="-1"></a>codebook</span></code></pre></div>
+<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb101-1"><a href="data-exploration.html#cb101-1" tabindex="-1"></a>codebook <span class="ot">&lt;-</span> </span>
+<span id="cb101-2"><a href="data-exploration.html#cb101-2" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">var =</span> <span class="fu">colnames</span>(cars),</span>
+<span id="cb101-3"><a href="data-exploration.html#cb101-3" tabindex="-1"></a>         <span class="at">label =</span> <span class="fu">map_chr</span>(cars,<span class="sc">~</span><span class="fu">attributes</span>(.x)<span class="sc">$</span>label)) </span>
+<span id="cb101-4"><a href="data-exploration.html#cb101-4" tabindex="-1"></a></span>
+<span id="cb101-5"><a href="data-exploration.html#cb101-5" tabindex="-1"></a>codebook</span></code></pre></div>
 <pre><code>## # A tibble: 4 × 2
 ##   var   label                              
 ##   &lt;chr&gt; &lt;chr&gt;                              
@@ -282,25 +295,25 @@ to all variables using <code>map_chr()</code> from the <code>purrr</code> packag
 <p>To make it slightly more useful, we can add some summary statistics.
 I can apply a number of functions to a data frame using <code>map_dbl()</code>,
 which returns a named vector:</p>
-<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="data-exploration.html#cb83-1" tabindex="-1"></a>list_of_functions <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mean=</span>mean,<span class="at">sd=</span>sd,<span class="at">min=</span>min,<span class="at">max=</span>max)</span>
-<span id="cb83-2"><a href="data-exploration.html#cb83-2" tabindex="-1"></a></span>
-<span id="cb83-3"><a href="data-exploration.html#cb83-3" tabindex="-1"></a>list_of_functions <span class="sc">%&gt;%</span></span>
-<span id="cb83-4"><a href="data-exploration.html#cb83-4" tabindex="-1"></a>  <span class="fu">map_dbl</span>(<span class="sc">~</span><span class="fu">.x</span>(cars<span class="sc">$</span>mpg, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb103"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb103-1"><a href="data-exploration.html#cb103-1" tabindex="-1"></a>list_of_functions <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mean=</span>mean,<span class="at">sd=</span>sd,<span class="at">min=</span>min,<span class="at">max=</span>max)</span>
+<span id="cb103-2"><a href="data-exploration.html#cb103-2" tabindex="-1"></a></span>
+<span id="cb103-3"><a href="data-exploration.html#cb103-3" tabindex="-1"></a>list_of_functions <span class="sc">%&gt;%</span></span>
+<span id="cb103-4"><a href="data-exploration.html#cb103-4" tabindex="-1"></a>  <span class="fu">map_dbl</span>(<span class="sc">~</span><span class="fu">.x</span>(cars<span class="sc">$</span>mpg, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code></pre></div>
 <pre><code>##      mean        sd       min       max 
 ## 23.445918  7.805007  9.000000 46.599998</code></pre>
 <p>To do this for every column in a dataframe, I wrap the code above
 in a function, and use <code>map()</code> to apply that function to the columns.</p>
-<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb85-1"><a href="data-exploration.html#cb85-1" tabindex="-1"></a>stats_to_tibble <span class="ot">&lt;-</span> <span class="cf">function</span>(var,funs) {</span>
-<span id="cb85-2"><a href="data-exploration.html#cb85-2" tabindex="-1"></a>  funs <span class="sc">%&gt;%</span></span>
-<span id="cb85-3"><a href="data-exploration.html#cb85-3" tabindex="-1"></a>    <span class="fu">map_dbl</span>(<span class="sc">~</span><span class="fu">ifelse</span>(<span class="fu">is.numeric</span>(var),<span class="fu">.x</span>(var,<span class="at">na.rm =</span> <span class="cn">TRUE</span>),<span class="cn">NA</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb85-4"><a href="data-exploration.html#cb85-4" tabindex="-1"></a>    <span class="fu">as_tibble_row</span>()</span>
-<span id="cb85-5"><a href="data-exploration.html#cb85-5" tabindex="-1"></a>}</span>
-<span id="cb85-6"><a href="data-exploration.html#cb85-6" tabindex="-1"></a></span>
-<span id="cb85-7"><a href="data-exploration.html#cb85-7" tabindex="-1"></a>summ_stats <span class="ot">&lt;-</span> </span>
-<span id="cb85-8"><a href="data-exploration.html#cb85-8" tabindex="-1"></a>  cars <span class="sc">%&gt;%</span></span>
-<span id="cb85-9"><a href="data-exploration.html#cb85-9" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span><span class="fu">stats_to_tibble</span>(.x,list_of_functions)) <span class="sc">%&gt;%</span></span>
-<span id="cb85-10"><a href="data-exploration.html#cb85-10" tabindex="-1"></a>    <span class="fu">list_rbind</span>()</span>
-<span id="cb85-11"><a href="data-exploration.html#cb85-11" tabindex="-1"></a>summ_stats</span></code></pre></div>
+<div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="data-exploration.html#cb105-1" tabindex="-1"></a>stats_to_tibble <span class="ot">&lt;-</span> <span class="cf">function</span>(var,funs) {</span>
+<span id="cb105-2"><a href="data-exploration.html#cb105-2" tabindex="-1"></a>  funs <span class="sc">%&gt;%</span></span>
+<span id="cb105-3"><a href="data-exploration.html#cb105-3" tabindex="-1"></a>    <span class="fu">map_dbl</span>(<span class="sc">~</span><span class="fu">ifelse</span>(<span class="fu">is.numeric</span>(var),<span class="fu">.x</span>(var,<span class="at">na.rm =</span> <span class="cn">TRUE</span>),<span class="cn">NA</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb105-4"><a href="data-exploration.html#cb105-4" tabindex="-1"></a>    <span class="fu">as_tibble_row</span>()</span>
+<span id="cb105-5"><a href="data-exploration.html#cb105-5" tabindex="-1"></a>}</span>
+<span id="cb105-6"><a href="data-exploration.html#cb105-6" tabindex="-1"></a></span>
+<span id="cb105-7"><a href="data-exploration.html#cb105-7" tabindex="-1"></a>summ_stats <span class="ot">&lt;-</span> </span>
+<span id="cb105-8"><a href="data-exploration.html#cb105-8" tabindex="-1"></a>  cars <span class="sc">%&gt;%</span></span>
+<span id="cb105-9"><a href="data-exploration.html#cb105-9" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span><span class="fu">stats_to_tibble</span>(.x,list_of_functions)) <span class="sc">%&gt;%</span></span>
+<span id="cb105-10"><a href="data-exploration.html#cb105-10" tabindex="-1"></a>    <span class="fu">list_rbind</span>()</span>
+<span id="cb105-11"><a href="data-exploration.html#cb105-11" tabindex="-1"></a>summ_stats</span></code></pre></div>
 <pre><code>## # A tibble: 4 × 4
 ##      mean     sd   min    max
 ##     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
@@ -310,7 +323,7 @@ in a function, and use <code>map()</code> to apply that function to the columns.
 ## 4 2978.   849.    1613 5140</code></pre>
 <p>I can bind that with the codebook I had before to get a nice
 overview of all the variables in my dataset:</p>
-<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="data-exploration.html#cb87-1" tabindex="-1"></a><span class="fu">bind_cols</span>(codebook, summ_stats)   </span></code></pre></div>
+<div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="data-exploration.html#cb107-1" tabindex="-1"></a><span class="fu">bind_cols</span>(codebook, summ_stats)   </span></code></pre></div>
 <pre><code>## # A tibble: 4 × 6
 ##   var   label                                  mean     sd   min    max
 ##   &lt;chr&gt; &lt;chr&gt;                                 &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
@@ -320,33 +333,33 @@ overview of all the variables in my dataset:</p>
 ## 4 wgt   vehicle weight in pounds            2978.   849.    1613 5140</code></pre>
 <p>Here’s a re-usable function that add more columns, handles empty labels
 (using <code>coalesce()</code>) and rounds the output so it’s human-readable:</p>
-<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="data-exploration.html#cb89-1" tabindex="-1"></a>create_codebook <span class="ot">&lt;-</span> <span class="cf">function</span>(.df,<span class="at">stats =</span> <span class="fu">list</span>(<span class="at">mean=</span>mean,<span class="at">sd=</span>sd,<span class="at">min=</span>min,<span class="at">max=</span>max,</span>
-<span id="cb89-2"><a href="data-exploration.html#cb89-2" tabindex="-1"></a>                                            <span class="at">prop_miss=</span>prop_miss)) {</span>
-<span id="cb89-3"><a href="data-exploration.html#cb89-3" tabindex="-1"></a>  labels <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">var =</span> <span class="fu">colnames</span>(.df),</span>
-<span id="cb89-4"><a href="data-exploration.html#cb89-4" tabindex="-1"></a>                   <span class="at">label =</span> <span class="fu">map_chr</span>(.df,<span class="cf">function</span>(x) <span class="fu">coalesce</span>(<span class="fu">attributes</span>(x)<span class="sc">$</span>label,<span class="st">&quot;&quot;</span>)),</span>
-<span id="cb89-5"><a href="data-exploration.html#cb89-5" tabindex="-1"></a>                   <span class="at">type =</span> <span class="fu">map_chr</span>(.df, typeof))</span>
-<span id="cb89-6"><a href="data-exploration.html#cb89-6" tabindex="-1"></a></span>
-<span id="cb89-7"><a href="data-exploration.html#cb89-7" tabindex="-1"></a></span>
-<span id="cb89-8"><a href="data-exploration.html#cb89-8" tabindex="-1"></a>  prop_miss <span class="ot">&lt;-</span> <span class="cf">function</span>(x,<span class="at">na.rm =</span> <span class="cn">TRUE</span>) {</span>
-<span id="cb89-9"><a href="data-exploration.html#cb89-9" tabindex="-1"></a>    <span class="fu">mean</span>(<span class="fu">is.na</span>(x))</span>
-<span id="cb89-10"><a href="data-exploration.html#cb89-10" tabindex="-1"></a>  }</span>
-<span id="cb89-11"><a href="data-exploration.html#cb89-11" tabindex="-1"></a></span>
-<span id="cb89-12"><a href="data-exploration.html#cb89-12" tabindex="-1"></a>  stats_to_tibble <span class="ot">&lt;-</span> <span class="cf">function</span>(var,stats) {</span>
-<span id="cb89-13"><a href="data-exploration.html#cb89-13" tabindex="-1"></a>    <span class="fu">map_dbl</span>(stats,<span class="sc">~</span><span class="fu">ifelse</span>(<span class="fu">is.numeric</span>(var),<span class="fu">.x</span>(var,<span class="at">na.rm =</span> <span class="cn">TRUE</span>),<span class="cn">NA</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb89-14"><a href="data-exploration.html#cb89-14" tabindex="-1"></a>    <span class="fu">as_tibble_row</span>()</span>
-<span id="cb89-15"><a href="data-exploration.html#cb89-15" tabindex="-1"></a>  }</span>
-<span id="cb89-16"><a href="data-exploration.html#cb89-16" tabindex="-1"></a></span>
-<span id="cb89-17"><a href="data-exploration.html#cb89-17" tabindex="-1"></a>  sumstats <span class="ot">&lt;-</span></span>
-<span id="cb89-18"><a href="data-exploration.html#cb89-18" tabindex="-1"></a>    .df <span class="sc">%&gt;%</span></span>
-<span id="cb89-19"><a href="data-exploration.html#cb89-19" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span><span class="fu">stats_to_tibble</span>(.x,stats)) <span class="sc">%&gt;%</span></span>
-<span id="cb89-20"><a href="data-exploration.html#cb89-20" tabindex="-1"></a>    <span class="fu">list_rbind</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb89-21"><a href="data-exploration.html#cb89-21" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric),</span>
-<span id="cb89-22"><a href="data-exploration.html#cb89-22" tabindex="-1"></a>                <span class="sc">~</span><span class="fu">round</span>(.x,<span class="dv">2</span>)))  </span>
-<span id="cb89-23"><a href="data-exploration.html#cb89-23" tabindex="-1"></a></span>
-<span id="cb89-24"><a href="data-exploration.html#cb89-24" tabindex="-1"></a>   <span class="fu">bind_cols</span>(labels,sumstats)</span>
-<span id="cb89-25"><a href="data-exploration.html#cb89-25" tabindex="-1"></a>}</span>
-<span id="cb89-26"><a href="data-exploration.html#cb89-26" tabindex="-1"></a></span>
-<span id="cb89-27"><a href="data-exploration.html#cb89-27" tabindex="-1"></a><span class="fu">create_codebook</span>(cars) </span></code></pre></div>
+<div class="sourceCode" id="cb109"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb109-1"><a href="data-exploration.html#cb109-1" tabindex="-1"></a>create_codebook <span class="ot">&lt;-</span> <span class="cf">function</span>(.df,<span class="at">stats =</span> <span class="fu">list</span>(<span class="at">mean=</span>mean,<span class="at">sd=</span>sd,<span class="at">min=</span>min,<span class="at">max=</span>max,</span>
+<span id="cb109-2"><a href="data-exploration.html#cb109-2" tabindex="-1"></a>                                            <span class="at">prop_miss=</span>prop_miss)) {</span>
+<span id="cb109-3"><a href="data-exploration.html#cb109-3" tabindex="-1"></a>  labels <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">var =</span> <span class="fu">colnames</span>(.df),</span>
+<span id="cb109-4"><a href="data-exploration.html#cb109-4" tabindex="-1"></a>                   <span class="at">label =</span> <span class="fu">map_chr</span>(.df,<span class="cf">function</span>(x) <span class="fu">coalesce</span>(<span class="fu">attributes</span>(x)<span class="sc">$</span>label,<span class="st">&quot;&quot;</span>)),</span>
+<span id="cb109-5"><a href="data-exploration.html#cb109-5" tabindex="-1"></a>                   <span class="at">type =</span> <span class="fu">map_chr</span>(.df, typeof))</span>
+<span id="cb109-6"><a href="data-exploration.html#cb109-6" tabindex="-1"></a></span>
+<span id="cb109-7"><a href="data-exploration.html#cb109-7" tabindex="-1"></a></span>
+<span id="cb109-8"><a href="data-exploration.html#cb109-8" tabindex="-1"></a>  prop_miss <span class="ot">&lt;-</span> <span class="cf">function</span>(x,<span class="at">na.rm =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb109-9"><a href="data-exploration.html#cb109-9" tabindex="-1"></a>    <span class="fu">mean</span>(<span class="fu">is.na</span>(x))</span>
+<span id="cb109-10"><a href="data-exploration.html#cb109-10" tabindex="-1"></a>  }</span>
+<span id="cb109-11"><a href="data-exploration.html#cb109-11" tabindex="-1"></a></span>
+<span id="cb109-12"><a href="data-exploration.html#cb109-12" tabindex="-1"></a>  stats_to_tibble <span class="ot">&lt;-</span> <span class="cf">function</span>(var,stats) {</span>
+<span id="cb109-13"><a href="data-exploration.html#cb109-13" tabindex="-1"></a>    <span class="fu">map_dbl</span>(stats,<span class="sc">~</span><span class="fu">ifelse</span>(<span class="fu">is.numeric</span>(var),<span class="fu">.x</span>(var,<span class="at">na.rm =</span> <span class="cn">TRUE</span>),<span class="cn">NA</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb109-14"><a href="data-exploration.html#cb109-14" tabindex="-1"></a>    <span class="fu">as_tibble_row</span>()</span>
+<span id="cb109-15"><a href="data-exploration.html#cb109-15" tabindex="-1"></a>  }</span>
+<span id="cb109-16"><a href="data-exploration.html#cb109-16" tabindex="-1"></a></span>
+<span id="cb109-17"><a href="data-exploration.html#cb109-17" tabindex="-1"></a>  sumstats <span class="ot">&lt;-</span></span>
+<span id="cb109-18"><a href="data-exploration.html#cb109-18" tabindex="-1"></a>    .df <span class="sc">%&gt;%</span></span>
+<span id="cb109-19"><a href="data-exploration.html#cb109-19" tabindex="-1"></a>    <span class="fu">map</span>(<span class="sc">~</span><span class="fu">stats_to_tibble</span>(.x,stats)) <span class="sc">%&gt;%</span></span>
+<span id="cb109-20"><a href="data-exploration.html#cb109-20" tabindex="-1"></a>    <span class="fu">list_rbind</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb109-21"><a href="data-exploration.html#cb109-21" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric),</span>
+<span id="cb109-22"><a href="data-exploration.html#cb109-22" tabindex="-1"></a>                <span class="sc">~</span><span class="fu">round</span>(.x,<span class="dv">2</span>)))  </span>
+<span id="cb109-23"><a href="data-exploration.html#cb109-23" tabindex="-1"></a></span>
+<span id="cb109-24"><a href="data-exploration.html#cb109-24" tabindex="-1"></a>   <span class="fu">bind_cols</span>(labels,sumstats)</span>
+<span id="cb109-25"><a href="data-exploration.html#cb109-25" tabindex="-1"></a>}</span>
+<span id="cb109-26"><a href="data-exploration.html#cb109-26" tabindex="-1"></a></span>
+<span id="cb109-27"><a href="data-exploration.html#cb109-27" tabindex="-1"></a><span class="fu">create_codebook</span>(cars) </span></code></pre></div>
 <pre><code>## # A tibble: 4 × 8
 ##   var   label                         type    mean     sd   min    max prop_miss
 ##   &lt;chr&gt; &lt;chr&gt;                         &lt;chr&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
@@ -360,16 +373,16 @@ overview of all the variables in my dataset:</p>
 <p>Another great data exploration tool is the correlogram, which displays
 the correlations between many variables. To create one, I use <code>ggpairs()</code>
 from the <code>GGally</code> package:</p>
-<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="data-exploration.html#cb91-1" tabindex="-1"></a><span class="fu">library</span>(GGally)</span>
-<span id="cb91-2"><a href="data-exploration.html#cb91-2" tabindex="-1"></a></span>
-<span id="cb91-3"><a href="data-exploration.html#cb91-3" tabindex="-1"></a><span class="fu">ggpairs</span>(cars) </span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-59-1.png" width="672" /></p>
+<div class="sourceCode" id="cb111"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb111-1"><a href="data-exploration.html#cb111-1" tabindex="-1"></a><span class="fu">library</span>(GGally)</span>
+<span id="cb111-2"><a href="data-exploration.html#cb111-2" tabindex="-1"></a></span>
+<span id="cb111-3"><a href="data-exploration.html#cb111-3" tabindex="-1"></a><span class="fu">ggpairs</span>(cars) </span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-69-1.png" width="672" /></p>
 <p>You can also split the correlogram by a variable, like I do with the number
 of cylinders below:</p>
-<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="data-exploration.html#cb92-1" tabindex="-1"></a>cars <span class="sc">%&gt;%</span></span>
-<span id="cb92-2"><a href="data-exploration.html#cb92-2" tabindex="-1"></a>  <span class="fu">ggpairs</span>(<span class="at">columns =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>), </span>
-<span id="cb92-3"><a href="data-exploration.html#cb92-3" tabindex="-1"></a>          ggplot2<span class="sc">::</span><span class="fu">aes</span>(<span class="at">colour=</span><span class="fu">factor</span>(cyl))) </span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-60-1.png" width="672" /></p>
+<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="data-exploration.html#cb112-1" tabindex="-1"></a>cars <span class="sc">%&gt;%</span></span>
+<span id="cb112-2"><a href="data-exploration.html#cb112-2" tabindex="-1"></a>  <span class="fu">ggpairs</span>(<span class="at">columns =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>), </span>
+<span id="cb112-3"><a href="data-exploration.html#cb112-3" tabindex="-1"></a>          ggplot2<span class="sc">::</span><span class="fu">aes</span>(<span class="at">colour=</span><span class="fu">factor</span>(cyl))) </span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-70-1.png" width="672" /></p>
 
 </div>
 </div>

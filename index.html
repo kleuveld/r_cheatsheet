@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-07-23" />
+<meta name="date" content="2024-09-03" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -54,6 +54,15 @@
 <script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
 <link href="libs/tabwid-1.1.3/tabwid.css" rel="stylesheet" />
 <script src="libs/tabwid-1.1.3/tabwid.js"></script>
+<link href="libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet" />
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<link href="libs/leaflet-1.3.1/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-1.3.1/leaflet.js"></script>
+<link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<script src="libs/proj4-2.6.2/proj4.min.js"></script>
+<script src="libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-binding-2.2.2/leaflet.js"></script>
 
 
 <style type="text/css">
@@ -163,7 +172,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across"><i class="fa fa-check"></i>across(): doing the same operations on multiple variables using across</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across(): passing values from multiple variables to summarizing functions</a></li>
 </ul></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#splitting-multi-response-variable-into-dummies"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#seperate_longer"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
@@ -186,6 +195,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#bar-chart"><i class="fa fa-check"></i>Bar chart</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#labels"><i class="fa fa-check"></i>Labels</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#faceting"><i class="fa fa-check"></i>Faceting</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#stacked-wur"><i class="fa fa-check"></i>Stacked bar chart with WUR template and observation counts</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#ordering-of-labels"><i class="fa fa-check"></i>Ordering of labels</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#maps"><i class="fa fa-check"></i>Maps</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html"><i class="fa fa-check"></i>Power Analysis using DeclareDesign</a>
 <ul>
@@ -204,7 +216,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#basic-functions"><i class="fa fa-check"></i>Basic Functions</a></li>
 <li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions-and-the-tidyverse"><i class="fa fa-check"></i>Functions and the tidyverse</a></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#example-function-to-create-dummies-from-text"><i class="fa fa-check"></i>Example: Function to create dummies from text</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#plot-function"><i class="fa fa-check"></i>Example 1: Re-using plot specifications</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#example-2-function-to-create-dummies-from-text"><i class="fa fa-check"></i>Example 2: Function to create dummies from text</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#map"><i class="fa fa-check"></i>Map()</a></li>
 </ul></li>
@@ -231,7 +244,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="header">
 <h1 class="title">R Cheat Sheet</h1>
 <p class="author"><em>Koen</em></p>
-<p class="date"><em>2024-07-23</em></p>
+<p class="date"><em>2024-09-03</em></p>
 </div>
 <div id="introduction" class="section level1 hasAnchor">
 <h1>Introduction<a href="index.html#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h1>
