@@ -227,7 +227,7 @@ data %>%
 ```
 
 
-You can also put the counts inside the plot of course:
+You can also put the counts inside the plot:
 
 ```{r}
 
@@ -256,7 +256,7 @@ data %>%
   theme_wur() +
   scale_fill_wur_discrete() +
   scale_x_continuous(labels = scales::percent_format()) +
-  geom_text(aes(label = after_stat(scales::percent(count / sum(count)))),
+  geom_text(aes(label = after_stat(scales::percent(count / sum(count),accuracy=1))),
             stat = "count",
             position = position_fill(vjust = 0.5, reverse = TRUE),
             color = "white") 
@@ -297,6 +297,11 @@ data %>%
    
 
 ```
+
+Note that the trick of adding group counts to string variables using  `add_count()` doesn't work with factors.
+Or rather, it works, but converts the factor back to a string. 
+In the [functions](#plot-function) chapter, I define a function called `count_label()` that adds group counts 
+to factor variables using black magic. 
 
 ## Maps
 

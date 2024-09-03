@@ -244,7 +244,7 @@ count_label <- function(vector) {
   # output a factor vector with N = N included in the labels
   fct_recode(factor(vector), 
              !!!vector %>%
-               as_tibble %>%
+               as_tibble() %>%
                group_by(value) %>%
                summarize(n = n()) %>%
                mutate(value = as.character(value),
@@ -262,6 +262,14 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
   stacked_bar_plot(village,affect_conflicts)
 
 ```
+
+Note that the `count_label()` function adds group counts to factor variable labels. 
+This is useful for the `by` variable.
+I am not sure if I understand what the `!!!` operator means, but it works. 
+The function basically creates a named vector, where the vector values are the old
+factor labels, and the vector names are new factor labels.
+The new labels include the N, which is computed using a 
+standard `group_by() %>% summarize()` pipeline. 
 
 
 ### Example 2: Function to create dummies from text
