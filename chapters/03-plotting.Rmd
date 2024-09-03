@@ -244,6 +244,25 @@ data %>%
 
 ```
 
+Or as percentages:
+
+
+
+```{r}
+
+data %>%
+  ggplot(aes(y = village, fill = respondent_wall_type)) +
+  geom_bar(position = position_fill(reverse = TRUE))  +
+  theme_wur() +
+  scale_fill_wur_discrete() +
+  scale_x_continuous(labels = scales::percent_format()) +
+  geom_text(aes(label = after_stat(scales::percent(count / sum(count)))),
+            stat = "count",
+            position = position_fill(vjust = 0.5, reverse = TRUE),
+            color = "white") 
+
+```
+
 Use [functions](#plot-function) to make all this code easier to use.
 
 
@@ -257,7 +276,8 @@ doesn't look good:
 
 data %>%
     ggplot(aes(y = village, fill = affect_conflicts)) +
-        geom_bar(position = position_fill(reverse = TRUE))  
+        geom_bar(position = position_fill(reverse = TRUE))
+
 
 ```  
 
