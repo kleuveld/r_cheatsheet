@@ -247,6 +247,37 @@ data %>%
 Use [functions](#plot-function) to make all this code easier to use.
 
 
+## Ordering of labels
+
+By default, `ggplot` will order categorical variables in your graph alphatically. 
+With the wall types this was fine, but when the categories have an order, this 
+doesn't look good:
+
+```{r}
+
+data %>%
+    ggplot(aes(y = village, fill = affect_conflicts)) +
+        geom_bar(position = position_fill(reverse = TRUE))  
+
+```  
+
+Here you'd expect the `once` category to be between `more_once` and `never`, not at the end.
+To fix this, convert the variable to a [factor](https://myslu.stlawu.edu/~iramler/stat234/coursenotes/working-with-factors-in-r-an-introduction-to-the-forcats-package.html).
+The order in the `levels` argument will be the order in which the labels will be displayed:
+
+```{r}
+
+data %>%
+    mutate(affect_conflicts = factor(affect_conflicts, levels = c("frequently",
+                                                                  "more_once",
+                                                                  "once",
+                                                                  "never"))) %>%
+    ggplot(aes(y = village, fill = affect_conflicts)) +
+        geom_bar(position = position_fill(reverse = TRUE))  
+   
+
+```
+
 ## Maps
 
 For maps, we use the `sf` package, and a sample data set, in geo-json format (but sf can use

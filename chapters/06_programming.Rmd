@@ -209,7 +209,9 @@ data_frame %>%
 ### Example 1: Re-using plot specifications {#plot-function}
 
 If you're writing a report that includes the same type of plot in many
-places, it makes sense to make it into a function.
+places, it makes sense to make it into a function. 
+
+Let's take the [stacked bar plot from the plotting chapter](#stacked-wur):
 
 ```{r}
 
@@ -238,7 +240,7 @@ stacked_bar_plot <- function(df, by, fill) {
 }
 
 count_label <- function(vector) {
-  #takes a vector of strings or factor, 
+  # takes a vector of strings or factor, 
   # output a factor vector with N = N included in the labels
   fct_recode(factor(vector), 
              !!!vector %>%
