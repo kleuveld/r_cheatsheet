@@ -9,7 +9,7 @@ you get the hang of how labels are dealt with in R.
 Download the [cars data set from here](http://www.principlesofeconometrics.com/stata.htm)
 or run the code below:
 
-```{r eval=FALSE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 
 download.file(

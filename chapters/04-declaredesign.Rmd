@@ -22,7 +22,7 @@ I will start off with some fake baseline data, which only contains `y0`, our out
 indicator. We use the `fabricate()` function, from the fabricatr library, which is
 loaded with DeclareDesign:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 # start with a clean environment
 rm(list=ls())
@@ -52,7 +52,7 @@ fake_data %>% as_tibble()
 Now, let's add an extra year to our data, again using `fabricate()`, just
 to demonstrate how, using `add_level()` and  then `crosslevels()`:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 fakedata_years <-
   fabricate(fake_data,
@@ -85,7 +85,7 @@ make it depend on  both observable and unobservable
 characteristics, etc. etc.
 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 year_shock <- 10
 effect_size <- 15
@@ -112,7 +112,7 @@ received the treatment (equivalent to `Z = treatment_group * t`).
 If treatment had already been known during baseline (not
 unlikely) then we would have only had to reveal the outcomes:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 assignment <-
   declare_assignment(treatment_group = cluster_ra(clusters = ID, prob = 0.5),
@@ -126,7 +126,7 @@ effect in year 1. This is useful to check for bias. This is not really
 needed here, since my model will follow our data generation process exactly,
 so I could have just skipped this step.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 inquiry <-  
   declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0), subset = (t == 1)) 
@@ -141,7 +141,7 @@ The first estimator uses `lm_robust()`, which is included
 with DeclareDesign, to estimate a simple linear model using standard 
 DiD notation.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 estimator1 <-
   declare_estimator(Y ~ t * treatment_group, 
@@ -158,7 +158,7 @@ This is equivalent to the model above for this case, but the
 2FE can be more easily extended to more complex 
 designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 library(fixest)
 library(broom)
@@ -188,7 +188,7 @@ Here, I keep it (relatively) simple. I use the lmtest/sandwich way of estimating
 robust standard errors, and make sure you can easily change the equation and type of
 Standard Errors to use through a parameter.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 library(lmtest)
 library(sandwich)
@@ -221,7 +221,7 @@ Finally, I combine all these elements to declare my design. Note that
 it's only here that R starts actually running the code to randomize 
 things. The previous was just declaration!
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
   
 design <- model + assignment + inquiry + estimator1 + estimator2 + estimator3
 summary(design)
@@ -233,7 +233,7 @@ Note that the results of my three estimators are identical, which is as expected
 If you want to browse a version of the data created by your design,
 use the `draw_data()` function. This is useful to examine the properties of the data.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 draw_data(design) %>%
   as_tibble()
@@ -244,7 +244,7 @@ Now to calculate our power. The `diagnose_design()` will run our
 model 500 times and our power is simply the fraction of times we
 find a statistically significant effect.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 diagnose_design(design)
 
@@ -268,7 +268,7 @@ combination of the parameters. This takes a lot of time, so I update
 my design to have only one estimator (estimator1, which is fast) 
 and I've set the `sims` option of `diagnose_design()` to 100.
 
-```{r evaluate_design, eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r evaluate_design,}
 
 design <- model + assignment + inquiry + estimator1
 
@@ -286,7 +286,7 @@ after some filtering - I pipe into `ggplot()`.
 It's now easy to see that I should 
 be able to pick up an effect size of 10 in most cases.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 diagnosis %>%
   tidy() %>%

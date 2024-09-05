@@ -235,7 +235,7 @@ Again, to save it as a word file, use
 A simple regression uses the `lm()` function. I use the `modelsummary()`
 function to display it:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 lm <- lm(uses_fertilizer ~ treatment + educated, data = data)
 modelsummary(lm, output = "flextable")
@@ -249,7 +249,7 @@ To get robust standard errors clustered at the village
 level, using the same procedures Stata uses, I use  
 [`lm_robust()`](https://declaredesign.org/r/estimatr/reference/lm_robust.html):
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 library(estimatr)
 lmrobust <-
@@ -264,7 +264,7 @@ modelsummary(list("LM" = lm, "Robust" = lmrobust), output = "flextable")
 
 I'd like to have just the N, r-squared and Adjusted R-squared:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 
 modelsummary(list("LM" = lm, "Robust" = lmrobust), 
@@ -301,7 +301,7 @@ modelsummary(list("LM" = lm, "Robust" = lmrobust),
 
 Now lets add  a probit model!
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 probit <- glm(uses_fertilizer ~ treatment + educated, 
                 family = binomial(link = "probit"), 

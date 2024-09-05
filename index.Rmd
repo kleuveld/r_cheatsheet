@@ -13,6 +13,18 @@ link-citations: yes
 github-repo: kleuveld/r_cheatsheet
 ---
 
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(eval=TRUE, 
+                      include = TRUE, 
+                      echo=TRUE, 
+                      warning=FALSE, 
+                      error=TRUE, 
+                      message=FALSE)
+
+
+```
+
 # Introduction
 
 ## About
@@ -30,7 +42,7 @@ The following will download them all.
 I use the [here package](https://here.r-lib.org/) to manage 
 paths. 
 
-```{r eval=FALSE,echo=TRUE,warning=FALSE,error=TRUE,message=TRUE}
+```{r,  eval=FALSE,}
 
 #make sure your working folder is set to something sensible!
 

@@ -10,7 +10,7 @@ while saving you time.
 Loops repeat code a number of time, they have the following structure:
 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 for (i in 1:4){
 	print(i)
@@ -22,7 +22,7 @@ The `i` is the iterator, and each iteration of the loop it takes on the value of
 a different element of the object that follows the `in`; in this case, `i` takes 
 on 1,2,3 and finally 4 as its values. Therefore, this code is equivalent to:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 print(1)
 print(2)
@@ -48,7 +48,7 @@ Usually, a function takes an argument (the input), and returns an output. The
 argument is always provided within parentheses. The  `sqrt()` function, for 
 example, takes a number as its argument and returns the square root.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 sqrt(4)
 
@@ -62,7 +62,7 @@ every instance of the operations throughout your script.
 Take for example the following code that cleans missing data.
 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 #define an example variable
 variable1 = c(1,2,3,-99,5,6)
@@ -87,7 +87,7 @@ have to copy-paste more than twice in a function. Once I do that, I can just
 call  the function wherever I need to clean data; if I want to change how I deal 
 with missings, I now only have to make changes in one place:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 clean_missing <- function(input_data) {
 
@@ -105,7 +105,7 @@ name for my argument (defined in the parentheses after function); I just thought
 
 I can now just use the `clean_data()` wherever I want:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 variable1_cleaned <- clean_missing(variable1)
 
@@ -116,7 +116,7 @@ variable1_cleaned
 Note that any variables we created in the function are kept within the function, 
 and you can't access them later:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 variable1_clean <- clean_missing(variable1)
 returned_data
@@ -131,7 +131,7 @@ Above I used the return function. This is not needed. Anything on the
 last line of the function that would normally be returned to the console, is
 used a return value of the function:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 clean_missing <- function(input_data) {
 
@@ -152,7 +152,7 @@ in a data cleaning pipe?
 It's useful to start with the code without a function, and then to generalize
 from there:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 
 data_frame <- tibble(variable1 = variable1)
@@ -167,7 +167,7 @@ a data frame and a variable name as its arguments. Results from one step in the
 pipe, are passed as the first argument for the next step. So make sure the data 
 is the first argument! 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 clean_missing_df <- function(input_dataframe, variablename){
 	input_dataframe %>%
@@ -188,7 +188,7 @@ R too look what's *in* `variablename`, not just use it as is. To do so, wrap the
 variable name in your function definition
 in `{{` and `}}`, and change the `=` in `mutatate` to `:=`. 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 
 clean_missing_df <- function(input_dataframe, variablename){
@@ -334,7 +334,7 @@ a list with the results of each iteration.
 
 For example, to get the the square root for each of the numbers in a vector:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 vector <- c(4,9,16) 
 map(vector,sqrt)
@@ -351,7 +351,7 @@ I use `~` to create
 [a purrr-style inline anonymous function](https://adv-r.hadley.nz/functionals.html#purrr-shortcuts)
 within `map()`. 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 library(modelsummary)
 

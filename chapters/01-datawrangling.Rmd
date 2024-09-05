@@ -5,7 +5,7 @@ downloaded to your data folder by running the code from the [Set-up section](#se
 
 ## Basic Data Manipulation
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 library(tidyverse)
 library(here)
@@ -47,7 +47,7 @@ for each household that is equal to the household size, and has two
 randomly generated variables: `female` and `age`. Note that `age` may
 be `-99`, which should be considered missing.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 long_data <- 
     read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
@@ -70,7 +70,7 @@ long_data
 
 To merge this into our main data set, we need to make sure we go back to having 1 observation per household. We will do this by using `pivot_wider()`:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 wide_data <-
     long_data %>% 
@@ -100,7 +100,7 @@ to specify all variables except the ones ending in `_ID`.
 If we had started with wide data, and had wanted to transform to
 long data, we'd have to use `pivot_longer()`:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 wide_data %>% pivot_longer(!key_ID, names_to = "name", values_to = "value")
 
@@ -121,7 +121,7 @@ at all.
 I can do all of this within the `pivot_longer()` call by using the `names_to` 
 and `names_sep` options:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 wide_data %>%
     pivot_longer(!key_ID, 
@@ -286,7 +286,7 @@ contain something like `"bicycle;television;solar_panel;table"`. We want to
 split this into dummies: one for each possible answers. There's a number of 
 ways to do this, but the most convenient is using `sepate_longer()`
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=FALSE}
+```{r }
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     separate_longer_delim(items_owned, delim = ";") %>%

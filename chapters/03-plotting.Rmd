@@ -20,7 +20,7 @@ Thus, the template for graphic in ggplot2 is:
 
 ## Data Prep
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 library(tidyverse)
 library(here)
@@ -45,7 +45,7 @@ data <-
 
 A scatter plot uses `geom_point()`
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 
 data %>%
@@ -57,7 +57,7 @@ data %>%
 
 To differentiate overlapping points, you can use transparency...
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 data %>%
     ggplot(aes(x = no_membrs, y = number_items)) +
@@ -67,7 +67,7 @@ data %>%
 
 ...or add jitter:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 data %>%
     ggplot(aes(x = no_membrs, y = number_items)) +
@@ -78,7 +78,7 @@ data %>%
 To add groups, add the variable that defines the groups as an aesthetic mapping, either
 in the call to ggplot(), or the one in the `geom_()` function you use:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 data %>%
     ggplot(aes(x = no_membrs, y = number_items)) +
@@ -88,7 +88,7 @@ data %>%
 
 ## Boxplot
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 data %>%
     ggplot(aes(x = respondent_wall_type, y = rooms)) +
@@ -105,7 +105,7 @@ data %>%
 
 For a simple bar chart of counts:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 data %>%
     ggplot(aes(x = respondent_wall_type)) +
@@ -115,7 +115,7 @@ data %>%
 
 And since stacked bar charts are not easy to read:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 data %>%
     ggplot(aes(x = respondent_wall_type)) +
@@ -127,7 +127,7 @@ Note that `geom_bar()` defaults to displaying counts. If you want something else
 use the `stat =` option. `stat = "identity"` is especially useful, as it displays values as-is,
 allowing you to pre-process your data anyway you want, for example to get percentages: 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 wall_plot <-
   data %>%
@@ -147,7 +147,7 @@ wall_plot
 
 The `labs()` function changes labels, the `scale_` family of functions change axes and legends:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 wall_plot +
     labs(title = "Proportion of wall type by village",
@@ -163,7 +163,7 @@ wall_plot +
 
 Faceting allows splitting a graph in multiple parts:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 data %>%
     group_by(village) %>%
@@ -308,7 +308,7 @@ to factor variables using black magic.
 For maps, we use the `sf` package, and a sample data set, in geo-json format (but sf can use
 all sorts of shapefiles).
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 library(sf)
 
