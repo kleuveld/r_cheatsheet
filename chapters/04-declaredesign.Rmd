@@ -413,7 +413,16 @@ rhomis <-
   # split the sample in villages, by lattitude
   filter(!is.na(GPS_LAT)) %>%
   arrange(GPS_LAT) %>%
-  mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) 
+  mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) %>%
+  select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput) %>%
+  mutate(HFIAS_status = factor(HFIAS_status, levels = c("FoodSecure", "MildlyFI", "ModeratelyFI", "SeverelyFI")),
+         food_secure = 1 * as.numeric(HFIAS_status) <= 3,
+         educated = 1*(Head_EducationLevel != "No_school"),
+         female = 1* (HouseholdType == "woman_single"))
+
+
+table(rhomis$HouseholdType)
+
 
 # randomly assign villages to treatment
 
@@ -421,6 +430,69 @@ villages <-
   rhomis %>%
   select(village) %>%
   mutate(s)
+
+
+N = nrow(rhomis)
+
+
+population <- declare_population(
+  rhomis,
+  treated_vill =  cluster_ra(clusters = village, prob = 0.5),
+  treated_hh = rbinom(N,1,0.5)
+)
+
+
+potential_outcomes <- declare_potential_outcomes(
+  Y_Z_0 =   food_secure, # No intervention
+  Y_Z_1 = pmin(1,Y_Z_0 + rbinom(N,1,0.05))
+)
+
+
+
+assignment <- declare_assignment(
+  Z = treated_vill * treated_hh
+)
+
+
+filter_households <- function(data){
+  data %>%
+    mutate(sample = if_else(treated_vill == 1 & treated_hh == 0,0,1)) %>%
+    filter(sample == 1)
+}
+
+sample <- declare_sampling(
+  handler = filter_households
+)
+
+
+reveal <- declare_reveal(Y = ifelse(Z == 1, Y_Z_1, Y_Z_0))
+
+estimand <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0))
+
+ols_estimator <- 
+  declare_estimator(Y ~ Z, 
+                    inquiry = "ATE", 
+                    .method = estimatr::lm_robust, 
+                    term = "Z", 
+                    label = "LM")
+
+design <- population + potential_outcomes + assignment + estimand + reveal + sample  + ols_estimator
+design
+
+draw_data(design) %>%
+  as_tibble() %>%
+  pull(sample)
+
+filter_households <- function(data){
+  data %>%
+    mutate(sample = if_else(treated_vill == 1 & treated_hh == 0,0,1)) %>%
+    pull(sample)
+}
+
+rhomis %>%
+  mutate(  treated_vill =  cluster_ra(clusters = village, prob = 0.5),
+  treated_hh = rbinom(N,1,0.5)) %>%
+  filter_households
 
 
 ```
