@@ -124,7 +124,8 @@ and `names_sep` options:
 ```{r }
 
 wide_data %>%
-    pivot_longer(!key_ID, 
+    rename_with(~ gsub("_", "", .)) %>%
+    pivot_longer(!keyID, 
                  names_to = c(".value", "member_ID"),
                  names_sep="_",
                  values_drop_na = TRUE,
@@ -147,8 +148,20 @@ one part (i.e. female and age) that we wish to keep as column names of variables
 that will contain my values, and one part (i.e. the numbers 1-19) which should 
 be put into a new column which we will "member_ID".
 - `names_sep=`: this indicates how the two parts mentioned above are 
-separated. If there is no separator (for example your variables are called 
-age1, age2, etc.) you'll have to use the`names_pattern` option.
+separated. In more difficult cases, you'll have to use the `names_pattern` option.
+This requires some knowledge of 
+[regular expressions](https://www.datacamp.com/tutorial/regex-r-regular-expressions-guide),
+so here's two examples:
+    - If there is no seperator (`age1`,`female1` etc...): `names_pattern = "(.*\\D)([0-9]+)$"`. 
+    In this regular expression, `.*\\D` matches a string of any length, of any characters, 
+    as long as it ends with something other than a digit. 
+    The `[0-9]+$` matches any number of digits at the end of the string. 
+    The parentheses indicate how the string should be separated to form variable names and member_ID.
+    - If the separator is used in other places in variable names (`member_age_1` etc...):
+      `names_pattern = "(.*)_([0-9]+)$"`.
+- If there is no separator, or if the separator is used in other places
+in your variable names you'll have to use the`names_pattern` option. 
+In this case `names_pattern = "(.*)_([0-9]+)$"` would work. 
 - `values_drop_na = TRUE`: tells R to drop rows that have missing data for 
 all variables. This prevents the issue where we hadd too many rows.
 - `names_transform`: by default, all `name` columns will be character types, but 
@@ -263,9 +276,8 @@ wide_data %>%
     mutate(mean_age = mean(c_across(starts_with("age_")),
                            na.rm=TRUE),
            num_women =  sum(c_across(starts_with("female_")),
-                           na.rm=TRUE),
-           hh_size = starts_with("female_") %>% c_across() %>% is.na(.) %>% `!` %>% sum()
-          ) %>%
+                            na.rm=TRUE),
+           hh_size = sum(!is.na(c_across(starts_with("female_"))))) %>%
     select(key_ID,hh_size,num_women, mean_age) %>%
     ungroup()
 
@@ -275,7 +287,6 @@ wide_data %>%
 The key trick here is the combination of `rowwise()` and `c_across()`.
 `rowwise()` ensures all summaries are computed per row, and `c_across()`
 allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
-`%>% is.na(.) %>% `!` %>% sum()` is the same as `sum(!is.na())`, which simply counts the non-missing values.
 
 
 ## Splitting multi-response variable into dummies {#seperate_longer}
