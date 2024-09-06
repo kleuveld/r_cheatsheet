@@ -409,9 +409,18 @@ n_clusters = 18
 rhomis <-
   read_csv("data/RHoMIS_Indicators.csv") %>%
   filter(Country == "Burundi") %>%
+
+  # split the sample in villages, by lattitude
   filter(!is.na(GPS_LAT)) %>%
   arrange(GPS_LAT) %>%
   mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) 
+
+# randomly assign villages to treatment
+
+villages <-
+  rhomis %>%
+  select(village) %>%
+  mutate(s)
 
 
 ```
