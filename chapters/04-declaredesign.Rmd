@@ -398,5 +398,20 @@ simulated_data <-
 draw_data(psm_design) %>%
   as_tibble()
 
+```
+
+
+```{r}
+
+
+n_clusters = 18
+
+rhomis <-
+  read_csv("data/RHoMIS_Indicators.csv") %>%
+  filter(Country == "Burundi") %>%
+  filter(!is.na(GPS_LAT)) %>%
+  arrange(GPS_LAT) %>%
+  mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) 
+
 
 ```
