@@ -319,19 +319,18 @@ population <- declare_population(
   gender = rbinom(N, 1, 0.5),  # Gender: 0 = female, 1 = male
   assets = rnorm(N, mean = 10, sd = 30),  # Assets in 100s dollars
   u = rnorm(N),  # Unobserved random characteristic
-  X1 = 10 + rnorm(N),  # unobserved covariate
-  X2 = 20 + rnorm(N),   # unobserved covariate
+  X = rnorm(N, mean = 20 , sd = 20),  # unobserved covariate
 )
 
 # Step 2: Define potential outcomes with unobserved characteristics
 potential_outcomes <- declare_potential_outcomes(
-  Y_Z_0 = 50 + 0.5 * education + 0.3 * gender + 0.1 * assets^2 + 0.6 * X1 + 0.6 * X2 + X2 * education + u,  # No intervention
-  Y_Z_1 = 50 + 0.5 * education + 0.3 * gender + 0.1 * assets^2 + 0.6 * X1 + 0.6 * X2 + X2 * education + u + 10  # Intervention increases fertilizer use by 10 units
+  Y_Z_0 = 50 + 0.5 * education + 0.3 * gender + 0.1 * assets^2 + 0.2 * education * gender  + 0.6 * X + u,  # No intervention
+  Y_Z_1 = 50 + 0.5 * education + 0.3 * gender + 0.1 * assets^2 + 0.2 * education * gender + 0.6 * X + u + 10  # Intervention increases fertilizer use by 10 units
 )
 
 # Step 3: Simulate treatment assignment with observed and unobserved characteristics
 assignment <- declare_assignment(
-  Z = 0.3 * education + 0.2 * gender + 0.01 * assets + 0.2 * X1 + 0.2 * X2, # get a base number to base the treatment prob off
+  Z = 0.3 * education + 0.2 * gender + 0.01 * assets + 0.2 * X, # get a base number to base the treatment prob off
   Z = Z / max(Z)  - mean(Z / max(Z)) + 0.5, # ensure the resulting figure is within reasonable doubt, with 0.5 mean
   Z = plogis(Z), # convert the probabilities to [0,1] using the logit function
   Z = rbinom(N,1,Z) # draw based on probabilities.
@@ -401,9 +400,19 @@ draw_data(psm_design) %>%
 ```
 
 
+
+## Rhomis data
+
+First, I get the Rhomis data, and clean it up a bit. There are no village-level
+identifers, so I just bin the gps latitute variable in 18 clusters. Not perfect
+of course, but whatever.
+
+I also do some data cleaning. 
+
 ```{r}
 
-
+library(tidyverse)
+library(DeclareDesign)
 n_clusters = 18
 
 rhomis <-
@@ -418,33 +427,56 @@ rhomis <-
   mutate(HFIAS_status = factor(HFIAS_status, levels = c("FoodSecure", "MildlyFI", "ModeratelyFI", "SeverelyFI")),
          food_secure = 1 * as.numeric(HFIAS_status) <= 3,
          educated = 1*(Head_EducationLevel != "No_school"),
-         female = 1* (HouseholdType == "woman_single"))
+         female = 1* (HouseholdType == "woman_single")) %>%
+  mutate(hh = row_number()) %>%
+  select(!HFIAS_status)
 
 
-table(rhomis$HouseholdType)
+```
+
+Then, I put it in DeclareDesign.
+
+I use dplyr to fabricate data, because I like it better.
+
+Treatment assignment is as follows:
+- Roughly 50% of the villages are selected, based on unobserved varaible `X_vill`
+- Roughly 50% of the households are selected, based on unobserved varaible `X_hh`
+
+Both these unobserved variables also affect outcomes.
+
+```{r}
 
 
-# randomly assign villages to treatment
-
-villages <-
-  rhomis %>%
-  select(village) %>%
-  mutate(s)
+effect <- 0.05
 
 
-N = nrow(rhomis)
 
 
 population <- declare_population(
-  rhomis,
-  treated_vill =  cluster_ra(clusters = village, prob = 0.5),
-  treated_hh = rbinom(N,1,0.5)
-)
+  rhomis %>% 
+    left_join(
+      rhomis %>%
+      select(village) %>%
+      unique() %>%
+      mutate(
+        # generate an indicator for a treated village
+        X_vill =  rnorm(nrow(.), sd = 2),
+        prob_treat_vill = plogis(X_vill - mean(X_vill) + 0.5), #set the mean so that about 50% of villages are treated
+        treated_vill = rbinom(nrow(.),1,prob_treat_vill) # draw based on probabilities.
+      )
+    ) %>%
+    mutate(
+      # sampling
+      X_hh =  rnorm(nrow(.), sd = 2),
+      prob_treat_hh = plogis(X_hh - mean(X_hh) + 0.5), #set the mean so that about 50% of villages are treated
+      treated_hh = rbinom(nrow(.),1,prob_treat_hh), # draw based on probabilities.
 
+      # boost food security with X_hh and X_vill
+      prob_boost = plogis((X_hh - mean(X_hh)) + (X_vill - mean(X_hh)) + 0.1),
+      food_secure = pmin(1,food_secure + rbinom(nrow(.),1,prob_boost)),
 
-potential_outcomes <- declare_potential_outcomes(
-  Y_Z_0 =   food_secure, # No intervention
-  Y_Z_1 = pmin(1,Y_Z_0 + rbinom(N,1,0.05))
+      potential_outcomes(Y ~ pmin(1,food_secure + Z * rbinom(nrow(.),1,effect)))
+    )  
 )
 
 
@@ -454,45 +486,46 @@ assignment <- declare_assignment(
 )
 
 
-filter_households <- function(data){
+filter_obserable_hhs <- function(data){
+  # this function filters any control househols in treated communities
+  # and it sets the sample size
   data %>%
-    mutate(sample = if_else(treated_vill == 1 & treated_hh == 0,0,1)) %>%
-    filter(sample == 1)
+    mutate(drop = if_else(treated_vill == 1 & treated_hh == 0,1,0)) %>%
+    filter(drop != 1) %>%
+      # sample from treated villages and untreated villages
+      group_by(treated_vill) %>%
+      do({
+        if (unique(.$treated_vill) == 1) {
+          resample_data(., N = c(village = 50, hh =15))
+        } else {
+          resample_data(., N = c(village = 50, hh = 30))
+        }
+      })
 }
 
-sample <- declare_sampling(
-  handler = filter_households
+sampling <- declare_step(
+  handler = filter_obserable_hhs
 )
 
+measurement <- declare_measurement(Y = reveal_outcomes(Y ~ Z)
+) 
 
-reveal <- declare_reveal(Y = ifelse(Z == 1, Y_Z_1, Y_Z_0))
-
-estimand <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0))
+inquiry <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)
+)
 
 ols_estimator <- 
   declare_estimator(Y ~ Z, 
                     inquiry = "ATE", 
-                    .method = estimatr::lm_robust, 
                     term = "Z", 
                     label = "LM")
 
-design <- population + potential_outcomes + assignment + estimand + reveal + sample  + ols_estimator
-design
 
-draw_data(design) %>%
-  as_tibble() %>%
-  pull(sample)
+design <-
+  population +  inquiry + assignment +  measurement + ols_estimator
 
-filter_households <- function(data){
-  data %>%
-    mutate(sample = if_else(treated_vill == 1 & treated_hh == 0,0,1)) %>%
-    pull(sample)
-}
 
-rhomis %>%
-  mutate(  treated_vill =  cluster_ra(clusters = village, prob = 0.5),
-  treated_hh = rbinom(N,1,0.5)) %>%
-  filter_households
+ 
 
 
 ```
+
