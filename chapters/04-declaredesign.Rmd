@@ -268,7 +268,11 @@ combination of the parameters. This takes a lot of time, so I update
 my design to have only one estimator (estimator1, which is fast) 
 and I've set the `sims` option of `diagnose_design()` to 100.
 
-```{r evaluate_design,}
+I convert the output to a `tibble` as that's easy to work with.
+
+
+
+```{r, eval = FALSE}
 
 design <- model + assignment + inquiry + estimator1
 
@@ -276,20 +280,36 @@ diagnosis <-
   design %>%
   redesign(effect_size = 7:11,
            stdev = c(3,5,7)) %>%
-  diagnose_design(sims = 100)
+  diagnose_design(sims = 100) %>%
+  tidy() %>%
+  as_tibble()
 
 ```
 
-Now, I want a nice plot. For this I use the
-`tidy()` function to convert the output to a data frame, which -
-after some filtering - I pipe into `ggplot()`. 
+
+```{r, include = FALSE, eval = FALSE}
+
+write_csv(diagnosis,file = here("data/diagnosis_dd.csv"))
+
+
+```
+
+```{r,  include=FALSE}
+
+diagnosis <- read_csv(file =  here("data/diagnosis_dd.csv"))
+
+
+```
+
+
+Now, I want a nice plot. 
+For this I filter the tibble I created, and pipe it into `ggplot()`. 
 It's now easy to see that I should 
 be able to pick up an effect size of 10 in most cases.
 
 ```{r}
 
 diagnosis %>%
-  tidy() %>%
   filter(diagnosand == "power") %>%
   select(effect_size,stdev,power = estimate) %>%
   mutate(stdev = factor(stdev)) %>%
@@ -556,7 +576,7 @@ ols_estimator <-
   declare_estimator(Y ~ Z, 
                     inquiry = "ATE", 
                     term = "Z", 
-                    label = "LM1")
+                    label = "LM")
 
 
 
@@ -603,20 +623,40 @@ design <-
 
 Now, let's diagnose the design!
 
-First, let's examine bias, given household selection effects
+First, let's examine bias, given household selection effects. 
+We're assuming the village the village selection effect to be 0.
 
-```{r}
+```{r, eval = FALSE}
 
 diagnosis <-
   design %>%
   redesign(rho_vill = 0,
            rho_hh = 0:5/10) %>%
-  diagnose_design(sims = 10)
-
-
-
-  diagnosis %>%
+  diagnose_design(sims = 200) %>%
   tidy() %>%
+  as_tibble()
+
+```
+
+
+```{r, include = FALSE, eval = FALSE}
+
+write_csv(diagnosis,file = here("data/diagnosis_psm_bias.csv"))
+
+
+```
+
+```{r,  include=FALSE}
+
+diagnosis <- read_csv(file =  here("data/diagnosis_psm_bias.csv"))
+
+
+```
+
+
+```{r}
+
+diagnosis %>%
   filter(diagnosand == "bias") %>%
   dplyr::select(rho_hh, bias = estimate, estimator) %>%
   ggplot(aes(x = rho_hh, y = bias, 
@@ -627,23 +667,42 @@ diagnosis <-
 
 ```
 
-Matching on criteria unrelated to the selection process doesn't help.
+Matching on criteria unrelated to the selection process doesn't help reduce bias.
 
-Then, let's examine power.
+Then, let's examine power. Note that this takes a while!
 
 
-```{r}
+```{r, eval = FALSE}
 
 diagnosis <-
   design %>%
   redesign(clusters_control = 4:7 * 10,
            effect = 0.05 * 1:5) %>%
-  diagnose_design(sims = 200)
+  diagnose_design(sims = 200) %>%
+  tidy() %>%
+  as_tibble()
 
 
+```
+
+```{r, include = FALSE, eval = FALSE}
+
+write_csv(diagnosis,file = here("data/diagnosis_psm_power.csv"))
+
+
+```
+
+```{r,  include=FALSE, message = FALSE}
+
+diagnosis <- read_csv(file =  here("data/diagnosis_psm_power.csv"))
+
+
+```
+
+
+```{r}
 
 diagnosis %>%
-  tidy() %>%
   filter(diagnosand == "power") %>%
   dplyr::select(clusters_control, power = estimate, estimator, effect) %>%
   ggplot(aes(x = clusters_control, y = power, 
