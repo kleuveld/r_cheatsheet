@@ -425,12 +425,54 @@ rhomis <-
   mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) %>%
   select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput) %>%
   mutate(HFIAS_status = factor(HFIAS_status, levels = c("FoodSecure", "MildlyFI", "ModeratelyFI", "SeverelyFI")),
-         food_secure = 1 * as.numeric(HFIAS_status) <= 3,
+         food_secure = 1 * (as.numeric(HFIAS_status) <= 3),
          educated = 1*(Head_EducationLevel != "No_school"),
          female = 1* (HouseholdType == "woman_single")) %>%
   mutate(hh = row_number()) %>%
-  select(!HFIAS_status)
+  select(!HFIAS_status) %>%
 
+  # there are too many missings in my data; these seem reasonable to assume to be 0 when missing:
+  mutate(across(c(LandOwned,NFertInput,educated),
+              ~ if_else(is.na(.x),0,.x)))
+
+
+```
+
+
+Then, I create a variable that's correlated to my outcome variable of interest, `food_secure`. 
+I do this by simply regressing `food_secure` on some other things, and saving the error 
+term.
+
+
+```{r}
+
+
+model <- lm_robust(food_secure ~ HHsizeMAE + educated + LandOwned + NFertInput, data = rhomis)
+
+rhomis <-
+  rhomis %>%
+  mutate(resid = food_secure - predict(model, rhomis))
+
+
+```
+
+I do something similar at village level:
+
+
+```{r}
+
+rhomis_vill <-
+  rhomis %>%
+  group_by(village) %>%
+  summarize(across(c(food_secure,HHsizeMAE, educated, LandOwned, NFertInput),
+                   ~mean(.x,na.rm=TRUE)))
+
+model_vill <- lm_robust(food_secure ~ HHsizeMAE + educated + LandOwned + NFertInput, data = rhomis_vill)
+
+rhomis_vill <-
+  rhomis_vill %>%
+  mutate(resid_vill = food_secure - predict(model_vill, rhomis_vill)) %>%
+  select(village,resid_vill)
 
 ```
 
@@ -444,36 +486,33 @@ Treatment assignment is as follows:
 
 Both these unobserved variables also affect outcomes.
 
+
 ```{r}
-
-
 effect <- 0.05
+rho_vill = 0.1
+rho_hh = 0.1
 
 
+
+clusters_treat = 50
+hh_treat = 15
+
+clusters_control_multi = 1
+hh_control_multi = 1
 
 
 population <- declare_population(
   rhomis %>% 
     left_join(
-      rhomis %>%
-      select(village) %>%
-      unique() %>%
-      mutate(
-        # generate an indicator for a treated village
-        X_vill =  rnorm(nrow(.), sd = 2),
-        prob_treat_vill = plogis(X_vill - mean(X_vill) + 0.5), #set the mean so that about 50% of villages are treated
-        treated_vill = rbinom(nrow(.),1,prob_treat_vill) # draw based on probabilities.
-      )
+      rhomis_vill %>%
+        mutate(
+          treated_vill = correlate(given = resid_vill, draw_handler = draw_binomial, prob = 0.5 , rho = rho_vill )
+        ),
+      by = join_by(village)
     ) %>%
     mutate(
       # sampling
-      X_hh =  rnorm(nrow(.), sd = 2),
-      prob_treat_hh = plogis(X_hh - mean(X_hh) + 0.5), #set the mean so that about 50% of villages are treated
-      treated_hh = rbinom(nrow(.),1,prob_treat_hh), # draw based on probabilities.
-
-      # boost food security with X_hh and X_vill
-      prob_boost = plogis((X_hh - mean(X_hh)) + (X_vill - mean(X_hh)) + 0.1),
-      food_secure = pmin(1,food_secure + rbinom(nrow(.),1,prob_boost)),
+      treated_hh = correlate(given = resid, draw_handler = draw_binomial, prob = 0.5 , rho = rho_hh),
 
       potential_outcomes(Y ~ pmin(1,food_secure + Z * rbinom(nrow(.),1,effect)))
     )  
@@ -486,7 +525,7 @@ assignment <- declare_assignment(
 )
 
 
-filter_obserable_hhs <- function(data){
+resample_hhs <- function(data){
   # this function filters any control househols in treated communities
   # and it sets the sample size
   data %>%
@@ -496,15 +535,15 @@ filter_obserable_hhs <- function(data){
       group_by(treated_vill) %>%
       do({
         if (unique(.$treated_vill) == 1) {
-          resample_data(., N = c(village = 50, hh =15))
+          resample_data(., N = c(village = clusters_treat, hh = hh_treat))
         } else {
-          resample_data(., N = c(village = 50, hh = 30))
+          resample_data(., N = c(village = clusters_control_multi * clusters_treat, hh = hh_control_multi * hh_treat))
         }
       })
 }
 
-sampling <- declare_step(
-  handler = filter_obserable_hhs
+resampling <- declare_step(
+  handler = resample_hhs
 )
 
 measurement <- declare_measurement(Y = reveal_outcomes(Y ~ Z)
@@ -517,11 +556,44 @@ ols_estimator <-
   declare_estimator(Y ~ Z, 
                     inquiry = "ATE", 
                     term = "Z", 
-                    label = "LM")
+                    label = "LM1")
 
+
+
+# Step 6: Updated estimator with error handling for matching
+
+custom_match <- function(data) {
+    library(Matching)
+
+    # Fit propensity score model
+    ps_model <- glm(Z ~ HHsizeMAE + educated + LandOwned + NFertInput, family = binomial, data = data)
+    
+    # Calculate propensity scores
+    data$ps <- predict(ps_model, type = "response")
+    
+    # Perform matching (handle matching failure gracefully)
+    matching <- Match(Y = data$Y, Tr = data$Z, X = data$ps, ties = FALSE)
+    
+  
+    # Return a data.frame with the estimate
+    tibble(
+          estimate = matching$est[1],  # ATE estimate
+          std.error = matching$se.standard,  # Standard error
+          statistic = estimate / std.error,  # z-statistic
+          p.value = 2 * (1 - pnorm(abs(statistic))),  # p-value
+          conf.low = estimate - 1.96 * std.error,  # 95% lower bound
+          conf.high = estimate + 1.96 * std.error  # 95% upper bound
+    )
+
+}
+match_estimator <- declare_estimator(
+  handler = label_estimator(custom_match),
+  inquiry = "ATE",  # Tie the estimator to the declared inquiry
+  label = "PSM ATE"
+)
 
 design <-
-  population +  inquiry + assignment +  measurement + ols_estimator
+  population +  inquiry + assignment + resampling + measurement + ols_estimator + match_estimator
 
 
  
@@ -529,3 +601,58 @@ design <-
 
 ```
 
+Now, let's diagnose the design!
+
+First, let's examine bias, given household selection effects
+
+```{r}
+
+diagnosis <-
+  design %>%
+  redesign(rho_vill = 0,
+           rho_hh = 0:5/10) %>%
+  diagnose_design(sims = 10)
+
+
+
+  diagnosis %>%
+  tidy() %>%
+  filter(diagnosand == "bias") %>%
+  dplyr::select(rho_hh, bias = estimate, estimator) %>%
+  ggplot(aes(x = rho_hh, y = bias, 
+             shape = estimator, color=estimator)) +
+    geom_line() +
+    geom_point() 
+
+
+```
+
+Matching on criteria unrelated to the selection process doesn't help.
+
+Then, let's examine power.
+
+
+```{r}
+
+diagnosis <-
+  design %>%
+  redesign(clusters_control = 4:7 * 10,
+           effect = 0.05 * 1:5) %>%
+  diagnose_design(sims = 200)
+
+
+
+diagnosis %>%
+  tidy() %>%
+  filter(diagnosand == "power") %>%
+  dplyr::select(clusters_control, power = estimate, estimator, effect) %>%
+  ggplot(aes(x = clusters_control, y = power, 
+             shape = estimator, color=estimator)) +
+    geom_line() +
+    geom_point() +
+    geom_hline(yintercept=0.8,linetype=2) +
+    facet_wrap(~effect)
+
+
+
+```
