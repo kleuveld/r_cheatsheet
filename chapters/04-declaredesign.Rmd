@@ -481,23 +481,25 @@ Then, I put it in DeclareDesign.
 I use dplyr to fabricate data, because I like it better.
 
 Treatment assignment is as follows:
-- Roughly 50% of the villages are selected, based on unobserved varaible `X_vill`
-- Roughly 50% of the households are selected, based on unobserved varaible `X_hh`
+- 50% of the villages are selected for treatment.
+- Roughly 50% of the households are selected. The selection indicator will have
+a correlation of `rho` with the residual of the regression above, ensuring that
+selection is affected by unobservable factors that are correlated to the outcome.
 
-Both these unobserved variables also affect outcomes.
 
 
 ```{r}
+library(MatchIt)
+
+# set parameters
 effect <- 0.05
 rho = 0.1
 
-
-
-clusters_treat = 50
+clusters_treat = 10
 hh_treat = 15
 
-clusters_control_multi = 1
-hh_control_multi = 1
+clusters_control_multi = 1 
+hh_control_multi = 2
 
 
 population <- declare_population(
@@ -516,8 +518,6 @@ population <- declare_population(
       potential_outcomes(Y ~ pmin(1,food_secure + Z * rbinom(nrow(.),1,effect)))
     )  
 )
-
-
 
 assignment <- declare_assignment(
   Z = treated_vill * treated_hh
@@ -560,39 +560,34 @@ ols_estimator <-
 
 
 
-custom_match <- function(data) {
-    library(Matching)
-
-    # Fit propensity score model
-    ps_model <- glm(Z ~ HHsizeMAE + educated + LandOwned + NFertInput, family = binomial, data = data)
-    
-    # Calculate propensity scores
-    data$ps <- predict(ps_model, type = "response")
-    
-    # Perform matching (handle matching failure gracefully)
-    matching <- Match(Y = data$Y, Tr = data$Z, X = data$ps, ties = FALSE)
-    
+custom_match <- function(data, equation, outcome = "Y", term = "Z") {
   
-    # Return a data.frame with the estimate
-    tibble(
-          estimate = matching$est[1],  # ATE estimate
-          std.error = matching$se.standard,  # Standard error
-          statistic = estimate / std.error,  # z-statistic
-          p.value = 2 * (1 - pnorm(abs(statistic))),  # p-value
-          conf.low = estimate - 1.96 * std.error,  # 95% lower bound
-          conf.high = estimate + 1.96 * std.error  # 95% upper bound
-    )
+  # the command filter(term == term) wouldn't do anything, so this is a workaround
+  term_value <- term
 
+  # run the matching model
+  matchit_model <- matchit(equation,
+                         data = data,
+                         method = "nearest")
+  matched_df <- match.data(matchit_model)
+
+  # run a regression, weighted by the propensity score
+  lm_robust(Y ~ Z, clusters = village, data = matched_df, weights = weights) %>%
+    tidy() %>%
+    mutate(outcome = outcome) %>%
+    filter(term == term_value)
 }
+
 match_estimator <- declare_estimator(
+  Z ~ HHsizeMAE + educated + LandOwned + NFertInput + female + NFertInput,
   handler = label_estimator(custom_match),
   inquiry = "ATE",  # Tie the estimator to the declared inquiry
-  label = "PSM ATE"
+  label = "PSM ATE",
+  term = "Z"
 )
 
 design <-
   population +  inquiry + assignment + resampling + measurement + ols_estimator + match_estimator
-
 
 ```
 
