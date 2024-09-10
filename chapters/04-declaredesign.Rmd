@@ -18,6 +18,8 @@ Here's a common situation: I've collected some baseline data, and are
 wondering if our study has sufficient power to pick up expected treatment
 effects.
 
+### Fabricating Data 
+
 I will start off with some fake baseline data, which only contains `y0`, our outcome
 indicator. We use the `fabricate()` function, from the fabricatr library, which is
 loaded with DeclareDesign:
@@ -64,6 +66,8 @@ fakedata_years <-
 fakedata_years %>% as_tibble()
 
 ```
+
+### Declare Design 
 
 Now it's time to start declaring our design. The first element of the 
 design is the model, which essentially is my data, and I declare it 
@@ -230,6 +234,9 @@ summary(design)
 
 Note that the results of my three estimators are identical, which is as expected.
 
+
+### Diagnosing Design and calculating power
+
 If you want to browse a version of the data created by your design,
 use the `draw_data()` function. This is useful to examine the properties of the data.
 
@@ -323,105 +330,15 @@ diagnosis %>%
 ```
 
 
-## Propsensity score matching
+## Propsensity score matching with Rhomis data
 
+Here, I will be working on Rhomis Data, in the context of a study
+that aims to increase food security.
+Here' I have some reference data, that I want to use to explore a
+matching design. I need to set up a treatment indicator that is correlated
+with my outcome.
 
-```{r}
-
-
-library(Matching)
-
-# Step 1: Define the population with unobserved characteristics
-population <- declare_population(
-  N = 500,  # Sample size
-  education = rnorm(N, mean = 12, sd = 2),  # Education in years
-  household_size = pmax(1,round(rnorm(N, mean = 4, sd = 1))),  # Household size
-  gender = rbinom(N, 1, 0.5),  # Gender: 0 = female, 1 = male
-  assets = rnorm(N, mean = 10, sd = 30),  # Assets in 100s dollars
-  u = rnorm(N),  # Unobserved random characteristic
-  X = rnorm(N, mean = 20 , sd = 20),  # unobserved covariate
-)
-
-# Step 2: Define potential outcomes with unobserved characteristics
-potential_outcomes <- declare_potential_outcomes(
-  Y_Z_0 = 50 + 0.5 * education + 0.3 * gender + 0.1 * assets^2 + 0.2 * education * gender  + 0.6 * X + u,  # No intervention
-  Y_Z_1 = 50 + 0.5 * education + 0.3 * gender + 0.1 * assets^2 + 0.2 * education * gender + 0.6 * X + u + 10  # Intervention increases fertilizer use by 10 units
-)
-
-# Step 3: Simulate treatment assignment with observed and unobserved characteristics
-assignment <- declare_assignment(
-  Z = 0.3 * education + 0.2 * gender + 0.01 * assets + 0.2 * X, # get a base number to base the treatment prob off
-  Z = Z / max(Z)  - mean(Z / max(Z)) + 0.5, # ensure the resulting figure is within reasonable doubt, with 0.5 mean
-  Z = plogis(Z), # convert the probabilities to [0,1] using the logit function
-  Z = rbinom(N,1,Z) # draw based on probabilities.
-)
-
-# Step 4: Reveal outcomes based on treatme nt
-reveal <- declare_reveal(Y = ifelse(Z == 1, Y_Z_1, Y_Z_0))
-
-# Step 5: Declare an inquiry (the true estimand, i.e., ATE)
-estimand <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0))
-
-# Step 6: Updated estimator with error handling for matching
-
-custom_match <- function(data) {
-    # Fit propensity score model
-    ps_model <- glm(Z ~ education + household_size + gender + assets, family = binomial, data = data)
-    
-    # Calculate propensity scores
-    data$ps <- predict(ps_model, type = "response")
-    
-    # Perform matching (handle matching failure gracefully)
-    matching <- Match(Y = data$Y, Tr = data$Z, X = data$ps, ties = FALSE)
-    
-  
-    # Return a data.frame with the estimate
-    tibble(
-          estimate = matching$est[1],  # ATE estimate
-          std.error = matching$se.standard,  # Standard error
-          statistic = estimate / std.error,  # z-statistic
-          p.value = 2 * (1 - pnorm(abs(statistic))),  # p-value
-          conf.low = estimate - 1.96 * std.error,  # 95% lower bound
-          conf.high = estimate + 1.96 * std.error  # 95% upper bound
-    )
-
-}
-match_estimator <- declare_estimator(
-  handler = label_estimator(custom_match),
-  inquiry = "ATE",  # Tie the estimator to the declared inquiry
-  label = "PSM ATE"
-)
-
-ols_estimator <- 
-  declare_estimator(Y ~ Z + education + household_size + gender + assets, 
-                    inquiry = "ATE", 
-                    .method = estimatr::lm_robust, 
-                    term = "Z", 
-                    label = "LM")
-
-
-# Step 7: Declare the complete design
-psm_design <- population + potential_outcomes + assignment + reveal + estimand + match_estimator + ols_estimator
-
-# Step 8: Diagnose the design (including power analysis)
-diagnosis <- diagnose_design(
-  design = psm_design, 
-  sims = 200  # Number of simulations
-)
-
-# View the summary of the diagnosis
-summary(diagnosis)
-
-
-simulated_data <-
-draw_data(psm_design) %>%
-  as_tibble()
-
-```
-
-
-
-## Rhomis data
+### Data Wrangling
 
 First, I get the Rhomis data, and clean it up a bit. There are no village-level
 identifers, so I just bin the gps latitute variable in 18 clusters. Not perfect
@@ -444,6 +361,8 @@ rhomis <-
   arrange(GPS_LAT) %>%
   mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) %>%
   select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput) %>%
+  
+  # create some variables
   mutate(HFIAS_status = factor(HFIAS_status, levels = c("FoodSecure", "MildlyFI", "ModeratelyFI", "SeverelyFI")),
          food_secure = 1 * (as.numeric(HFIAS_status) <= 3),
          educated = 1*(Head_EducationLevel != "No_school"),
@@ -458,6 +377,7 @@ rhomis <-
 
 ```
 
+### Treatment probabilities
 
 Then, I create a variable that's correlated to my outcome variable of interest, `food_secure`. 
 I do this by simply regressing `food_secure` on some other things, and saving the error 
@@ -476,9 +396,11 @@ rhomis <-
 
 ```
 
+### Declare Design
+
 Then, I put it in DeclareDesign.
 
-I use dplyr to fabricate data, because I like it better.
+I use dplyr to fabricate data, because I like it better than fabricatr.
 
 Treatment assignment is as follows:
 - 50% of the villages are selected for treatment.
@@ -486,6 +408,15 @@ Treatment assignment is as follows:
 a correlation of `rho` with the residual of the regression above, ensuring that
 selection is affected by unobservable factors that are correlated to the outcome.
 
+Treatment then is treated households in treated villages. 
+
+I then re-sample from the original data using the `resample_hhs` I define below:
+- I ensure I have more control household than treatment households.
+- I drop any untreated household in treated villages; this is a fairly common setup.
+
+I compare a standard difference in means, as well as a custom matching function that 
+uses the `MatchIt` package to create a balanced data set, that I can then use for
+regular regressions, weighted by the propensity score.
 
 
 ```{r}
@@ -522,7 +453,6 @@ population <- declare_population(
 assignment <- declare_assignment(
   Z = treated_vill * treated_hh
 )
-
 
 resample_hhs <- function(data){
   # this function filters any control househols in treated communities
@@ -591,6 +521,8 @@ design <-
 
 ```
 
+### Bias
+
 Now, let's diagnose the design!
 
 First, let's examine bias, given household selection effects. 
@@ -638,6 +570,8 @@ diagnosis %>%
 
 Matching on criteria unrelated to the selection process doesn't help reduce bias.
 
+### Power 
+
 Then, let's examine power. Note that this takes a while!
 
 
@@ -645,8 +579,8 @@ Then, let's examine power. Note that this takes a while!
 
 diagnosis <-
   design %>%
-  redesign(clusters_control = 4:7 * 10,
-           effect = 0.05 * 1:5) %>%
+  redesign(clusters_treat = 3:6 * 10,
+           effect = 0.05 * (1:3)^2) %>%
   diagnose_design(sims = 200) %>%
   tidy() %>%
   as_tibble()
@@ -668,19 +602,19 @@ diagnosis <- read_csv(file =  here("data/diagnosis_psm_power.csv"))
 
 ```
 
+Put it in a plot.
 
 ```{r}
 
 diagnosis %>%
   filter(diagnosand == "power") %>%
-  dplyr::select(clusters_control, power = estimate, estimator, effect) %>%
-  ggplot(aes(x = clusters_control, y = power, 
+  select(clusters_treat, power = estimate, estimator, effect) %>%
+  ggplot(aes(x = clusters_treat, y = power, 
              shape = estimator, color=estimator)) +
     geom_line() +
     geom_point() +
     geom_hline(yintercept=0.8,linetype=2) +
     facet_wrap(~effect)
-
 
 
 ```
