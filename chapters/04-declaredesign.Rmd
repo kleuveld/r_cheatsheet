@@ -1,3 +1,16 @@
+```{r, include = FALSE}
+
+
+# start with a clean environment
+rm(list=ls())
+
+# run diagnosis?
+run_diagnosis = TRUE
+
+
+```
+
+
 # Power Analysis using DeclareDesign {#declaredesign}
 
 [DeclareDesign](https://declaredesign.org/) is a system to simulate Research Designs. This is useful for power 
@@ -26,8 +39,6 @@ loaded with DeclareDesign:
 
 ```{r}
 
-# start with a clean environment
-rm(list=ls())
 
 # load packages
 library(tidyverse) # data management
@@ -279,7 +290,7 @@ I convert the output to a `tibble` as that's easy to work with.
 
 
 
-```{r, eval = FALSE}
+```{r diagnose_dd_power, eval = run_diagnosis}
 
 design <- model + assignment + inquiry + estimator1
 
@@ -294,7 +305,7 @@ diagnosis <-
 ```
 
 
-```{r, include = FALSE, eval = FALSE}
+```{r, include = FALSE, eval = run_diagnosis}
 
 write_csv(diagnosis,file = here("data/diagnosis_dd.csv"))
 
@@ -387,7 +398,7 @@ term.
 ```{r}
 
 
-model <- lm_robust(food_secure ~ HHsizeMAE + educated + LandOwned + NFertInput, data = rhomis)
+model <- lm_robust(food_secure ~ HHsizeMAE + LandOwned + NFertInput, data = rhomis)
 
 rhomis <-
   rhomis %>%
@@ -420,6 +431,7 @@ regular regressions, weighted by the propensity score.
 
 
 ```{r}
+
 library(MatchIt)
 
 # set parameters
@@ -464,9 +476,9 @@ resample_hhs <- function(data){
       group_by(treated_vill) %>%
       do({
         if (unique(.$treated_vill) == 1) {
-          resample_data(., N = c(village = clusters_treat, hh = hh_treat))
+          resample_data(., N = c(village = clusters_treat, hh = hh_treat),unique_labels = TRUE)
         } else {
-          resample_data(., N = c(village = clusters_control_multi * clusters_treat, hh = hh_control_multi * hh_treat))
+          resample_data(., N = c(village = clusters_control_multi * clusters_treat, hh = hh_control_multi * hh_treat), unique_labels = TRUE)
         }
       })
 }
@@ -483,6 +495,7 @@ inquiry <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)
 
 ols_estimator <- 
   declare_estimator(Y ~ Z, 
+                    clusters = village_unique,
                     inquiry = "ATE", 
                     term = "Z", 
                     label = "LM")
@@ -502,7 +515,7 @@ custom_match <- function(data, equation, outcome = "Y", term = "Z") {
   matched_df <- match.data(matchit_model)
 
   # run a regression, weighted by the propensity score
-  lm_robust(Y ~ Z, clusters = village, data = matched_df, weights = weights) %>%
+  lm_robust(Y ~ Z, clusters = village_unique, data = matched_df, weights = weights) %>%
     tidy() %>%
     mutate(outcome = outcome) %>%
     filter(term == term_value)
@@ -519,6 +532,7 @@ match_estimator <- declare_estimator(
 design <-
   population +  inquiry + assignment + resampling + measurement + ols_estimator + match_estimator
 
+
 ```
 
 ### Bias
@@ -528,7 +542,7 @@ Now, let's diagnose the design!
 First, let's examine bias, given household selection effects. 
 We're assuming the village the village selection effect to be 0.
 
-```{r, eval = FALSE}
+```{r diagnose_psm_bias, eval = run_diagnosis}
 
 diagnosis <-
   design %>%
@@ -540,7 +554,7 @@ diagnosis <-
 ```
 
 
-```{r, include = FALSE, eval = FALSE}
+```{r, include = FALSE, eval = run_diagnosis}
 
 write_csv(diagnosis,file = here("data/diagnosis_psm_bias.csv"))
 
@@ -575,7 +589,7 @@ Matching on criteria unrelated to the selection process doesn't help reduce bias
 Then, let's examine power. Note that this takes a while!
 
 
-```{r, eval = FALSE}
+```{r diagnose_psm_power, eval = run_diagnosis}
 
 diagnosis <-
   design %>%
@@ -588,7 +602,7 @@ diagnosis <-
 
 ```
 
-```{r, include = FALSE, eval = FALSE}
+```{r, include = FALSE, eval = run_diagnosis}
 
 write_csv(diagnosis,file = here("data/diagnosis_psm_power.csv"))
 
