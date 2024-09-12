@@ -307,34 +307,70 @@ to factor variables using black magic.
 ## Lollipop plot
 
 A lollipop plot is a nice alternative to a bar chart. Here is an example. 
-It uses `reorder` to put the longest lollipops are at the top
-(though the grouping by villages messes this up), 
+It uses `reorder` to put the longest lollipops are at the top, and
 and the `brewur()` function to select four colors from the WUR theme. 
 
 
+
 ```{r}
-  
 
-data %>%
-    group_by(village, respondent_wall_type) %>%
-    summarize(Count = n()) %>%
-    mutate(respondent_wall_type = reorder(respondent_wall_type, Count)) %>%
+N = nrow(data)
 
-    ggplot(aes(x = Count, y = village, group = respondent_wall_type)) +
-        geom_linerange(aes(y = village, xmin = 0, xmax = Count), 
-                       position = position_dodge(width = 0.5), color = "gray") +
-        geom_point(aes(x = Count, y = village, color = respondent_wall_type), 
-                   size = 4, position = position_dodge(width = 0.5)) +
-        scale_color_manual(values = brewur()[1:4]) +
-        theme_wur()
-
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+    separate_longer_delim(items_owned, delim = ";") %>%
+    select(items_owned) %>%
+    filter(!is.na(items_owned)) %>%
+    group_by(items_owned) %>%
+    summarize(Count = n() / N) %>%
+    mutate(items_owned = reorder(items_owned, Count)) %>%
+    ggplot(aes(x = Count, y = items_owned)) +
+        geom_linerange(aes(y = items_owned, xmin = 0, xmax = Count), color = "gray") +
+        geom_point(aes(x = Count, y = items_owned), 
+                   size = 4, position = position_dodge(width = 0.5),
+                   color = brewur()[[1]]) +
+        theme_wur() +
+        scale_x_continuous(labels = scales::percent_format())
 
 ```
 
-This plot is horrible for color blind people! Consider something like 
-`[viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)`
-to make more accessbile graphs.
 
+You can of course also group things, but this may mess up the ordering.
+Here I use `complete` to make sure that 0s ae properly displayed.
+The trick is to use `position = position_dodge(width = 0.5)`.
+I use `scale_color_manual()` to set the colors to the first four WUR colors.
+
+```{r}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+    separate_longer_delim(items_owned, delim = ";") %>%
+    select(village, items_owned) %>%
+    filter(!is.na(items_owned)) %>%
+    group_by(village, items_owned) %>%
+    summarize(Count = n()) %>%
+    ungroup() %>%
+    complete(village, items_owned, fill = list(Count = 0)) %>%
+    group_by(village) %>%
+    mutate(n = sum(Count)) %>%
+    ungroup() %>% 
+    mutate(Percent = Count / n) %>%
+    mutate(items_owned = reorder(items_owned, Percent)) %>%
+
+
+    ggplot(aes(x = Percent, y = items_owned, group = village)) +
+        geom_linerange(aes(y = items_owned, xmin = 0, xmax = Percent), 
+                       position = position_dodge(width = 1), color = "gray") +
+        geom_point(aes(x = Percent, y = items_owned, color = village), 
+                   size = 4, position = position_dodge(width = 1)) +
+        scale_color_manual(values = brewur()[1:4]) +
+        theme_wur() +
+
+        scale_x_continuous(labels = scales::percent_format())
+
+```
+
+This graph is very crowded, so probably would need some changes.
+Perhaps facetting would have been better here, 
+or you could manually tweak the y-values to create some whitespace.
 
 ## Maps
 
