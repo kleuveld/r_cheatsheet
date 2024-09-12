@@ -342,20 +342,32 @@ I use `scale_color_manual()` to set the colors to the first four WUR colors.
 ```{r}
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+    group_by(village) %>%
+    summarize(n = n())
+
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+    # get list of items, and summarize to counts by village
     separate_longer_delim(items_owned, delim = ";") %>%
     select(village, items_owned) %>%
     filter(!is.na(items_owned)) %>%
     group_by(village, items_owned) %>%
     summarize(Count = n()) %>%
+
+    # make sure 0s are explicit
     ungroup() %>%
     complete(village, items_owned, fill = list(Count = 0)) %>%
-    group_by(village) %>%
-    mutate(n = sum(Count)) %>%
-    ungroup() %>% 
-    mutate(Percent = Count / n) %>%
+
+    # merge in village totals
+    left_join(read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+                group_by(village) %>%
+                summarize(n = n())) %>%
+
+    # compute percentages
+    mutate(Percent = Count / n) %>% 
     mutate(items_owned = reorder(items_owned, Percent)) %>%
 
-
+    # plot
     ggplot(aes(x = Percent, y = items_owned, group = village)) +
         geom_linerange(aes(y = items_owned, xmin = 0, xmax = Percent), 
                        position = position_dodge(width = 1), color = "gray") +
