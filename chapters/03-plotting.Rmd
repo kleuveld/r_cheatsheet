@@ -303,6 +303,39 @@ Or rather, it works, but converts the factor back to a string.
 In the [functions](#plot-function) chapter, I define a function called `count_label()` that adds group counts 
 to factor variables using black magic. 
 
+
+## Lollipop plot
+
+A lollipop plot is a nice alternative to a bar chart. Here is an example. 
+It uses `reorder` to put the longest lollipops are at the top
+(though the grouping by villages messes this up), 
+and the `brewur()` function to select four colors from the WUR theme. 
+
+
+```{r}
+  
+
+data %>%
+    group_by(village, respondent_wall_type) %>%
+    summarize(Count = n()) %>%
+    mutate(respondent_wall_type = reorder(respondent_wall_type, Count)) %>%
+
+    ggplot(aes(x = Count, y = village, group = respondent_wall_type)) +
+        geom_linerange(aes(y = village, xmin = 0, xmax = Count), 
+                       position = position_dodge(width = 0.5), color = "gray") +
+        geom_point(aes(x = Count, y = village, color = respondent_wall_type), 
+                   size = 4, position = position_dodge(width = 0.5)) +
+        scale_color_manual(values = brewur()[1:4]) +
+        theme_wur()
+
+
+```
+
+This plot is horrible for color blind people! Consider something like 
+`[viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)`
+to make more accessbile graphs.
+
+
 ## Maps
 
 For maps, we use the `sf` package, and a sample data set, in geo-json format (but sf can use
