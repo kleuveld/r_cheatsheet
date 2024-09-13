@@ -413,6 +413,8 @@ regular regressions, weighted by the propensity score.
 
 ```{r}
 
+set.seed(1)
+
 library(MatchIt, exclude("select")) # the select function would conflict with dplyr
                                     # this syntax requires R 4.0 or higher
 
@@ -505,7 +507,7 @@ match_estimator <- declare_estimator(
   handler = label_estimator(custom_match),
   inquiry = "ATE",  # Tie the estimator to the declared inquiry
   label = "PSM ATE",
-  term = "Z"
+  term = "Z",
 )
 
 design <-
@@ -520,6 +522,8 @@ It's useful to explore the property's of our matching estimator.
 First  I draw data based on my design and create matched version of that data.
 
 ```{r}
+
+set.seed(1)
 
 test_data <- 
   draw_data(design) %>%
@@ -540,6 +544,7 @@ Then I create balance table for the `test_data`:
 library(modelsummary)
 library(flextable)
 
+
 # balance table
 test_data %>% 
   mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
@@ -552,7 +557,7 @@ test_data %>%
 
 ```
 
-And for the `matched_df`.
+And for the `matched_df`, which is clearly more balanced.
 
 ```{r}
 
@@ -581,12 +586,15 @@ modelsummary(list(lm = unmatched_model, psm = matched_model), output = "flextabl
 
 ```
 
+Both of these underestimate the treatment effect by a bit, as it should be around 0.2.
+
 ### Bias
 
 Now, let's diagnose the design!
 
-First, let's examine bias, given household selection effects. 
-We're assuming the village the village selection effect to be 0.
+First, let's examine bias, given selection effects. 
+The strength of the selection effect is given by `rho`,
+so I use `redesign()` to vary it:
 
 ```{r diagnose_psm_bias, eval = run_diagnosis}
 
@@ -598,7 +606,6 @@ diagnosis <-
   as_tibble()
 
 ```
-
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
@@ -612,12 +619,13 @@ diagnosis <- read_csv(file =  here("data/diagnosis_psm_bias.csv"))
 
 ```
 
+And I put the result in a plot:
 
 ```{r}
 
 diagnosis %>%
   filter(diagnosand == "bias") %>%
-  dplyr::select(rho, bias = estimate, estimator) %>%
+  select(rho, bias = estimate, estimator) %>%
   ggplot(aes(x = rho, y = bias, 
              shape = estimator, color=estimator)) +
     geom_line() +
@@ -625,7 +633,10 @@ diagnosis %>%
 
 ```
 
-Clearly, the more selection is correlated to education, the higher the bias in the regular model.
+Clearly, the more treatment is correlated to education, 
+the higher the bias in the regular model.
+Bias is never extreme, however.
+
 
 ### Power 
 
@@ -654,12 +665,11 @@ write_csv(diagnosis,file = here("data/diagnosis_psm_power.csv"))
 
 diagnosis <- read_csv(file =  here("data/diagnosis_psm_power.csv"))
 
-
 ```
 
 When we plot the results, it seems sample size doesn't affect power much 
 (not sure why, perhaps the resampling?). 
-Our design can pick up a treatment effect of 0.4,
+The design can pick up a treatment effect of 0.4,
 meaning that 40% of the food insecure beneficaries become food secure.
 
 
@@ -674,6 +684,5 @@ diagnosis %>%
     geom_point() +
     geom_hline(yintercept=0.8,linetype=2) +
     facet_wrap(~effect)
-
 
 ```
