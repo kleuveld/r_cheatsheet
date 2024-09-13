@@ -394,6 +394,7 @@ Then, I put it in DeclareDesign.
 I use dplyr to fabricate data, because I like it better than fabricatr.
 
 Treatment assignment is as follows:
+
 - 50% of the villages are selected for treatment.
 - Roughly 50% of the households are selected. The selection indicator will have
 a correlation of `rho` with the household being educated, using `fabricatr`'s 
@@ -401,8 +402,10 @@ a correlation of `rho` with the household being educated, using `fabricatr`'s
 Education is also a strong predictor of `food_security`, creating inherent bias.
 
 I then re-sample from the original data using the `resample_hhs` I define below:
+
 - I ensure I have more control household than treatment households.
 - I drop any untreated households in treated villages.
+
 This simulates that we can't get control households in treated villages, 
 for example due to fears of 
 
@@ -516,7 +519,7 @@ design <-
 ```
 
 
-## Checking balance
+### Checking balance
 
 It's useful to explore the property's of our matching estimator. 
 First  I draw data based on my design and create matched version of that data.
@@ -558,6 +561,8 @@ test_data %>%
 ```
 
 And for the `matched_df`, which is clearly more balanced.
+Note that according to the [documentation](https://modelsummary.com/reference/datasummary_balance.html#global-options),
+`datasummary_balance()` reports weighted means if a `weights` variable is present. 
 
 ```{r}
 
