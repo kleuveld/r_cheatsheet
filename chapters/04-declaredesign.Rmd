@@ -5,7 +5,7 @@
 rm(list=ls())
 
 # run diagnosis?
-run_diagnosis = TRUE
+run_diagnosis = FALSE
 
 
 ```
@@ -41,6 +41,7 @@ loaded with DeclareDesign:
 
 
 # load packages
+
 library(tidyverse) # data management
 
 library(fixest) # for estimation of fixed effects
@@ -309,13 +310,11 @@ diagnosis <-
 
 write_csv(diagnosis,file = here("data/diagnosis_dd.csv"))
 
-
 ```
 
 ```{r,  include=FALSE}
 
 diagnosis <- read_csv(file =  here("data/diagnosis_dd.csv"))
-
 
 ```
 
@@ -385,27 +384,8 @@ rhomis <-
   mutate(across(c(LandOwned,NFertInput,educated),
               ~ if_else(is.na(.x),0,.x)))
 
-
 ```
 
-### Treatment probabilities
-
-Then, I create a variable that's correlated to my outcome variable of interest, `food_secure`. 
-I do this by simply regressing `food_secure` on some other things, and saving the error 
-term.
-
-
-```{r}
-
-
-model <- lm_robust(food_secure ~ HHsizeMAE + LandOwned + NFertInput, data = rhomis)
-
-rhomis <-
-  rhomis %>%
-  mutate(resid = food_secure - predict(model, rhomis))
-
-
-```
 
 ### Declare Design
 
@@ -416,14 +396,15 @@ I use dplyr to fabricate data, because I like it better than fabricatr.
 Treatment assignment is as follows:
 - 50% of the villages are selected for treatment.
 - Roughly 50% of the households are selected. The selection indicator will have
-a correlation of `rho` with the residual of the regression above, ensuring that
-selection is affected by unobservable factors that are correlated to the outcome.
-
-Treatment then is treated households in treated villages. 
+a correlation of `rho` with the household being educated, using `fabricatr`'s 
+`correlate()` function. 
+Education is also a strong predictor of `food_security`, creating inherent bias.
 
 I then re-sample from the original data using the `resample_hhs` I define below:
 - I ensure I have more control household than treatment households.
-- I drop any untreated household in treated villages; this is a fairly common setup.
+- I drop any untreated households in treated villages.
+This simulates that we can't get control households in treated villages, 
+for example due to fears of 
 
 I compare a standard difference in means, as well as a custom matching function that 
 uses the `MatchIt` package to create a balanced data set, that I can then use for
@@ -432,17 +413,18 @@ regular regressions, weighted by the propensity score.
 
 ```{r}
 
-library(MatchIt)
+library(MatchIt, exclude("select")) # the select function would conflict with dplyr
+                                    # this syntax requires R 4.0 or higher
 
 # set parameters
-effect <- 0.05
-rho = 0.1
+effect <- 0.2
+rho <- 0.2
 
-clusters_treat = 10
-hh_treat = 15
+clusters_treat <- 50
+hh_treat <- 15
 
-clusters_control_multi = 1 
-hh_control_multi = 2
+clusters_control_multi <- 1 
+hh_control_multi <- 2
 
 
 population <- declare_population(
@@ -456,7 +438,7 @@ population <- declare_population(
     ) %>%
     mutate(
       # sampling
-      treated_hh = correlate(given = resid, draw_handler = draw_binomial, prob = 0.5 , rho = rho),
+      treated_hh = correlate(given = educated, draw_handler = draw_binomial, prob = 0.5 , rho = rho),
 
       potential_outcomes(Y ~ pmin(1,food_secure + Z * rbinom(nrow(.),1,effect)))
     )  
@@ -500,9 +482,6 @@ ols_estimator <-
                     term = "Z", 
                     label = "LM")
 
-
-
-
 custom_match <- function(data, equation, outcome = "Y", term = "Z") {
   
   # the command filter(term == term) wouldn't do anything, so this is a workaround
@@ -532,6 +511,73 @@ match_estimator <- declare_estimator(
 design <-
   population +  inquiry + assignment + resampling + measurement + ols_estimator + match_estimator
 
+```
+
+
+## Checking balance
+
+It's useful to explore the property's of our matching estimator. 
+First  I draw data based on my design and create matched version of that data.
+
+```{r}
+
+test_data <- 
+  draw_data(design) %>%
+  as_tibble() 
+
+
+  matchit_model <- matchit(Z ~ HHsizeMAE + educated + LandOwned + NFertInput + female + NFertInput,
+                         data = test_data,
+                         method = "nearest")
+  matched_df <- match.data(matchit_model)
+
+```
+
+Then I create balance table for the `test_data`:
+
+```{r}
+
+library(modelsummary)
+library(flextable)
+
+# balance table
+test_data %>% 
+  mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
+  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) %>%
+  datasummary_balance( ~ Z , data = ., 
+                      output = "flextable", stars = TRUE, 
+                      dinm = TRUE, dinm_statistic = "p.value") %>%
+  fix_border_issues() %>% 
+  autofit()
+
+```
+
+And for the `matched_df`.
+
+```{r}
+
+matched_df %>% 
+  mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
+  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) %>%
+  datasummary_balance( ~ Z , data = ., 
+                      output = "flextable", stars = TRUE, 
+                      dinm = TRUE, dinm_statistic = "p.value") %>%
+  fix_border_issues() %>% 
+  autofit()
+
+```
+
+
+Let's run the models two times:
+
+
+```{r}
+
+unmatched_model <- lm_robust(Y ~ Z, clusters = village_unique, data = test_data)
+matched_model <- lm_robust(Y~Z, clusters = village_unique, data = matched_df, weights = weights)
+
+modelsummary(list(lm = unmatched_model, psm = matched_model), output = "flextable",
+             gof_map = c("nobs","r.squared","adj.r.squared"))
 
 ```
 
@@ -546,8 +592,8 @@ We're assuming the village the village selection effect to be 0.
 
 diagnosis <-
   design %>%
-  redesign(rho_hh = 0:5/10) %>%
-  diagnose_design(sims = 200) %>%
+  redesign(rho = seq(from = 0, to = 0.9, by = 0.3))  %>%
+  diagnose_design(sims = 100) %>%
   tidy() %>%
   as_tibble()
 
@@ -558,13 +604,11 @@ diagnosis <-
 
 write_csv(diagnosis,file = here("data/diagnosis_psm_bias.csv"))
 
-
 ```
 
 ```{r,  include=FALSE}
 
 diagnosis <- read_csv(file =  here("data/diagnosis_psm_bias.csv"))
-
 
 ```
 
@@ -573,39 +617,36 @@ diagnosis <- read_csv(file =  here("data/diagnosis_psm_bias.csv"))
 
 diagnosis %>%
   filter(diagnosand == "bias") %>%
-  dplyr::select(rho_hh, bias = estimate, estimator) %>%
-  ggplot(aes(x = rho_hh, y = bias, 
+  dplyr::select(rho, bias = estimate, estimator) %>%
+  ggplot(aes(x = rho, y = bias, 
              shape = estimator, color=estimator)) +
     geom_line() +
     geom_point() 
 
-
 ```
 
-Matching on criteria unrelated to the selection process doesn't help reduce bias.
+Clearly, the more selection is correlated to education, the higher the bias in the regular model.
 
 ### Power 
 
-Then, let's examine power. Note that this takes a while!
+Then, let's examine power. 
 
 
 ```{r diagnose_psm_power, eval = run_diagnosis}
 
 diagnosis <-
   design %>%
-  redesign(clusters_treat = 3:6 * 10,
-           effect = 0.05 * (1:3)^2) %>%
-  diagnose_design(sims = 200) %>%
+  redesign(clusters_treat = c(20,40,60),
+           effect = seq(0.1,0.4,0.1)) %>%
+  diagnose_design(sims = 100) %>%
   tidy() %>%
   as_tibble()
-
 
 ```
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
 write_csv(diagnosis,file = here("data/diagnosis_psm_power.csv"))
-
 
 ```
 
@@ -616,7 +657,11 @@ diagnosis <- read_csv(file =  here("data/diagnosis_psm_power.csv"))
 
 ```
 
-Put it in a plot.
+When we plot the results, it seems sample size doesn't affect power much 
+(not sure why, perhaps the resampling?). 
+Our design can pick up a treatment effect of 0.4,
+meaning that 40% of the food insecure beneficaries become food secure.
+
 
 ```{r}
 
