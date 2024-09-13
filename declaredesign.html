@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-09-12" />
+<meta name="date" content="2024-09-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -202,7 +202,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html"><i class="fa fa-check"></i>Power Analysis using DeclareDesign</a>
 <ul>
-<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#diff-in-diff"><i class="fa fa-check"></i>Diff-in-Diff</a></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#diff-in-diff"><i class="fa fa-check"></i>Diff-in-Diff</a>
+<ul>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#fabricating-data"><i class="fa fa-check"></i>Fabricating Data</a></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#declare-design"><i class="fa fa-check"></i>Declare Design</a></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#diagnosing-design-and-calculating-power"><i class="fa fa-check"></i>Diagnosing Design and calculating power</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#propsensity-score-matching-with-rhomis-data"><i class="fa fa-check"></i>Propsensity score matching with Rhomis data</a>
+<ul>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#data-wrangling"><i class="fa fa-check"></i>Data Wrangling</a></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#declare-design-1"><i class="fa fa-check"></i>Declare Design</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#checking-balance"><i class="fa fa-check"></i>Checking balance</a>
+<ul>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#bias"><i class="fa fa-check"></i>Bias</a></li>
+<li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#power"><i class="fa fa-check"></i>Power</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="data-exploration.html"><a href="data-exploration.html"><i class="fa fa-check"></i>Data Exploration</a>
 <ul>
@@ -259,31 +274,31 @@ covariates in standard power calculators.</p>
 <p>Here’s a common situation: I’ve collected some baseline data, and are
 wondering if our study has sufficient power to pick up expected treatment
 effects.</p>
+<div id="fabricating-data" class="section level3 hasAnchor">
+<h3>Fabricating Data<a href="declaredesign.html#fabricating-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>I will start off with some fake baseline data, which only contains <code>y0</code>, our outcome
 indicator. We use the <code>fabricate()</code> function, from the fabricatr library, which is
 loaded with DeclareDesign:</p>
-<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="declaredesign.html#cb78-1" tabindex="-1"></a><span class="co"># start with a clean environment</span></span>
-<span id="cb78-2"><a href="declaredesign.html#cb78-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
-<span id="cb78-3"><a href="declaredesign.html#cb78-3" tabindex="-1"></a></span>
-<span id="cb78-4"><a href="declaredesign.html#cb78-4" tabindex="-1"></a><span class="co"># load packages</span></span>
-<span id="cb78-5"><a href="declaredesign.html#cb78-5" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># data management</span></span>
-<span id="cb78-6"><a href="declaredesign.html#cb78-6" tabindex="-1"></a></span>
-<span id="cb78-7"><a href="declaredesign.html#cb78-7" tabindex="-1"></a><span class="fu">library</span>(fixest) <span class="co"># for estimation of fixed effects</span></span>
-<span id="cb78-8"><a href="declaredesign.html#cb78-8" tabindex="-1"></a><span class="fu">library</span>(lmtest) <span class="co"># for computing standard errors</span></span>
-<span id="cb78-9"><a href="declaredesign.html#cb78-9" tabindex="-1"></a><span class="fu">library</span>(sandwich) <span class="co"># provides the functions for lmtest to compute robust SEs</span></span>
-<span id="cb78-10"><a href="declaredesign.html#cb78-10" tabindex="-1"></a></span>
-<span id="cb78-11"><a href="declaredesign.html#cb78-11" tabindex="-1"></a><span class="fu">library</span>(DeclareDesign) <span class="co"># for power calculation</span></span>
-<span id="cb78-12"><a href="declaredesign.html#cb78-12" tabindex="-1"></a><span class="fu">library</span>(broom) <span class="co"># to extract coefficients from model output</span></span>
-<span id="cb78-13"><a href="declaredesign.html#cb78-13" tabindex="-1"></a></span>
-<span id="cb78-14"><a href="declaredesign.html#cb78-14" tabindex="-1"></a><span class="co"># set seed for reproducibility</span></span>
-<span id="cb78-15"><a href="declaredesign.html#cb78-15" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb78-16"><a href="declaredesign.html#cb78-16" tabindex="-1"></a></span>
-<span id="cb78-17"><a href="declaredesign.html#cb78-17" tabindex="-1"></a>N <span class="ot">=</span> <span class="dv">100</span></span>
-<span id="cb78-18"><a href="declaredesign.html#cb78-18" tabindex="-1"></a>fake_data <span class="ot">&lt;-</span></span>
-<span id="cb78-19"><a href="declaredesign.html#cb78-19" tabindex="-1"></a>  <span class="fu">fabricate</span>(<span class="at">N =</span> N, </span>
-<span id="cb78-20"><a href="declaredesign.html#cb78-20" tabindex="-1"></a>            <span class="at">y0 =</span> <span class="fu">runif</span>(N, <span class="dv">100</span>, <span class="dv">150</span>))</span>
-<span id="cb78-21"><a href="declaredesign.html#cb78-21" tabindex="-1"></a></span>
-<span id="cb78-22"><a href="declaredesign.html#cb78-22" tabindex="-1"></a>fake_data <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="declaredesign.html#cb78-1" tabindex="-1"></a><span class="co"># load packages</span></span>
+<span id="cb78-2"><a href="declaredesign.html#cb78-2" tabindex="-1"></a></span>
+<span id="cb78-3"><a href="declaredesign.html#cb78-3" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># data management</span></span>
+<span id="cb78-4"><a href="declaredesign.html#cb78-4" tabindex="-1"></a></span>
+<span id="cb78-5"><a href="declaredesign.html#cb78-5" tabindex="-1"></a><span class="fu">library</span>(fixest) <span class="co"># for estimation of fixed effects</span></span>
+<span id="cb78-6"><a href="declaredesign.html#cb78-6" tabindex="-1"></a><span class="fu">library</span>(lmtest) <span class="co"># for computing standard errors</span></span>
+<span id="cb78-7"><a href="declaredesign.html#cb78-7" tabindex="-1"></a><span class="fu">library</span>(sandwich) <span class="co"># provides the functions for lmtest to compute robust SEs</span></span>
+<span id="cb78-8"><a href="declaredesign.html#cb78-8" tabindex="-1"></a></span>
+<span id="cb78-9"><a href="declaredesign.html#cb78-9" tabindex="-1"></a><span class="fu">library</span>(DeclareDesign) <span class="co"># for power calculation</span></span>
+<span id="cb78-10"><a href="declaredesign.html#cb78-10" tabindex="-1"></a><span class="fu">library</span>(broom) <span class="co"># to extract coefficients from model output</span></span>
+<span id="cb78-11"><a href="declaredesign.html#cb78-11" tabindex="-1"></a></span>
+<span id="cb78-12"><a href="declaredesign.html#cb78-12" tabindex="-1"></a><span class="co"># set seed for reproducibility</span></span>
+<span id="cb78-13"><a href="declaredesign.html#cb78-13" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb78-14"><a href="declaredesign.html#cb78-14" tabindex="-1"></a></span>
+<span id="cb78-15"><a href="declaredesign.html#cb78-15" tabindex="-1"></a>N <span class="ot">=</span> <span class="dv">100</span></span>
+<span id="cb78-16"><a href="declaredesign.html#cb78-16" tabindex="-1"></a>fake_data <span class="ot">&lt;-</span></span>
+<span id="cb78-17"><a href="declaredesign.html#cb78-17" tabindex="-1"></a>  <span class="fu">fabricate</span>(<span class="at">N =</span> N, </span>
+<span id="cb78-18"><a href="declaredesign.html#cb78-18" tabindex="-1"></a>            <span class="at">y0 =</span> <span class="fu">runif</span>(N, <span class="dv">100</span>, <span class="dv">150</span>))</span>
+<span id="cb78-19"><a href="declaredesign.html#cb78-19" tabindex="-1"></a></span>
+<span id="cb78-20"><a href="declaredesign.html#cb78-20" tabindex="-1"></a>fake_data <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code></pre></div>
 <pre><code>## # A tibble: 100 × 2
 ##    ID       y0
 ##    &lt;chr&gt; &lt;dbl&gt;
@@ -322,6 +337,9 @@ to demonstrate how, using <code>add_level()</code> and then <code>crosslevels()<
 ##  9 009    131. 1         0 009         
 ## 10 010    103. 1         0 010         
 ## # ℹ 190 more rows</code></pre>
+</div>
+<div id="declare-design" class="section level3 hasAnchor">
+<h3>Declare Design<a href="declaredesign.html#declare-design" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Now it’s time to start declaring our design. The first element of the
 design is the model, which essentially is my data, and I declare it
 using the same synytax as <code>fabricate()</code>
@@ -531,6 +549,9 @@ things. The previous was just declaration!</p>
 ##  conf.high outcome inquiry
 ##   23.31442       Y     ATE</code></pre>
 <p>Note that the results of my three estimators are identical, which is as expected.</p>
+</div>
+<div id="diagnosing-design-and-calculating-power" class="section level3 hasAnchor">
+<h3>Diagnosing Design and calculating power<a href="declaredesign.html#diagnosing-design-and-calculating-power" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>If you want to browse a version of the data created by your design,
 use the <code>draw_data()</code> function. This is useful to examine the properties of the data.</p>
 <div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb90-1"><a href="declaredesign.html#cb90-1" tabindex="-1"></a><span class="fu">draw_data</span>(design) <span class="sc">%&gt;%</span></span>
@@ -554,7 +575,7 @@ model 500 times and our power is simply the fraction of times we
 find a statistically significant effect.</p>
 <div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="declaredesign.html#cb92-1" tabindex="-1"></a><span class="fu">diagnose_design</span>(design)</span></code></pre></div>
 <pre><code>## 
-## Research design diagnosis based on 500 simulations. Diagnosis completed in 15 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
+## Research design diagnosis based on 500 simulations. Diagnosis completed in 18 secs. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
 ## 
 ##  Design Inquiry Estimator Outcome              Term N Sims Mean Estimand
 ##  design     ATE       2FE    &lt;NA&gt;                 Z    500         14.97
@@ -585,31 +606,293 @@ incomes in year 1) and the expected effect size.</p>
 combination of the parameters. This takes a lot of time, so I update
 my design to have only one estimator (estimator1, which is fast)
 and I’ve set the <code>sims</code> option of <code>diagnose_design()</code> to 100.</p>
+<p>I convert the output to a <code>tibble</code> as that’s easy to work with.</p>
 <div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb94-1"><a href="declaredesign.html#cb94-1" tabindex="-1"></a>design <span class="ot">&lt;-</span> model <span class="sc">+</span> assignment <span class="sc">+</span> inquiry <span class="sc">+</span> estimator1</span>
 <span id="cb94-2"><a href="declaredesign.html#cb94-2" tabindex="-1"></a></span>
 <span id="cb94-3"><a href="declaredesign.html#cb94-3" tabindex="-1"></a>diagnosis <span class="ot">&lt;-</span></span>
 <span id="cb94-4"><a href="declaredesign.html#cb94-4" tabindex="-1"></a>  design <span class="sc">%&gt;%</span></span>
 <span id="cb94-5"><a href="declaredesign.html#cb94-5" tabindex="-1"></a>  <span class="fu">redesign</span>(<span class="at">effect_size =</span> <span class="dv">7</span><span class="sc">:</span><span class="dv">11</span>,</span>
 <span id="cb94-6"><a href="declaredesign.html#cb94-6" tabindex="-1"></a>           <span class="at">stdev =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">7</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb94-7"><a href="declaredesign.html#cb94-7" tabindex="-1"></a>  <span class="fu">diagnose_design</span>(<span class="at">sims =</span> <span class="dv">100</span>)</span></code></pre></div>
-<p>Now, I want a nice plot. For this I use the
-<code>tidy()</code> function to convert the output to a data frame, which -
-after some filtering - I pipe into <code>ggplot()</code>.
+<span id="cb94-7"><a href="declaredesign.html#cb94-7" tabindex="-1"></a>  <span class="fu">diagnose_design</span>(<span class="at">sims =</span> <span class="dv">100</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb94-8"><a href="declaredesign.html#cb94-8" tabindex="-1"></a>  <span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb94-9"><a href="declaredesign.html#cb94-9" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
+<p>Now, I want a nice plot.
+For this I filter the tibble I created, and pipe it into <code>ggplot()</code>.
 It’s now easy to see that I should
 be able to pick up an effect size of 10 in most cases.</p>
 <div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="declaredesign.html#cb95-1" tabindex="-1"></a>diagnosis <span class="sc">%&gt;%</span></span>
-<span id="cb95-2"><a href="declaredesign.html#cb95-2" tabindex="-1"></a>  <span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb95-3"><a href="declaredesign.html#cb95-3" tabindex="-1"></a>  <span class="fu">filter</span>(diagnosand <span class="sc">==</span> <span class="st">&quot;power&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb95-4"><a href="declaredesign.html#cb95-4" tabindex="-1"></a>  <span class="fu">select</span>(effect_size,stdev,<span class="at">power =</span> estimate) <span class="sc">%&gt;%</span></span>
-<span id="cb95-5"><a href="declaredesign.html#cb95-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stdev =</span> <span class="fu">factor</span>(stdev)) <span class="sc">%&gt;%</span></span>
-<span id="cb95-6"><a href="declaredesign.html#cb95-6" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> effect_size, <span class="at">y =</span> power, </span>
-<span id="cb95-7"><a href="declaredesign.html#cb95-7" tabindex="-1"></a>             <span class="at">shape =</span> stdev, <span class="at">color=</span>stdev)) <span class="sc">+</span></span>
-<span id="cb95-8"><a href="declaredesign.html#cb95-8" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb95-9"><a href="declaredesign.html#cb95-9" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb95-10"><a href="declaredesign.html#cb95-10" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept=</span><span class="fl">0.8</span>,<span class="at">linetype=</span><span class="dv">2</span>) <span class="sc">+</span> </span>
-<span id="cb95-11"><a href="declaredesign.html#cb95-11" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">7</span>,<span class="dv">11</span>,<span class="dv">2</span>))</span></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-62-1.png" width="672" /></p>
+<span id="cb95-2"><a href="declaredesign.html#cb95-2" tabindex="-1"></a>  <span class="fu">filter</span>(diagnosand <span class="sc">==</span> <span class="st">&quot;power&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb95-3"><a href="declaredesign.html#cb95-3" tabindex="-1"></a>  <span class="fu">select</span>(effect_size,stdev,<span class="at">power =</span> estimate) <span class="sc">%&gt;%</span></span>
+<span id="cb95-4"><a href="declaredesign.html#cb95-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stdev =</span> <span class="fu">factor</span>(stdev)) <span class="sc">%&gt;%</span></span>
+<span id="cb95-5"><a href="declaredesign.html#cb95-5" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> effect_size, <span class="at">y =</span> power, </span>
+<span id="cb95-6"><a href="declaredesign.html#cb95-6" tabindex="-1"></a>             <span class="at">shape =</span> stdev, <span class="at">color=</span>stdev)) <span class="sc">+</span></span>
+<span id="cb95-7"><a href="declaredesign.html#cb95-7" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb95-8"><a href="declaredesign.html#cb95-8" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb95-9"><a href="declaredesign.html#cb95-9" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept=</span><span class="fl">0.8</span>,<span class="at">linetype=</span><span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb95-10"><a href="declaredesign.html#cb95-10" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">7</span>,<span class="dv">11</span>,<span class="dv">2</span>))</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-65-1.png" width="672" /></p>
+</div>
+</div>
+<div id="propsensity-score-matching-with-rhomis-data" class="section level2 hasAnchor">
+<h2>Propsensity score matching with Rhomis data<a href="declaredesign.html#propsensity-score-matching-with-rhomis-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Here, I will be working on Rhomis Data, in the context of a study
+that aims to increase food security.
+Here’ I have some reference data, that I want to use to explore a
+matching design. I need to set up a treatment indicator that is correlated
+with my outcome.</p>
+<div id="data-wrangling" class="section level3 hasAnchor">
+<h3>Data Wrangling<a href="declaredesign.html#data-wrangling" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>First, I get the Rhomis data, and clean it up a bit. There are no village-level
+identifers, so I just bin the gps latitute variable in 18 clusters. Not perfect
+of course, but whatever.</p>
+<p>I also do some data cleaning.</p>
+<div class="sourceCode" id="cb96"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb96-1"><a href="declaredesign.html#cb96-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb96-2"><a href="declaredesign.html#cb96-2" tabindex="-1"></a><span class="fu">library</span>(DeclareDesign)</span>
+<span id="cb96-3"><a href="declaredesign.html#cb96-3" tabindex="-1"></a>n_clusters <span class="ot">=</span> <span class="dv">18</span></span>
+<span id="cb96-4"><a href="declaredesign.html#cb96-4" tabindex="-1"></a></span>
+<span id="cb96-5"><a href="declaredesign.html#cb96-5" tabindex="-1"></a>rhomis <span class="ot">&lt;-</span></span>
+<span id="cb96-6"><a href="declaredesign.html#cb96-6" tabindex="-1"></a>  <span class="fu">read_csv</span>(<span class="st">&quot;data/RHoMIS_Indicators.csv&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb96-7"><a href="declaredesign.html#cb96-7" tabindex="-1"></a>  <span class="fu">filter</span>(Country <span class="sc">==</span> <span class="st">&quot;Burundi&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb96-8"><a href="declaredesign.html#cb96-8" tabindex="-1"></a></span>
+<span id="cb96-9"><a href="declaredesign.html#cb96-9" tabindex="-1"></a>  <span class="co"># split the sample in villages, by lattitude</span></span>
+<span id="cb96-10"><a href="declaredesign.html#cb96-10" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(GPS_LAT)) <span class="sc">%&gt;%</span></span>
+<span id="cb96-11"><a href="declaredesign.html#cb96-11" tabindex="-1"></a>  <span class="fu">arrange</span>(GPS_LAT) <span class="sc">%&gt;%</span></span>
+<span id="cb96-12"><a href="declaredesign.html#cb96-12" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">village =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>n_clusters, <span class="at">each =</span> <span class="fu">nrow</span>(.) <span class="sc">/</span> n_clusters , <span class="at">length.out =</span>  <span class="fu">nrow</span>(.))) <span class="sc">%&gt;%</span></span>
+<span id="cb96-13"><a href="declaredesign.html#cb96-13" tabindex="-1"></a>  <span class="fu">select</span>(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput) <span class="sc">%&gt;%</span></span>
+<span id="cb96-14"><a href="declaredesign.html#cb96-14" tabindex="-1"></a>  </span>
+<span id="cb96-15"><a href="declaredesign.html#cb96-15" tabindex="-1"></a>  <span class="co"># create some variables</span></span>
+<span id="cb96-16"><a href="declaredesign.html#cb96-16" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">HFIAS_status =</span> <span class="fu">factor</span>(HFIAS_status, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;FoodSecure&quot;</span>, <span class="st">&quot;MildlyFI&quot;</span>, <span class="st">&quot;ModeratelyFI&quot;</span>, <span class="st">&quot;SeverelyFI&quot;</span>)),</span>
+<span id="cb96-17"><a href="declaredesign.html#cb96-17" tabindex="-1"></a>         <span class="at">food_secure =</span> <span class="dv">1</span> <span class="sc">*</span> (<span class="fu">as.numeric</span>(HFIAS_status) <span class="sc">&lt;=</span> <span class="dv">3</span>),</span>
+<span id="cb96-18"><a href="declaredesign.html#cb96-18" tabindex="-1"></a>         <span class="at">educated =</span> <span class="dv">1</span><span class="sc">*</span>(Head_EducationLevel <span class="sc">!=</span> <span class="st">&quot;No_school&quot;</span>),</span>
+<span id="cb96-19"><a href="declaredesign.html#cb96-19" tabindex="-1"></a>         <span class="at">female =</span> <span class="dv">1</span><span class="sc">*</span> (HouseholdType <span class="sc">==</span> <span class="st">&quot;woman_single&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb96-20"><a href="declaredesign.html#cb96-20" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">hh =</span> <span class="fu">row_number</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb96-21"><a href="declaredesign.html#cb96-21" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!</span>HFIAS_status) <span class="sc">%&gt;%</span></span>
+<span id="cb96-22"><a href="declaredesign.html#cb96-22" tabindex="-1"></a></span>
+<span id="cb96-23"><a href="declaredesign.html#cb96-23" tabindex="-1"></a>  <span class="co"># there are too many missings in my data; these seem reasonable to assume to be 0 when missing:</span></span>
+<span id="cb96-24"><a href="declaredesign.html#cb96-24" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(LandOwned,NFertInput,educated),</span>
+<span id="cb96-25"><a href="declaredesign.html#cb96-25" tabindex="-1"></a>              <span class="sc">~</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(.x),<span class="dv">0</span>,.x)))</span></code></pre></div>
+</div>
+<div id="declare-design-1" class="section level3 hasAnchor">
+<h3>Declare Design<a href="declaredesign.html#declare-design-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Then, I put it in DeclareDesign.</p>
+<p>I use dplyr to fabricate data, because I like it better than fabricatr.</p>
+<p>Treatment assignment is as follows:
+- 50% of the villages are selected for treatment.
+- Roughly 50% of the households are selected. The selection indicator will have
+a correlation of <code>rho</code> with the household being educated, using <code>fabricatr</code>’s
+<code>correlate()</code> function.
+Education is also a strong predictor of <code>food_security</code>, creating inherent bias.</p>
+<p>I then re-sample from the original data using the <code>resample_hhs</code> I define below:
+- I ensure I have more control household than treatment households.
+- I drop any untreated households in treated villages.
+This simulates that we can’t get control households in treated villages,
+for example due to fears of</p>
+<p>I compare a standard difference in means, as well as a custom matching function that
+uses the <code>MatchIt</code> package to create a balanced data set, that I can then use for
+regular regressions, weighted by the propensity score.</p>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="declaredesign.html#cb97-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb97-2"><a href="declaredesign.html#cb97-2" tabindex="-1"></a></span>
+<span id="cb97-3"><a href="declaredesign.html#cb97-3" tabindex="-1"></a><span class="fu">library</span>(MatchIt, <span class="fu">exclude</span>(<span class="st">&quot;select&quot;</span>)) <span class="co"># the select function would conflict with dplyr</span></span></code></pre></div>
+<pre><code>## Error in library(MatchIt, exclude(&quot;select&quot;)): there is no package called &#39;MatchIt&#39;</code></pre>
+<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="declaredesign.html#cb99-1" tabindex="-1"></a>                                    <span class="co"># this syntax requires R 4.0 or higher</span></span>
+<span id="cb99-2"><a href="declaredesign.html#cb99-2" tabindex="-1"></a></span>
+<span id="cb99-3"><a href="declaredesign.html#cb99-3" tabindex="-1"></a><span class="co"># set parameters</span></span>
+<span id="cb99-4"><a href="declaredesign.html#cb99-4" tabindex="-1"></a>effect <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb99-5"><a href="declaredesign.html#cb99-5" tabindex="-1"></a>rho <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb99-6"><a href="declaredesign.html#cb99-6" tabindex="-1"></a></span>
+<span id="cb99-7"><a href="declaredesign.html#cb99-7" tabindex="-1"></a>clusters_treat <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb99-8"><a href="declaredesign.html#cb99-8" tabindex="-1"></a>hh_treat <span class="ot">&lt;-</span> <span class="dv">15</span></span>
+<span id="cb99-9"><a href="declaredesign.html#cb99-9" tabindex="-1"></a></span>
+<span id="cb99-10"><a href="declaredesign.html#cb99-10" tabindex="-1"></a>clusters_control_multi <span class="ot">&lt;-</span> <span class="dv">1</span> </span>
+<span id="cb99-11"><a href="declaredesign.html#cb99-11" tabindex="-1"></a>hh_control_multi <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb99-12"><a href="declaredesign.html#cb99-12" tabindex="-1"></a></span>
+<span id="cb99-13"><a href="declaredesign.html#cb99-13" tabindex="-1"></a></span>
+<span id="cb99-14"><a href="declaredesign.html#cb99-14" tabindex="-1"></a>population <span class="ot">&lt;-</span> <span class="fu">declare_population</span>(</span>
+<span id="cb99-15"><a href="declaredesign.html#cb99-15" tabindex="-1"></a>  rhomis <span class="sc">%&gt;%</span> </span>
+<span id="cb99-16"><a href="declaredesign.html#cb99-16" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
+<span id="cb99-17"><a href="declaredesign.html#cb99-17" tabindex="-1"></a>      {.} <span class="sc">%&gt;%</span></span>
+<span id="cb99-18"><a href="declaredesign.html#cb99-18" tabindex="-1"></a>        <span class="fu">select</span>(village) <span class="sc">%&gt;%</span></span>
+<span id="cb99-19"><a href="declaredesign.html#cb99-19" tabindex="-1"></a>        <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb99-20"><a href="declaredesign.html#cb99-20" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">treated_vill =</span> <span class="fu">complete_ra</span>(<span class="at">N =</span> <span class="fu">nrow</span>(.),<span class="at">prob =</span> <span class="fl">0.5</span>)),</span>
+<span id="cb99-21"><a href="declaredesign.html#cb99-21" tabindex="-1"></a>      <span class="at">by =</span> <span class="fu">join_by</span>(village)</span>
+<span id="cb99-22"><a href="declaredesign.html#cb99-22" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb99-23"><a href="declaredesign.html#cb99-23" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb99-24"><a href="declaredesign.html#cb99-24" tabindex="-1"></a>      <span class="co"># sampling</span></span>
+<span id="cb99-25"><a href="declaredesign.html#cb99-25" tabindex="-1"></a>      <span class="at">treated_hh =</span> <span class="fu">correlate</span>(<span class="at">given =</span> educated, <span class="at">draw_handler =</span> draw_binomial, <span class="at">prob =</span> <span class="fl">0.5</span> , <span class="at">rho =</span> rho),</span>
+<span id="cb99-26"><a href="declaredesign.html#cb99-26" tabindex="-1"></a></span>
+<span id="cb99-27"><a href="declaredesign.html#cb99-27" tabindex="-1"></a>      <span class="fu">potential_outcomes</span>(Y <span class="sc">~</span> <span class="fu">pmin</span>(<span class="dv">1</span>,food_secure <span class="sc">+</span> Z <span class="sc">*</span> <span class="fu">rbinom</span>(<span class="fu">nrow</span>(.),<span class="dv">1</span>,effect)))</span>
+<span id="cb99-28"><a href="declaredesign.html#cb99-28" tabindex="-1"></a>    )  </span>
+<span id="cb99-29"><a href="declaredesign.html#cb99-29" tabindex="-1"></a>)</span>
+<span id="cb99-30"><a href="declaredesign.html#cb99-30" tabindex="-1"></a></span>
+<span id="cb99-31"><a href="declaredesign.html#cb99-31" tabindex="-1"></a>assignment <span class="ot">&lt;-</span> <span class="fu">declare_assignment</span>(</span>
+<span id="cb99-32"><a href="declaredesign.html#cb99-32" tabindex="-1"></a>  <span class="at">Z =</span> treated_vill <span class="sc">*</span> treated_hh</span>
+<span id="cb99-33"><a href="declaredesign.html#cb99-33" tabindex="-1"></a>)</span>
+<span id="cb99-34"><a href="declaredesign.html#cb99-34" tabindex="-1"></a></span>
+<span id="cb99-35"><a href="declaredesign.html#cb99-35" tabindex="-1"></a>resample_hhs <span class="ot">&lt;-</span> <span class="cf">function</span>(data){</span>
+<span id="cb99-36"><a href="declaredesign.html#cb99-36" tabindex="-1"></a>  <span class="co"># this function filters any control househols in treated communities</span></span>
+<span id="cb99-37"><a href="declaredesign.html#cb99-37" tabindex="-1"></a>  <span class="co"># and it sets the sample size</span></span>
+<span id="cb99-38"><a href="declaredesign.html#cb99-38" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
+<span id="cb99-39"><a href="declaredesign.html#cb99-39" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">drop =</span> <span class="fu">if_else</span>(treated_vill <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> treated_hh <span class="sc">==</span> <span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb99-40"><a href="declaredesign.html#cb99-40" tabindex="-1"></a>    <span class="fu">filter</span>(drop <span class="sc">!=</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb99-41"><a href="declaredesign.html#cb99-41" tabindex="-1"></a>      <span class="co"># sample from treated villages and untreated villages</span></span>
+<span id="cb99-42"><a href="declaredesign.html#cb99-42" tabindex="-1"></a>      <span class="fu">group_by</span>(treated_vill) <span class="sc">%&gt;%</span></span>
+<span id="cb99-43"><a href="declaredesign.html#cb99-43" tabindex="-1"></a>      <span class="fu">do</span>({</span>
+<span id="cb99-44"><a href="declaredesign.html#cb99-44" tabindex="-1"></a>        <span class="cf">if</span> (<span class="fu">unique</span>(.<span class="sc">$</span>treated_vill) <span class="sc">==</span> <span class="dv">1</span>) {</span>
+<span id="cb99-45"><a href="declaredesign.html#cb99-45" tabindex="-1"></a>          <span class="fu">resample_data</span>(., <span class="at">N =</span> <span class="fu">c</span>(<span class="at">village =</span> clusters_treat, <span class="at">hh =</span> hh_treat),<span class="at">unique_labels =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb99-46"><a href="declaredesign.html#cb99-46" tabindex="-1"></a>        } <span class="cf">else</span> {</span>
+<span id="cb99-47"><a href="declaredesign.html#cb99-47" tabindex="-1"></a>          <span class="fu">resample_data</span>(., <span class="at">N =</span> <span class="fu">c</span>(<span class="at">village =</span> clusters_control_multi <span class="sc">*</span> clusters_treat, <span class="at">hh =</span> hh_control_multi <span class="sc">*</span> hh_treat), <span class="at">unique_labels =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb99-48"><a href="declaredesign.html#cb99-48" tabindex="-1"></a>        }</span>
+<span id="cb99-49"><a href="declaredesign.html#cb99-49" tabindex="-1"></a>      })</span>
+<span id="cb99-50"><a href="declaredesign.html#cb99-50" tabindex="-1"></a>}</span>
+<span id="cb99-51"><a href="declaredesign.html#cb99-51" tabindex="-1"></a></span>
+<span id="cb99-52"><a href="declaredesign.html#cb99-52" tabindex="-1"></a>resampling <span class="ot">&lt;-</span> <span class="fu">declare_step</span>(</span>
+<span id="cb99-53"><a href="declaredesign.html#cb99-53" tabindex="-1"></a>  <span class="at">handler =</span> resample_hhs</span>
+<span id="cb99-54"><a href="declaredesign.html#cb99-54" tabindex="-1"></a>)</span>
+<span id="cb99-55"><a href="declaredesign.html#cb99-55" tabindex="-1"></a></span>
+<span id="cb99-56"><a href="declaredesign.html#cb99-56" tabindex="-1"></a>measurement <span class="ot">&lt;-</span> <span class="fu">declare_measurement</span>(<span class="at">Y =</span> <span class="fu">reveal_outcomes</span>(Y <span class="sc">~</span> Z)</span>
+<span id="cb99-57"><a href="declaredesign.html#cb99-57" tabindex="-1"></a>) </span>
+<span id="cb99-58"><a href="declaredesign.html#cb99-58" tabindex="-1"></a></span>
+<span id="cb99-59"><a href="declaredesign.html#cb99-59" tabindex="-1"></a>inquiry <span class="ot">&lt;-</span> <span class="fu">declare_inquiry</span>(<span class="at">ATE =</span> <span class="fu">mean</span>(Y_Z_1 <span class="sc">-</span> Y_Z_0)</span>
+<span id="cb99-60"><a href="declaredesign.html#cb99-60" tabindex="-1"></a>)</span>
+<span id="cb99-61"><a href="declaredesign.html#cb99-61" tabindex="-1"></a></span>
+<span id="cb99-62"><a href="declaredesign.html#cb99-62" tabindex="-1"></a>ols_estimator <span class="ot">&lt;-</span> </span>
+<span id="cb99-63"><a href="declaredesign.html#cb99-63" tabindex="-1"></a>  <span class="fu">declare_estimator</span>(Y <span class="sc">~</span> Z, </span>
+<span id="cb99-64"><a href="declaredesign.html#cb99-64" tabindex="-1"></a>                    <span class="at">clusters =</span> village_unique,</span>
+<span id="cb99-65"><a href="declaredesign.html#cb99-65" tabindex="-1"></a>                    <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>, </span>
+<span id="cb99-66"><a href="declaredesign.html#cb99-66" tabindex="-1"></a>                    <span class="at">term =</span> <span class="st">&quot;Z&quot;</span>, </span>
+<span id="cb99-67"><a href="declaredesign.html#cb99-67" tabindex="-1"></a>                    <span class="at">label =</span> <span class="st">&quot;LM&quot;</span>)</span>
+<span id="cb99-68"><a href="declaredesign.html#cb99-68" tabindex="-1"></a></span>
+<span id="cb99-69"><a href="declaredesign.html#cb99-69" tabindex="-1"></a>custom_match <span class="ot">&lt;-</span> <span class="cf">function</span>(data, equation, <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>, <span class="at">term =</span> <span class="st">&quot;Z&quot;</span>) {</span>
+<span id="cb99-70"><a href="declaredesign.html#cb99-70" tabindex="-1"></a>  </span>
+<span id="cb99-71"><a href="declaredesign.html#cb99-71" tabindex="-1"></a>  <span class="co"># the command filter(term == term) wouldn&#39;t do anything, so this is a workaround</span></span>
+<span id="cb99-72"><a href="declaredesign.html#cb99-72" tabindex="-1"></a>  term_value <span class="ot">&lt;-</span> term</span>
+<span id="cb99-73"><a href="declaredesign.html#cb99-73" tabindex="-1"></a></span>
+<span id="cb99-74"><a href="declaredesign.html#cb99-74" tabindex="-1"></a>  <span class="co"># run the matching model</span></span>
+<span id="cb99-75"><a href="declaredesign.html#cb99-75" tabindex="-1"></a>  matchit_model <span class="ot">&lt;-</span> <span class="fu">matchit</span>(equation,</span>
+<span id="cb99-76"><a href="declaredesign.html#cb99-76" tabindex="-1"></a>                         <span class="at">data =</span> data,</span>
+<span id="cb99-77"><a href="declaredesign.html#cb99-77" tabindex="-1"></a>                         <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>)</span>
+<span id="cb99-78"><a href="declaredesign.html#cb99-78" tabindex="-1"></a>  matched_df <span class="ot">&lt;-</span> <span class="fu">match.data</span>(matchit_model)</span>
+<span id="cb99-79"><a href="declaredesign.html#cb99-79" tabindex="-1"></a></span>
+<span id="cb99-80"><a href="declaredesign.html#cb99-80" tabindex="-1"></a>  <span class="co"># run a regression, weighted by the propensity score</span></span>
+<span id="cb99-81"><a href="declaredesign.html#cb99-81" tabindex="-1"></a>  <span class="fu">lm_robust</span>(Y <span class="sc">~</span> Z, <span class="at">clusters =</span> village_unique, <span class="at">data =</span> matched_df, <span class="at">weights =</span> weights) <span class="sc">%&gt;%</span></span>
+<span id="cb99-82"><a href="declaredesign.html#cb99-82" tabindex="-1"></a>    <span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb99-83"><a href="declaredesign.html#cb99-83" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">outcome =</span> outcome) <span class="sc">%&gt;%</span></span>
+<span id="cb99-84"><a href="declaredesign.html#cb99-84" tabindex="-1"></a>    <span class="fu">filter</span>(term <span class="sc">==</span> term_value)</span>
+<span id="cb99-85"><a href="declaredesign.html#cb99-85" tabindex="-1"></a>}</span>
+<span id="cb99-86"><a href="declaredesign.html#cb99-86" tabindex="-1"></a></span>
+<span id="cb99-87"><a href="declaredesign.html#cb99-87" tabindex="-1"></a>match_estimator <span class="ot">&lt;-</span> <span class="fu">declare_estimator</span>(</span>
+<span id="cb99-88"><a href="declaredesign.html#cb99-88" tabindex="-1"></a>  Z <span class="sc">~</span> HHsizeMAE <span class="sc">+</span> educated <span class="sc">+</span> LandOwned <span class="sc">+</span> NFertInput <span class="sc">+</span> female <span class="sc">+</span> NFertInput,</span>
+<span id="cb99-89"><a href="declaredesign.html#cb99-89" tabindex="-1"></a>  <span class="at">handler =</span> <span class="fu">label_estimator</span>(custom_match),</span>
+<span id="cb99-90"><a href="declaredesign.html#cb99-90" tabindex="-1"></a>  <span class="at">inquiry =</span> <span class="st">&quot;ATE&quot;</span>,  <span class="co"># Tie the estimator to the declared inquiry</span></span>
+<span id="cb99-91"><a href="declaredesign.html#cb99-91" tabindex="-1"></a>  <span class="at">label =</span> <span class="st">&quot;PSM ATE&quot;</span>,</span>
+<span id="cb99-92"><a href="declaredesign.html#cb99-92" tabindex="-1"></a>  <span class="at">term =</span> <span class="st">&quot;Z&quot;</span>,</span>
+<span id="cb99-93"><a href="declaredesign.html#cb99-93" tabindex="-1"></a>)</span>
+<span id="cb99-94"><a href="declaredesign.html#cb99-94" tabindex="-1"></a></span>
+<span id="cb99-95"><a href="declaredesign.html#cb99-95" tabindex="-1"></a>design <span class="ot">&lt;-</span></span>
+<span id="cb99-96"><a href="declaredesign.html#cb99-96" tabindex="-1"></a>  population <span class="sc">+</span>  inquiry <span class="sc">+</span> assignment <span class="sc">+</span> resampling <span class="sc">+</span> measurement <span class="sc">+</span> ols_estimator <span class="sc">+</span> match_estimator</span></code></pre></div>
+</div>
+</div>
+<div id="checking-balance" class="section level2 hasAnchor">
+<h2>Checking balance<a href="declaredesign.html#checking-balance" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>It’s useful to explore the property’s of our matching estimator.
+First I draw data based on my design and create matched version of that data.</p>
+<div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb100-1"><a href="declaredesign.html#cb100-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb100-2"><a href="declaredesign.html#cb100-2" tabindex="-1"></a></span>
+<span id="cb100-3"><a href="declaredesign.html#cb100-3" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> </span>
+<span id="cb100-4"><a href="declaredesign.html#cb100-4" tabindex="-1"></a>  <span class="fu">draw_data</span>(design) <span class="sc">%&gt;%</span></span>
+<span id="cb100-5"><a href="declaredesign.html#cb100-5" tabindex="-1"></a>  <span class="fu">as_tibble</span>() </span>
+<span id="cb100-6"><a href="declaredesign.html#cb100-6" tabindex="-1"></a></span>
+<span id="cb100-7"><a href="declaredesign.html#cb100-7" tabindex="-1"></a></span>
+<span id="cb100-8"><a href="declaredesign.html#cb100-8" tabindex="-1"></a>  matchit_model <span class="ot">&lt;-</span> <span class="fu">matchit</span>(Z <span class="sc">~</span> HHsizeMAE <span class="sc">+</span> educated <span class="sc">+</span> LandOwned <span class="sc">+</span> NFertInput <span class="sc">+</span> female <span class="sc">+</span> NFertInput,</span>
+<span id="cb100-9"><a href="declaredesign.html#cb100-9" tabindex="-1"></a>                         <span class="at">data =</span> test_data,</span>
+<span id="cb100-10"><a href="declaredesign.html#cb100-10" tabindex="-1"></a>                         <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>)</span></code></pre></div>
+<pre><code>## Error in matchit(Z ~ HHsizeMAE + educated + LandOwned + NFertInput + female + : could not find function &quot;matchit&quot;</code></pre>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb102-1"><a href="declaredesign.html#cb102-1" tabindex="-1"></a>  matched_df <span class="ot">&lt;-</span> <span class="fu">match.data</span>(matchit_model)</span></code></pre></div>
+<pre><code>## Error in match.data(matchit_model): could not find function &quot;match.data&quot;</code></pre>
+<p>Then I create balance table for the <code>test_data</code>:</p>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="declaredesign.html#cb104-1" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb104-2"><a href="declaredesign.html#cb104-2" tabindex="-1"></a><span class="fu">library</span>(flextable)</span>
+<span id="cb104-3"><a href="declaredesign.html#cb104-3" tabindex="-1"></a></span>
+<span id="cb104-4"><a href="declaredesign.html#cb104-4" tabindex="-1"></a></span>
+<span id="cb104-5"><a href="declaredesign.html#cb104-5" tabindex="-1"></a><span class="co"># balance table</span></span>
+<span id="cb104-6"><a href="declaredesign.html#cb104-6" tabindex="-1"></a>test_data <span class="sc">%&gt;%</span> </span>
+<span id="cb104-7"><a href="declaredesign.html#cb104-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Z =</span> <span class="fu">factor</span>(Z, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;Control&quot;</span>, <span class="st">&quot;Treatment&quot;</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb104-8"><a href="declaredesign.html#cb104-8" tabindex="-1"></a>  <span class="fu">select</span>(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) <span class="sc">%&gt;%</span></span>
+<span id="cb104-9"><a href="declaredesign.html#cb104-9" tabindex="-1"></a>  <span class="fu">datasummary_balance</span>( <span class="sc">~</span> Z , <span class="at">data =</span> ., </span>
+<span id="cb104-10"><a href="declaredesign.html#cb104-10" tabindex="-1"></a>                      <span class="at">output =</span> <span class="st">&quot;flextable&quot;</span>, <span class="at">stars =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb104-11"><a href="declaredesign.html#cb104-11" tabindex="-1"></a>                      <span class="at">dinm =</span> <span class="cn">TRUE</span>, <span class="at">dinm_statistic =</span> <span class="st">&quot;p.value&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb104-12"><a href="declaredesign.html#cb104-12" tabindex="-1"></a>  <span class="fu">fix_border_issues</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb104-13"><a href="declaredesign.html#cb104-13" tabindex="-1"></a>  <span class="fu">autofit</span>()</span></code></pre></div>
+<div class="tabwid"><style>.cl-31649404{}.cl-315c7062{font-family:'DejaVu Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-315ee590{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-315ef7d8{width:1.126in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef7e2{width:0.667in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef7ec{width:0.914in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef7ed{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef7f6{width:0.956in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef800{width:1.219in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef801{width:0.757in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef80a{width:1.126in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef814{width:0.667in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef815{width:0.914in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef81e{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef81f{width:0.956in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef820{width:1.219in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef828{width:0.757in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef829{width:1.126in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef832{width:0.667in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef833{width:0.914in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef83c{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef83d{width:0.956in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef846{width:1.219in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef850{width:0.757in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef851{width:1.126in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef852{width:0.667in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef853{width:0.914in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef85a{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef864{width:0.956in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef865{width:1.219in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef86e{width:0.757in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef86f{width:1.126in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef878{width:0.667in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef879{width:0.914in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef87a{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef882{width:0.956in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef88c{width:1.219in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef88d{width:0.757in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef896{width:1.126in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef897{width:0.667in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8a0{width:0.914in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8a1{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8aa{width:0.956in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8ab{width:1.219in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8b4{width:0.757in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8b5{width:1.126in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8b6{width:0.667in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8be{width:0.914in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8bf{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8c8{width:0.956in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8c9{width:1.219in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-315ef8ca{width:0.757in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing='true' class='cl-31649404'><thead><tr style="overflow-wrap:break-word;"><th class="cl-315ef7d8"><p class="cl-315ee590"><span class="cl-315c7062"> </span></p></th><th  colspan="2"class="cl-315ef7e2"><p class="cl-315ee590"><span class="cl-315c7062">Control (N=1500)</span></p></th><th  colspan="2"class="cl-315ef7ed"><p class="cl-315ee590"><span class="cl-315c7062">Treatment (N=750)</span></p></th><th  colspan="2"class="cl-315ef800"><p class="cl-315ee590"><span class="cl-315c7062"> </span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-315ef80a"><p class="cl-315ee590"><span class="cl-315c7062"> </span></p></th><th class="cl-315ef814"><p class="cl-315ee590"><span class="cl-315c7062">Mean</span></p></th><th class="cl-315ef815"><p class="cl-315ee590"><span class="cl-315c7062">Std. Dev.</span></p></th><th class="cl-315ef81e"><p class="cl-315ee590"><span class="cl-315c7062">Mean </span></p></th><th class="cl-315ef81f"><p class="cl-315ee590"><span class="cl-315c7062">Std. Dev. </span></p></th><th class="cl-315ef820"><p class="cl-315ee590"><span class="cl-315c7062">Diff. in Means</span></p></th><th class="cl-315ef828"><p class="cl-315ee590"><span class="cl-315c7062">p</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-315ef829"><p class="cl-315ee590"><span class="cl-315c7062">Y</span></p></td><td class="cl-315ef832"><p class="cl-315ee590"><span class="cl-315c7062">0.4</span></p></td><td class="cl-315ef833"><p class="cl-315ee590"><span class="cl-315c7062">0.5</span></p></td><td class="cl-315ef83c"><p class="cl-315ee590"><span class="cl-315c7062">0.5</span></p></td><td class="cl-315ef83d"><p class="cl-315ee590"><span class="cl-315c7062">0.5</span></p></td><td class="cl-315ef846"><p class="cl-315ee590"><span class="cl-315c7062">0.1***</span></p></td><td class="cl-315ef850"><p class="cl-315ee590"><span class="cl-315c7062">&lt;0.001</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-315ef851"><p class="cl-315ee590"><span class="cl-315c7062">food_secure</span></p></td><td class="cl-315ef852"><p class="cl-315ee590"><span class="cl-315c7062">0.4</span></p></td><td class="cl-315ef853"><p class="cl-315ee590"><span class="cl-315c7062">0.5</span></p></td><td class="cl-315ef85a"><p class="cl-315ee590"><span class="cl-315c7062">0.4</span></p></td><td class="cl-315ef864"><p class="cl-315ee590"><span class="cl-315c7062">0.5</span></p></td><td class="cl-315ef865"><p class="cl-315ee590"><span class="cl-315c7062">0.0</span></p></td><td class="cl-315ef86e"><p class="cl-315ee590"><span class="cl-315c7062">0.228</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-315ef829"><p class="cl-315ee590"><span class="cl-315c7062">HHsizeMAE</span></p></td><td class="cl-315ef832"><p class="cl-315ee590"><span class="cl-315c7062">4.6</span></p></td><td class="cl-315ef833"><p class="cl-315ee590"><span class="cl-315c7062">1.8</span></p></td><td class="cl-315ef83c"><p class="cl-315ee590"><span class="cl-315c7062">4.4</span></p></td><td class="cl-315ef83d"><p class="cl-315ee590"><span class="cl-315c7062">1.8</span></p></td><td class="cl-315ef846"><p class="cl-315ee590"><span class="cl-315c7062">-0.2*</span></p></td><td class="cl-315ef850"><p class="cl-315ee590"><span class="cl-315c7062">0.011</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-315ef829"><p class="cl-315ee590"><span class="cl-315c7062">educated</span></p></td><td class="cl-315ef832"><p class="cl-315ee590"><span class="cl-315c7062">0.6</span></p></td><td class="cl-315ef833"><p class="cl-315ee590"><span class="cl-315c7062">0.5</span></p></td><td class="cl-315ef83c"><p class="cl-315ee590"><span class="cl-315c7062">0.7</span></p></td><td class="cl-315ef83d"><p class="cl-315ee590"><span class="cl-315c7062">0.4</span></p></td><td class="cl-315ef846"><p class="cl-315ee590"><span class="cl-315c7062">0.1***</span></p></td><td class="cl-315ef850"><p class="cl-315ee590"><span class="cl-315c7062">&lt;0.001</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-315ef86f"><p class="cl-315ee590"><span class="cl-315c7062">LandOwned</span></p></td><td class="cl-315ef878"><p class="cl-315ee590"><span class="cl-315c7062">10.9</span></p></td><td class="cl-315ef879"><p class="cl-315ee590"><span class="cl-315c7062">92.7</span></p></td><td class="cl-315ef87a"><p class="cl-315ee590"><span class="cl-315c7062">1.6</span></p></td><td class="cl-315ef882"><p class="cl-315ee590"><span class="cl-315c7062">2.3</span></p></td><td class="cl-315ef88c"><p class="cl-315ee590"><span class="cl-315c7062">-9.3***</span></p></td><td class="cl-315ef88d"><p class="cl-315ee590"><span class="cl-315c7062">&lt;0.001</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-315ef896"><p class="cl-315ee590"><span class="cl-315c7062">NFertInput</span></p></td><td class="cl-315ef897"><p class="cl-315ee590"><span class="cl-315c7062">131.4</span></p></td><td class="cl-315ef8a0"><p class="cl-315ee590"><span class="cl-315c7062">802.5</span></p></td><td class="cl-315ef8a1"><p class="cl-315ee590"><span class="cl-315c7062">58.3</span></p></td><td class="cl-315ef8aa"><p class="cl-315ee590"><span class="cl-315c7062">251.3</span></p></td><td class="cl-315ef8ab"><p class="cl-315ee590"><span class="cl-315c7062">-73.1**</span></p></td><td class="cl-315ef8b4"><p class="cl-315ee590"><span class="cl-315c7062">0.001</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-315ef8b5"><p class="cl-315ee590"><span class="cl-315c7062">female</span></p></td><td class="cl-315ef8b6"><p class="cl-315ee590"><span class="cl-315c7062">0.2</span></p></td><td class="cl-315ef8be"><p class="cl-315ee590"><span class="cl-315c7062">0.4</span></p></td><td class="cl-315ef8bf"><p class="cl-315ee590"><span class="cl-315c7062">0.2</span></p></td><td class="cl-315ef8c8"><p class="cl-315ee590"><span class="cl-315c7062">0.4</span></p></td><td class="cl-315ef8c9"><p class="cl-315ee590"><span class="cl-315c7062">0.0*</span></p></td><td class="cl-315ef8ca"><p class="cl-315ee590"><span class="cl-315c7062">0.013</span></p></td></tr></tbody></table></div>
+<p>And for the <code>matched_df</code>, which is clearly more balanced.</p>
+<div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="declaredesign.html#cb105-1" tabindex="-1"></a>matched_df <span class="sc">%&gt;%</span> </span>
+<span id="cb105-2"><a href="declaredesign.html#cb105-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Z =</span> <span class="fu">factor</span>(Z, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;Control&quot;</span>, <span class="st">&quot;Treatment&quot;</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb105-3"><a href="declaredesign.html#cb105-3" tabindex="-1"></a>  <span class="fu">select</span>(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) <span class="sc">%&gt;%</span></span>
+<span id="cb105-4"><a href="declaredesign.html#cb105-4" tabindex="-1"></a>  <span class="fu">datasummary_balance</span>( <span class="sc">~</span> Z , <span class="at">data =</span> ., </span>
+<span id="cb105-5"><a href="declaredesign.html#cb105-5" tabindex="-1"></a>                      <span class="at">output =</span> <span class="st">&quot;flextable&quot;</span>, <span class="at">stars =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb105-6"><a href="declaredesign.html#cb105-6" tabindex="-1"></a>                      <span class="at">dinm =</span> <span class="cn">TRUE</span>, <span class="at">dinm_statistic =</span> <span class="st">&quot;p.value&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb105-7"><a href="declaredesign.html#cb105-7" tabindex="-1"></a>  <span class="fu">fix_border_issues</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb105-8"><a href="declaredesign.html#cb105-8" tabindex="-1"></a>  <span class="fu">autofit</span>()</span></code></pre></div>
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;matched_df&#39; not found</code></pre>
+<p>Let’s run the models two times:</p>
+<div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="declaredesign.html#cb107-1" tabindex="-1"></a>unmatched_model <span class="ot">&lt;-</span> <span class="fu">lm_robust</span>(Y <span class="sc">~</span> Z, <span class="at">clusters =</span> village_unique, <span class="at">data =</span> test_data)</span>
+<span id="cb107-2"><a href="declaredesign.html#cb107-2" tabindex="-1"></a>matched_model <span class="ot">&lt;-</span> <span class="fu">lm_robust</span>(Y<span class="sc">~</span>Z, <span class="at">clusters =</span> village_unique, <span class="at">data =</span> matched_df, <span class="at">weights =</span> weights)</span></code></pre></div>
+<pre><code>## Error: object &#39;matched_df&#39; not found</code></pre>
+<div class="sourceCode" id="cb109"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb109-1"><a href="declaredesign.html#cb109-1" tabindex="-1"></a><span class="fu">modelsummary</span>(<span class="fu">list</span>(<span class="at">lm =</span> unmatched_model, <span class="at">psm =</span> matched_model), <span class="at">output =</span> <span class="st">&quot;flextable&quot;</span>,</span>
+<span id="cb109-2"><a href="declaredesign.html#cb109-2" tabindex="-1"></a>             <span class="at">gof_map =</span> <span class="fu">c</span>(<span class="st">&quot;nobs&quot;</span>,<span class="st">&quot;r.squared&quot;</span>,<span class="st">&quot;adj.r.squared&quot;</span>))</span></code></pre></div>
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;matched_model&#39; not found</code></pre>
+<p>Both of these underestimate the treatment effect by a bit, as it should be around 0.2.</p>
+<div id="bias" class="section level3 hasAnchor">
+<h3>Bias<a href="declaredesign.html#bias" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Now, let’s diagnose the design!</p>
+<p>First, let’s examine bias, given selection effects.
+The strength of the selection effect is given by <code>rho</code>,
+so I use <code>redesign()</code> to vary it:</p>
+<div class="sourceCode" id="cb111"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb111-1"><a href="declaredesign.html#cb111-1" tabindex="-1"></a>diagnosis <span class="ot">&lt;-</span></span>
+<span id="cb111-2"><a href="declaredesign.html#cb111-2" tabindex="-1"></a>  design <span class="sc">%&gt;%</span></span>
+<span id="cb111-3"><a href="declaredesign.html#cb111-3" tabindex="-1"></a>  <span class="fu">redesign</span>(<span class="at">rho =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="fl">0.9</span>, <span class="at">by =</span> <span class="fl">0.3</span>))  <span class="sc">%&gt;%</span></span>
+<span id="cb111-4"><a href="declaredesign.html#cb111-4" tabindex="-1"></a>  <span class="fu">diagnose_design</span>(<span class="at">sims =</span> <span class="dv">100</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb111-5"><a href="declaredesign.html#cb111-5" tabindex="-1"></a>  <span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb111-6"><a href="declaredesign.html#cb111-6" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
+<p>And I put the result in a plot:</p>
+<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="declaredesign.html#cb112-1" tabindex="-1"></a>diagnosis <span class="sc">%&gt;%</span></span>
+<span id="cb112-2"><a href="declaredesign.html#cb112-2" tabindex="-1"></a>  <span class="fu">filter</span>(diagnosand <span class="sc">==</span> <span class="st">&quot;bias&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb112-3"><a href="declaredesign.html#cb112-3" tabindex="-1"></a>  <span class="fu">select</span>(rho, <span class="at">bias =</span> estimate, estimator) <span class="sc">%&gt;%</span></span>
+<span id="cb112-4"><a href="declaredesign.html#cb112-4" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> rho, <span class="at">y =</span> bias, </span>
+<span id="cb112-5"><a href="declaredesign.html#cb112-5" tabindex="-1"></a>             <span class="at">shape =</span> estimator, <span class="at">color=</span>estimator)) <span class="sc">+</span></span>
+<span id="cb112-6"><a href="declaredesign.html#cb112-6" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb112-7"><a href="declaredesign.html#cb112-7" tabindex="-1"></a>    <span class="fu">geom_point</span>() </span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-74-1.png" width="672" /></p>
+<p>Clearly, the more treatment is correlated to education,
+the higher the bias in the regular model.
+Bias is never extreme, however.</p>
+</div>
+<div id="power" class="section level3 hasAnchor">
+<h3>Power<a href="declaredesign.html#power" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Then, let’s examine power.</p>
+<div class="sourceCode" id="cb113"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb113-1"><a href="declaredesign.html#cb113-1" tabindex="-1"></a>diagnosis <span class="ot">&lt;-</span></span>
+<span id="cb113-2"><a href="declaredesign.html#cb113-2" tabindex="-1"></a>  design <span class="sc">%&gt;%</span></span>
+<span id="cb113-3"><a href="declaredesign.html#cb113-3" tabindex="-1"></a>  <span class="fu">redesign</span>(<span class="at">clusters_treat =</span> <span class="fu">c</span>(<span class="dv">20</span>,<span class="dv">40</span>,<span class="dv">60</span>),</span>
+<span id="cb113-4"><a href="declaredesign.html#cb113-4" tabindex="-1"></a>           <span class="at">effect =</span> <span class="fu">seq</span>(<span class="fl">0.1</span>,<span class="fl">0.4</span>,<span class="fl">0.1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb113-5"><a href="declaredesign.html#cb113-5" tabindex="-1"></a>  <span class="fu">diagnose_design</span>(<span class="at">sims =</span> <span class="dv">100</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb113-6"><a href="declaredesign.html#cb113-6" tabindex="-1"></a>  <span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb113-7"><a href="declaredesign.html#cb113-7" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
+<p>When we plot the results, it seems sample size doesn’t affect power much
+(not sure why, perhaps the resampling?).
+The design can pick up a treatment effect of 0.4,
+meaning that 40% of the food insecure beneficaries become food secure.</p>
+<div class="sourceCode" id="cb114"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb114-1"><a href="declaredesign.html#cb114-1" tabindex="-1"></a>diagnosis <span class="sc">%&gt;%</span></span>
+<span id="cb114-2"><a href="declaredesign.html#cb114-2" tabindex="-1"></a>  <span class="fu">filter</span>(diagnosand <span class="sc">==</span> <span class="st">&quot;power&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb114-3"><a href="declaredesign.html#cb114-3" tabindex="-1"></a>  <span class="fu">select</span>(clusters_treat, <span class="at">power =</span> estimate, estimator, effect) <span class="sc">%&gt;%</span></span>
+<span id="cb114-4"><a href="declaredesign.html#cb114-4" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> clusters_treat, <span class="at">y =</span> power, </span>
+<span id="cb114-5"><a href="declaredesign.html#cb114-5" tabindex="-1"></a>             <span class="at">shape =</span> estimator, <span class="at">color=</span>estimator)) <span class="sc">+</span></span>
+<span id="cb114-6"><a href="declaredesign.html#cb114-6" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb114-7"><a href="declaredesign.html#cb114-7" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb114-8"><a href="declaredesign.html#cb114-8" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept=</span><span class="fl">0.8</span>,<span class="at">linetype=</span><span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb114-9"><a href="declaredesign.html#cb114-9" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>effect)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-77-1.png" width="672" /></p>
 
+</div>
 </div>
 </div>
             </section>
