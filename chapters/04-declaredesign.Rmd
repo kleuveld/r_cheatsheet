@@ -25,341 +25,23 @@ Resources for learning about DeclareDesign:
 
 Read at least the slides before going forward!
 
-## Diff-in-Diff
+## Simple Power Calculation
 
-Here's a common situation: I've collected some baseline data, and are 
-wondering if our study has sufficient power to pick up expected treatment
-effects.
+Let's first do some power calcuations. 
+I will use Rhomis data from Burundi, you can get the data 
+[here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/9M6EHS). 
 
-### Fabricating Data 
 
-I will start off with some fake baseline data, which only contains `y0`, our outcome
-indicator. We use the `fabricate()` function, from the fabricatr library, which is
-loaded with DeclareDesign:
+### Loading data
 
-```{r}
-
-
-# load packages
-
-library(tidyverse) # data management
-
-library(fixest) # for estimation of fixed effects
-library(lmtest) # for computing standard errors
-library(sandwich) # provides the functions for lmtest to compute robust SEs
-
-library(DeclareDesign) # for power calculation
-library(broom) # to extract coefficients from model output
-
-# set seed for reproducibility
-set.seed(1)
-
-N = 100
-fake_data <-
-  fabricate(N = N, 
-            y0 = runif(N, 100, 150))
-
-fake_data %>% as_tibble()
-
-```
-
-Now, let's add an extra year to our data, again using `fabricate()`, just
-to demonstrate how, using `add_level()` and  then `crosslevels()`:
-
-```{r}
-
-fakedata_years <-
-  fabricate(fake_data,
-            years = add_level(N = 2, 
-                              t = as.numeric(years) - 1, 
-                              nest=FALSE),
-            observations = cross_levels(by = join_using(ID, years)))
-
-fakedata_years %>% as_tibble()
-
-```
-
-### Declare Design 
-
-Now it's time to start declaring our design. The first element of the 
-design is the model, which essentially is my data, and I declare it 
-using the same synytax as `fabricate()`
-above. This means you can input existing data, but also generate 
-random new variables.
-
-The potential outcomes are generated using `potential_outcomes()`.
-This will create two variables `Y_Z_1` and `Y_Z_0`, which are 
-the potential outcomes if having received treatment (`Z == 1`) or not. 
-Note that I will generate `Z` in the next step.
-
-You can see I have created a very simple data generating 
-process to generate different outcomes in `t = 1` for treatment 
-and control, but you can go absolutely wild here to check the 
-assumptions you have: you can cluster the outcomes, include 
-compliance or treatment effectiveness, add more or less noise, 
-make it depend on  both observable and unobservable 
-characteristics, etc. etc.
-
-
-```{r}
-
-year_shock <- 10
-effect_size <- 15
-stdev <- 5
-
-model <- 
-  declare_model(fakedata_years,
-                potential_outcomes(Y ~ y0 + t * year_shock + 
-                                            Z * effect_size + 
-                                            t * rnorm(N,sd = stdev)))
-
-```
-
-Then it's time to think about assignment. I need to assign treatment, 
-and reveal the outcomes based on treatment assignment. Here I create
-two variables for treatment so I can toy around with different model
-specifications later on. The first variable is the `treatment_group`, to 
-indicate which households get the treatment. For this I use the 
-`cluster_ra()` because I have two observations per household, 
-so households can be thought of as a cluster. The other is `Z`, 
-an indicator for actually having
-received the treatment (equivalent to `Z = treatment_group * t`). 
-
-If treatment had already been known during baseline (not
-unlikely) then we would have only had to reveal the outcomes:
-
-```{r}
-
-assignment <-
-  declare_assignment(treatment_group = cluster_ra(clusters = ID, prob = 0.5),
-                     Z = ifelse(treatment_group == 1 & t == 1,1,0),
-                     Y = reveal_outcomes(Y ~ Z)) 
-
-```
-
-Next, I declare my theoretical quantity of interest is the treatment 
-effect in year 1. This is useful to check for bias. This is not really
-needed here, since my model will follow our data generation process exactly,
-so I could have just skipped this step.
-
-```{r}
-
-inquiry <-  
-  declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0), subset = (t == 1)) 
-
-```
-
-And finally, I add three estimators. If I hadn't declared an inquiry, 
-I could have declared a test here using `declare_test()`, which has 
-the same syntax.
-
-The first estimator uses `lm_robust()`, which is included
-with DeclareDesign, to estimate a simple linear model using standard 
-DiD notation.
-
-```{r}
-
-estimator1 <-
-  declare_estimator(Y ~ t * treatment_group, 
-                    inquiry = "ATE", 
-                    .method = estimatr::lm_robust, 
-                    term = "t:treatment_group", 
-                    label = "LM")
-
-```
-Then I use [`feols()`](https://lrberge.github.io/fixest/reference/feols.html)
-from the [fixest](https://lrberge.github.io/fixest/index.html)
-package to estimate a Two-way fixed effects (2FE) model. 
-This is equivalent to the model above for this case, but the 
-2FE can be more easily extended to more complex 
-designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
-
-```{r}
-
-library(fixest)
-library(broom)
-
-estimator2 <-
-  declare_estimator(Y ~ Z | treatment_group + t,
-                    vcov = "hetero",
-                    .method = feols, 
-                    term = "Z", 
-                    inquiry = "ATE", 
-                    label = "2FE")
-
-```
-
-As third estimator, I use a custom estimation function. The function
-takes an equation, the data to be analyzed, and (optionally)
-the type of standard errors to compute, and as its output
-it returns a tidy dataset containing estimated coefficients 
-created by [`broom::tidy()`](https://broom.tidymodels.org/articles/broom.html). 
-As long as you make sure the data can go into your custom function 
-(using an argument called `data`),
-and it returns something that looks like what 
-[`broom::tidy()`](https://broom.tidymodels.org/articles/broom.html) would
-return, there's no limit as to how complex you can make your analysis.
-
-Here, I keep it (relatively) simple. I use the lmtest/sandwich way of estimating 
-robust standard errors, and make sure you can easily change the equation and type of
-Standard Errors to use through a parameter.
-
-```{r}
-
-library(lmtest)
-library(sandwich)
-
-custom_robust <- function(equation, data, type="HC1"){
-  # function takes a formula, provided as the first argument
-  # of declare_estimator...
-  # .. a type of standard errors to pass to vcov (default is HC1)
-  # ... and data
-  # It outputs a tidy data frame with relevant coefficients.
-
-  lm(equation, data = data) %>%
-    coeftest(., vcov = vcovHC(., type=type)) %>% 
-    broom::tidy(conf.int=TRUE) %>%
-    mutate(outcome = "Y") %>%
-    filter(term == "t:treatment_group")
-}
-
-# the arguments formula and type are passed to to custom_robust()
-# as is the data on which to run the estimator. 
-estimator3 <- 
-  declare_estimator(equation = Y ~ t * treatment_group, 
-                    handler = label_estimator(custom_robust), 
-                    inquiry = "ATE", 
-                    label = "Custom") 
-
-```
-
-Finally, I combine all these elements to declare my design. Note that 
-it's only here that R starts actually running the code to randomize 
-things. The previous was just declaration!
-
-```{r}
-  
-design <- model + assignment + inquiry + estimator1 + estimator2 + estimator3
-summary(design)
-
-```
-
-Note that the results of my three estimators are identical, which is as expected.
-
-
-### Diagnosing Design and calculating power
-
-If you want to browse a version of the data created by your design,
-use the `draw_data()` function. This is useful to examine the properties of the data.
-
-```{r}
-
-draw_data(design) %>%
-  as_tibble()
-
-```
-
-Now to calculate our power. The `diagnose_design()` will run our
-model 500 times and our power is simply the fraction of times we
-find a statistically significant effect.
-
-```{r}
-
-diagnose_design(design)
-
-```
-
-Looks good! (Except for some NAs for the 2FE model: this is due
-to the summary function not providing all things needed. 
-To fix this, I could have created my own summary
-or handler function, but it doesn't really affect anything,
-so this is good enough.)
-
-But what if I was too optimistic? Using the 
-`redesign()` function, you can vary various 
-parameters of your design, and test all their combinations.
-Here I check a few plausible values for 
-the `stdev` variable (giving the variation of the error term for 
-incomes in year 1) and the expected effect size.
-
-Note that by default, this runs all estimators, 500 times for each
-combination of the parameters. This takes a lot of time, so I update
-my design to have only one estimator (estimator1, which is fast) 
-and I've set the `sims` option of `diagnose_design()` to 100.
-
-I convert the output to a `tibble` as that's easy to work with.
-
-
-
-```{r diagnose_dd_power, eval = run_diagnosis}
-
-design <- model + assignment + inquiry + estimator1
-
-diagnosis <-
-  design %>%
-  redesign(effect_size = 7:11,
-           stdev = c(3,5,7)) %>%
-  diagnose_design(sims = 100) %>%
-  tidy() %>%
-  as_tibble()
-
-```
-
-
-```{r, include = FALSE, eval = run_diagnosis}
-
-write_csv(diagnosis,file = here("data/diagnosis_dd.csv"))
-
-```
-
-```{r,  include=FALSE}
-
-diagnosis <- read_csv(file =  here("data/diagnosis_dd.csv"))
-
-```
-
-
-Now, I want a nice plot. 
-For this I filter the tibble I created, and pipe it into `ggplot()`. 
-It's now easy to see that I should 
-be able to pick up an effect size of 10 in most cases.
-
-```{r}
-
-diagnosis %>%
-  filter(diagnosand == "power") %>%
-  select(effect_size,stdev,power = estimate) %>%
-  mutate(stdev = factor(stdev)) %>%
-  ggplot(aes(x = effect_size, y = power, 
-             shape = stdev, color=stdev)) +
-    geom_line() +
-    geom_point() +
-    geom_hline(yintercept=0.8,linetype=2) + 
-    scale_x_continuous(breaks=seq(7,11,2))
-
-```
-
-
-## Propsensity score matching with Rhomis data
-
-Here, I will be working on Rhomis Data, in the context of a study
-that aims to increase food security.
-Here' I have some reference data, that I want to use to explore a
-matching design. I need to set up a treatment indicator that is correlated
-with my outcome.
-
-### Data Wrangling
-
-First, I get the Rhomis data, and clean it up a bit. There are no village-level
-identifers, so I just bin the gps latitute variable in 18 clusters. Not perfect
-of course, but whatever.
-
-I also do some data cleaning. 
+I do some data wrangling, like creating village codes based on y-coordinates,
+and some assorted cleaning.
 
 ```{r}
 
 library(tidyverse)
 library(DeclareDesign)
+
 n_clusters = 18
 
 rhomis <-
@@ -386,28 +68,391 @@ rhomis <-
 
 ```
 
+### Declare Design 
+
+Now it's time to start declaring our design. The first element of the 
+design is the model, using `declare_model()` which essentially is my data.
+`declare_model()` follows the syntax of `fabricate()`, 
+which allows you to generate an entirely new dataset. 
+For now we stick with existing data,
+but the syntax is still the same as `fabricate()`, 
+so insead of using `mutate()` we can just supply new variables 
+after a comma. 
+In this case, I add potential outcomes, using `potential_outcomes()`.
+
+```{r}
+
+effect_size_simple <- 70
+
+model_simple <- 
+  declare_model(
+    rhomis,
+    potential_outcomes(Y ~ NFertInput + Z * effect_size_simple)
+)
+
+```
+
+The potential outcomes are generated using `potential_outcomes()`.
+This will create two variables `Y_Z_1` and `Y_Z_0`, which are 
+the potential outcomes if having received treatment (`Z == 1`) or not. 
+Note that I will generate `Z` in the next step.
+
+Then it's time to think about assignment. 
+I do a clustered randomization, based on the villages:
+
+```{r}
+
+assignment_simple <-
+  declare_assignment(Z = cluster_ra(clusters = village, prob = 0.5)) 
+
+```
+
+Next, I declare my theoretical quantity of interest is the treatment 
+effect in year 1. 
+This is basically my research question.
+
+
+```{r}
+
+inquiry_simple <-  
+  declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)) 
+
+```
+
+
+```{r}
+
+measurement_simple <- declare_measurement(
+  Y = reveal_outcomes(Y~Z)
+)
+
+```
+Since I won't be able to observe Y_Z_1 for the control group, nor Y_Z_0 for the treatment group,
+I will need an estimation strategy.
+A simple difference in means:
+
+```{r}
+
+estimator_simple <-
+  declare_estimator(Y ~ Z,
+                    clusters = village, 
+                    inquiry = "ATE", 
+                    term = "Z", 
+                    label = "Simple")
+
+```
+
+Finally, I combine all these elements to declare my design. Note that 
+it's only here that R starts actually running the code to randomize 
+things. The previous was just declaration!
+
+```{r}
+  
+design_simple <- model_simple + assignment_simple + inquiry_simple + measurement_simple + estimator_simple
+summary(design_simple)
+
+```
+
+Note that the results of my three estimators are identical, which is as expected.
+
+
+### Diagnosing Design and calculating power
+
+If you want to browse a version of the data created by your design,
+use the `draw_data()` function. This is useful to examine the properties of the data.
+
+```{r}
+
+draw_data(design_simple) %>%
+  as_tibble()
+
+```
+
+Now to calculate our power. The `diagnose_design()` will run our
+model 500 times and our power is simply the fraction of times we
+find a statistically significant effect.
+
+
+```{r}
+
+set.seed(1)
+diagnose_design(design_simple)
+
+```
+
+Our power is 0.23, meaning we found a significant result in 23% 
+of our model runs.
+That's way lower than the traditional 80% threshold.
+
+How large should our effect size be to reach a power of 0.8?
+We can use the `redesign()` function for this.
+Redesign allows you to vary certain parameters of your design, 
+and run the design 500 times for each value of the parameter.
+Here I set it to run 200 times, as that takes long enough
+already.
+
+
+```{r diagnose_simple_power, eval = run_diagnosis}
+
+set.seed(1)
+diagnosis_simple <-
+  design_simple %>%
+  redesign(effect_size_simple = seq(100,300,50)) %>%
+  diagnose_design(sims = 200) %>%
+  tidy() %>%
+  as_tibble()
+
+```
+
+
+```{r, include = FALSE, eval = run_diagnosis}
+
+write_csv(diagnosis_simple,file = here("data/diagnosis_simple.csv"))
+
+```
+
+```{r,  include=FALSE}
+
+diagnosis_simple <- read_csv(file =  here("data/diagnosis_simple.csv"))
+
+```
+
+
+Now, I want a nice plot. 
+For this I filter the tibble I created, and pipe it into `ggplot()`:
+
+```{r}
+
+diagnosis_simple %>%
+  filter(diagnosand == "power") %>%
+  select(effect_size_simple,power = estimate) %>%
+  ggplot(aes(x = effect_size_simple, y = power)) +
+    geom_line() +
+    geom_point() +
+    geom_hline(yintercept=0.8,linetype=2) 
+
+```
+
+We can reliably detect an effect size between 150 and 200 kgs of fertilizer.
+The mean fertilizer use is 70kg, so that seems unlikely to be realistic. 
+Perhaps we should add covariates?
+
+#### Adding more estimators
+
+I define another estimator that includes covariates in
+its model specification, and add it to my original design, 
+hoping this will increase power.
+
+```{r diagnose_simpe_cov_power}
+
+estimator_simple_cov <-
+  declare_estimator(Y ~ Z + LandOwned + educated + female,
+                    clusters = village, 
+                    inquiry = "ATE", 
+                    term = "Z", 
+                    label = "Simple Cov")
+
+
+design_simple_cov <- design_simple + estimator_simple_cov
+
+set.seed(1)
+diagnosis_simple_cov <-
+  design_simple_cov %>%
+  redesign(effect_size_simple = seq(100,300,50)) %>%
+  diagnose_design(sims = 200) %>%
+  tidy() %>%
+  as_tibble()
+
+```
+
+
+
+```{r, include = FALSE, eval = run_diagnosis}
+
+write_csv(diagnosis_simple,file = here("data/diagnosis_simple.csv"))
+
+```
+
+```{r,  include=FALSE}
+
+diagnosis_simple <- read_csv(file =  here("data/diagnosis_simple.csv"))
+
+```
+
+
+```{r}
+diagnosis_simple_cov %>%
+  filter(diagnosand == "power") %>%
+  rename(power = estimate) %>%
+  ggplot(aes(x = effect_size_simple, y = power, color = estimator, shape = estimator)) +
+    geom_line() +
+    geom_point() +
+    geom_hline(yintercept=0.8,linetype=2) 
+
+```
+
+Turns out it doesn't help at all...
+
+## Dif in diff
+
+We can of course also opt for a diff-in-diff design. 
+But then we have to pretend we have two rounds of data collection.
+
+For that, I prefer to use `dplyr`, 
+but it should be possible with `fabricate()` as well.
+I first rename all our time-variant varaible to have `_0` at the end, 
+create a bunch of correlated varaibles with `_1` at the end, and then `pivot_longer`.
+
+
+```{r}
+
+effect_size_dd <- 70
+sd_dd <- 100
+
+model_dd <- declare_model(
+    rhomis %>%
+        # add one more year
+        rename_with(~ paste0(., "_0"), HHsizeMAE:female) %>%
+        mutate(food_secure_1 = correlate(given = food_secure_0, draw_handler = draw_binomial, prob = mean(food_secure_0) , rho = 0.9),
+               HHsizeMAE_1 = HHsizeMAE_0 + rnorm(n = nrow(.), mean = 0, sd = 0.1),
+               NFertInput_1 = pmax(0,NFertInput_0 + rnorm(n = nrow(.), mean = 0, sd = sd_dd))) %>%
+        pivot_longer(ends_with(c("_0","_1")), 
+                     names_to = c(".value", "t"),
+                     names_pattern = "(.*)_([0-9]+)$",
+                     values_drop_na = TRUE,
+                     names_transform = list(t = as.integer)),
+    potential_outcomes(Y ~ NFertInput + Z * effect_size_dd)
+
+
+)
+
+```
+
+I modify the inquiry and assignment to only take into account `t == 1`
+
+```{r}
+
+inquiry_dd <-  
+  declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0), subset = (t == 1)) 
+
+
+
+
+assignment_dd <-
+  declare_assignment(treatment_group = cluster_ra(clusters = village, prob = 0.5),
+                     Z = t * treatment_group)
+
+
+
+```
+
+Measurement is unchanged:
+
+
+```{r}
+
+measurement_dd <- declare_measurement(
+  Y = reveal_outcomes(Y~Z)
+
+)
+
+```
+
+
+Then I use [`feols()`](https://lrberge.github.io/fixest/reference/feols.html)
+from the [fixest](https://lrberge.github.io/fixest/index.html)
+package to estimate a Two-way fixed effects (2FE) model. 
+This can be easily extended to more complex 
+designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
+
+```{r}
+
+library(fixest)
+# library(broom)
+
+estimator_dd <-
+  declare_estimator(Y ~ Z | treatment_group + t,
+                    cluster = "village",
+                    .method = feols, 
+                    term = "Z", 
+                    inquiry = "ATE", 
+                    label = "2FE")
+
+```
+
+Let's have a look at our power now! 
+Of course, in a DiD setting, power depends not only on the effect size, but also on how well the years correlate.
+I therefore also vary the `sd_dd` variable, which adds increase between-year variation
+
+
+```{r diagnose_dd_power, eval = run_diagnosis}
+
+design_dd <- model_dd + assignment_dd + inquiry_dd + measurement_dd + estimator_dd
+
+set.seed(1)
+diagnosis_dd <-
+  design_dd %>%
+  redesign(effect_size_dd = seq(10,90,20),
+           sd_dd = c(100,200)) %>%
+  diagnose_design(sims = 100) %>%
+  tidy() %>%
+  as_tibble()
+
+```
+
+
+```{r, include = FALSE, eval = run_diagnosis}
+
+write_csv(diagnosis_dd,file = here("data/diagnosis_dd.csv"))
+
+```
+
+```{r,  include=FALSE}
+
+diagnosis_dd <- read_csv(file =  here("data/diagnosis_dd.csv"))
+
+```
+
+
+Our power is now a lot better, even if we turn up the variance
+
+
+```{r}
+
+diagnosis_dd %>%
+  filter(diagnosand == "power") %>%
+  rename(power = estimate) %>%
+  mutate(sd_dd = factor(sd_dd)) %>%
+  ggplot(aes(x = effect_size_dd, y = power, color = sd_dd, shape = sd_dd)) +
+    geom_line() +
+    geom_point() +
+    geom_hline(yintercept=0.8,linetype=2) 
+
+```
+
+## Propsensity score matching
+
+Finally, let's imagine a Propensity Score matching scenario. We therefore need
+to pretend treatment isn't random, but is correlated to the outcome. 
+
+Let's also look at `food_secure`, since it's binary, and thus adds a twist here and there.
+
+Finally, I will use the `resample_data()` function to pretend that we can visit 
+more households than are in my original data set.
 
 ### Declare Design
 
-Then, I put it in DeclareDesign.
-
-I use dplyr to fabricate data, because I like it better than fabricatr.
+Let's put this in declare design.
 
 Treatment assignment is as follows:
 
-- 50% of the villages are selected for treatment.
+- 50% of the villages are selected for treatment. This is just random.
 - Roughly 50% of the households are selected. The selection indicator will have
 a correlation of `rho` with the household being educated, using `fabricatr`'s 
 `correlate()` function. 
 Education is also a strong predictor of `food_security`, creating inherent bias.
 
-I then re-sample from the original data using the `resample_hhs` I define below:
 
-- I ensure I have more control household than treatment households.
-- I drop any untreated households in treated villages.
-
-This simulates that we can't get control households in treated villages, 
-for example due to fears of 
 
 I compare a standard difference in means, as well as a custom matching function that 
 uses the `MatchIt` package to create a balanced data set, that I can then use for
@@ -425,33 +470,45 @@ library(MatchIt, exclude("select")) # the select function would conflict with dp
 effect <- 0.2
 rho <- 0.2
 
+
+population_psm <- declare_population(
+  # rhomis %>%
+  #   mutate(treated_hh = correlate(given = educated, draw_handler = draw_binary, prob = 0.5 , rho = rho),
+  #          potential_outcomes(Y ~ pmin(1,food_secure + Z * draw_binary(effect,nrow(.)))))
+  N = nrow(rhomis),
+  rhomis,
+  potential_outcomes(Y ~ pmin(1,food_secure + Z * draw_binary(effect,N)))
+)
+
+
+
+assignment_psm <- declare_assignment(
+  treated_hh = correlate(given = educated, draw_handler = draw_binary, prob = 0.5 , rho = rho),
+  treated_vill = cluster_ra(clusters = village, prob = 0.5),
+  Z = treated_hh * treated_vill
+)
+```
+
+I then re-sample from the original data using  `resample_hhs()` I define below.
+To include the funciton in our design, we need to use `declare_step()`
+
+- I ensure I have more control household than treatment households.
+- I drop any untreated households in treated villages.
+- Compared to the treatment hhs in each cluster, 
+I sample twice the number of control hhs.
+
+This simulates that we can't get control households in treated villages, 
+for example due to fears of 
+
+
+
+```{r}
+
 clusters_treat <- 50
 hh_treat <- 15
 
-clusters_control_multi <- 1 
-hh_control_multi <- 2
-
-
-population <- declare_population(
-  rhomis %>% 
-    left_join(
-      {.} %>%
-        select(village) %>%
-        unique() %>%
-        mutate(treated_vill = complete_ra(N = nrow(.),prob = 0.5)),
-      by = join_by(village)
-    ) %>%
-    mutate(
-      # sampling
-      treated_hh = correlate(given = educated, draw_handler = draw_binomial, prob = 0.5 , rho = rho),
-
-      potential_outcomes(Y ~ pmin(1,food_secure + Z * rbinom(nrow(.),1,effect)))
-    )  
-)
-
-assignment <- declare_assignment(
-  Z = treated_vill * treated_hh
-)
+clusters_control_multi <- 1 # multiplier for oversampling control clusters
+hh_control_multi <- 2 # multiplier for oversampling control hhs
 
 resample_hhs <- function(data){
   # this function filters any control househols in treated communities
@@ -470,23 +527,42 @@ resample_hhs <- function(data){
       })
 }
 
-resampling <- declare_step(
+resampling_psm <- declare_step(
   handler = resample_hhs
 )
 
-measurement <- declare_measurement(Y = reveal_outcomes(Y ~ Z)
+```
+
+Measurement and inquiry are standard. I also add an OLS estimator to check for bias.
+
+```{r}
+measurement_psm <- declare_measurement(Y = reveal_outcomes(Y ~ Z)
 ) 
 
-inquiry <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)
+inquiry_psm <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)
 )
 
-ols_estimator <- 
+estimator_notmatched_psm <- 
   declare_estimator(Y ~ Z, 
                     clusters = village_unique,
                     inquiry = "ATE", 
                     term = "Z", 
-                    label = "LM")
+                    label = "Not matched")
 
+
+```
+
+Finally, I need to somehow put my matching model in DeclareDesign.
+Fortunately, you can put any the output of any function into the `declare_estimator()` function 
+using the `handler` argument. 
+It does need to accept a `data` argument, 
+and output a [`tidy()`](https://broom.tidymodels.org/articles/broom.html) dataframe.
+
+My function `custom_match()` accepts a data frame, uses `MatchIt` to create
+a matched data set,
+I define a function that does that, and some labelling:
+
+```{r}
 custom_match <- function(data, equation, outcome = "Y", term = "Z") {
   
   # the command filter(term == term) wouldn't do anything, so this is a workaround
@@ -505,16 +581,16 @@ custom_match <- function(data, equation, outcome = "Y", term = "Z") {
     filter(term == term_value)
 }
 
-match_estimator <- declare_estimator(
+estimator_matched_psm <- declare_estimator(
   Z ~ HHsizeMAE + educated + LandOwned + NFertInput + female + NFertInput,
   handler = label_estimator(custom_match),
   inquiry = "ATE",  # Tie the estimator to the declared inquiry
-  label = "PSM ATE",
+  label = "Matched",
   term = "Z",
 )
 
-design <-
-  population +  inquiry + assignment + resampling + measurement + ols_estimator + match_estimator
+design_psm <-
+  population_psm +  inquiry_psm + assignment_psm + resampling_psm + measurement_psm + estimator_notmatched_psm + estimator_matched_psm
 
 ```
 
@@ -529,7 +605,7 @@ First  I draw data based on my design and create matched version of that data.
 set.seed(1)
 
 test_data <- 
-  draw_data(design) %>%
+  draw_data(design_psm) %>%
   as_tibble() 
 
 
@@ -603,8 +679,8 @@ so I use `redesign()` to vary it:
 
 ```{r diagnose_psm_bias, eval = run_diagnosis}
 
-diagnosis <-
-  design %>%
+diagnosis_psm_bias <-
+  design_psm %>%
   redesign(rho = seq(from = 0, to = 0.9, by = 0.3))  %>%
   diagnose_design(sims = 100) %>%
   tidy() %>%
@@ -614,13 +690,13 @@ diagnosis <-
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
-write_csv(diagnosis,file = here("data/diagnosis_psm_bias.csv"))
+write_csv(diagnosis_psm_bias,file = here("data/diagnosis_psm_bias.csv"))
 
 ```
 
 ```{r,  include=FALSE}
 
-diagnosis <- read_csv(file =  here("data/diagnosis_psm_bias.csv"))
+diagnosis_psm_bias <- read_csv(file =  here("data/diagnosis_psm_bias.csv"))
 
 ```
 
@@ -628,7 +704,7 @@ And I put the result in a plot:
 
 ```{r}
 
-diagnosis %>%
+diagnosis_psm_bias %>%
   filter(diagnosand == "bias") %>%
   select(rho, bias = estimate, estimator) %>%
   ggplot(aes(x = rho, y = bias, 
@@ -650,8 +726,8 @@ Then, let's examine power.
 
 ```{r diagnose_psm_power, eval = run_diagnosis}
 
-diagnosis <-
-  design %>%
+diagnosis_psm_power <-
+  design_psm %>%
   redesign(clusters_treat = c(20,40,60),
            effect = seq(0.1,0.4,0.1)) %>%
   diagnose_design(sims = 100) %>%
@@ -662,25 +738,27 @@ diagnosis <-
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
-write_csv(diagnosis,file = here("data/diagnosis_psm_power.csv"))
+write_csv(diagnosis_psm_power,file = here("data/diagnosis_psm_power.csv"))
 
 ```
 
 ```{r,  include=FALSE, message = FALSE}
 
-diagnosis <- read_csv(file =  here("data/diagnosis_psm_power.csv"))
+diagnosis_psm_power <- read_csv(file =  here("data/diagnosis_psm_power.csv"))
 
 ```
 
 When we plot the results, it seems sample size doesn't affect power much 
 (not sure why, perhaps the resampling?). 
-The design can pick up a treatment effect of 0.4,
+The design can pick up an `effect` of 0.4,
 meaning that 40% of the food insecure beneficaries become food secure.
+The actual treatment effect would be lower, as some beneficiaries would
+have been food secure before the intervention.
 
 
 ```{r}
 
-diagnosis %>%
+diagnosis_psm_power %>%
   filter(diagnosand == "power") %>%
   select(clusters_treat, power = estimate, estimator, effect) %>%
   ggplot(aes(x = clusters_treat, y = power, 
@@ -691,3 +769,4 @@ diagnosis %>%
     facet_wrap(~effect)
 
 ```
+
