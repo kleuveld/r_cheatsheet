@@ -322,7 +322,7 @@ be updated accordingly. Plus, if I want to use the same code in another project,
 easily do it. 
 
 
-## Map()
+## Map() {#map}
 
 `map()` works just like loop, but generally faster. It takes two arguments:
 

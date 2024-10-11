@@ -66,6 +66,9 @@ rhomis <-
   mutate(across(c(LandOwned,NFertInput,educated),
               ~ if_else(is.na(.x),0,.x)))
 
+
+mean(rhomis$HFIAS_status == "FoodSecure")
+
 ```
 
 ### Declare Design 

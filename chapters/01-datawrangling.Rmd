@@ -31,7 +31,6 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     filter(interview_date > "2016-11-16" & interview_date < '2017-01-01')
 
 ```
-
 ## Pivoting (or reshaping)
 
 In tidyverse, reshaping is called pivoting. Here's how you 
@@ -124,8 +123,7 @@ and `names_sep` options:
 ```{r }
 
 wide_data %>%
-    rename_with(~ gsub("_", "", .)) %>%
-    pivot_longer(!keyID, 
+    pivot_longer(!key_ID, 
                  names_to = c(".value", "member_ID"),
                  names_sep="_",
                  values_drop_na = TRUE,
@@ -159,9 +157,6 @@ so here's two examples:
     The parentheses indicate how the string should be separated to form variable names and member_ID.
     - If the separator is used in other places in variable names (`member_age_1` etc...):
       `names_pattern = "(.*)_([0-9]+)$"`.
-- If there is no separator, or if the separator is used in other places
-in your variable names you'll have to use the`names_pattern` option. 
-In this case `names_pattern = "(.*)_([0-9]+)$"` would work. 
 - `values_drop_na = TRUE`: tells R to drop rows that have missing data for 
 all variables. This prevents the issue where we hadd too many rows.
 - `names_transform`: by default, all `name` columns will be character types, but 
@@ -314,3 +309,93 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
 
 Note that the original `items_owned` variable is lost during the `separate_longer_delim()`
 step, so I used `left_join()` to merge it back in for demonstration purposes.
+
+
+## Renaming many variables
+
+Let's say we need to rename a bunch of variables.
+
+
+One way is to use a named list:
+
+```{r}
+
+# this follows the pattern new_name = old_name
+newnames <- c("no_livestock" = "liv_count", 
+              "no_rooms" = "rooms",
+               "affect_conflicts" = "ffect_conflicts")
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%  
+    rename(any_of(newnames)) %>%
+    glimpse()
+
+```
+
+Note that `"affect_conflicts" = "ffect_conflicts"` didn't do anything,
+as there is no `ffect_conflicts` variable. 
+`any_of()` just ignored any variables not present in the data.
+This can be useful in data pipelines using multiple files,
+where some files have mistyped variable names.
+
+What if we want to do the same thing to many variables? 
+For example, turning them all to uppercase?
+
+We could use ` newnames = c(KEY_ID = key_ID, VILLAGE = village)` 
+etc. etc.,
+but that'd be extremely tedious. 
+Instead, there is `rename_with()`, which takes two arugments:
+
+- `.fn`: A [function](#functions) that takes the variable names of your dataset as an argument.
+- `.cols`: a tidy select statement defining which columns to change. Defaults
+to all columns.
+
+This is what it'd look like:
+
+```{r}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
+    rename_with(.fn = toupper) %>% 
+    glimpse()
+
+```
+
+The variables names are used as the argument to `toupper()`,
+which returns them in upper case.
+
+But what if we need to provide more arguments?
+Let's say we want to append `_0` to all columns, 
+except the ID columns,
+to indicate this is baseline data.
+
+We use `paste0()` which takes two arguments, 
+the variable name and string we wish to append:
+
+```{r}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
+    rename_with(.fn = ~paste0(.x, "_0"), .cols = !key_ID) %>%
+    glimpse()
+
+```
+
+In this case, we specify the function as a
+[a purrr-style inline anonymous function](https://adv-r.hadley.nz/functionals.html#purrr-shortcuts)
+(i.e. preceded by a `~`), and we supply the variable names as `.x`.
+(This all works the same as `across()` above.)
+
+Now, let's replace all instances of `membrs` or `memb` in variable names with 
+`members` (so `no_membrs` becomes `no_members`, 
+and `memb_assoc` becomes `members_assoc`. 
+For this I will use `gsub()`, 
+which takes three arguments:
+ - A pattern (expressed as a [regular expression](https://www.datacamp.com/tutorial/regex-r-regular-expressions-guide)) to look for;
+ - a replacement for all matches of the pattern; and,
+ - the data to look in (in this case the varaible names).   
+
+```{r}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
+    rename_with(.fn = ~gsub("membrs|memb", "members",.x)) %>%
+    glimpse()
+
+```
