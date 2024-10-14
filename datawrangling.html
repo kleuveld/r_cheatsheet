@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2024-09-17" />
+<meta name="date" content="2024-10-14" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -173,6 +173,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across(): passing values from multiple variables to summarizing functions</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#seperate_longer"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#renaming-many-variables"><i class="fa fa-check"></i>Renaming many variables</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
@@ -326,16 +327,16 @@ be <code>-99</code>, which should be considered missing.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      1    49
-##  2      1         2      1    34
+##  1      1         1      1    27
+##  2      1         2      1    66
 ##  3      1         3      1    36
-##  4      2         1      0    26
-##  5      2         2      0    37
-##  6      2         3      1    16
-##  7      2         4      1    76
-##  8      2         5      1    81
-##  9      2         6      0     5
-## 10      2         7      1    16
+##  4      2         1      1    30
+##  5      2         2      1     9
+##  6      2         3      1    69
+##  7      2         4      0    24
+##  8      2         5      0    66
+##  9      2         6      0    67
+## 10      2         7      1    46
 ## # ℹ 932 more rows</code></pre>
 </div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
@@ -351,16 +352,16 @@ be <code>-99</code>, which should be considered missing.</p>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
 ##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        1    49        1    34        1    36       NA    NA       NA
-##  2      2        0    26        0    37        1    16        1    76        1
-##  3      3        1    21        1     1        0    76        0    15        1
-##  4      4        1    70        0    41        1     5        0    73        0
-##  5      5        1    31        0    10        1    26        1    16        0
-##  6      6        0    24        1    71        0    76       NA    NA       NA
-##  7      7        0    36        1     2        1    80        0    59        1
-##  8      8        1    40        1    58        0    38        1    66        0
-##  9      9        1    84        0    51        0     1        0    68        1
-## 10     10        0    72        1    45        0    59        0    48        0
+##  1      1        1    27        1    66        1    36       NA    NA       NA
+##  2      2        1    30        1     9        1    69        0    24        0
+##  3      3        1    21        1    36        0    34        0    30        0
+##  4      4        0    24        1    44        1    78        1    38        0
+##  5      5        0    68        0    68        1     5        0    86        0
+##  6      6        1    31        0    20        0    21       NA    NA       NA
+##  7      7        0    50        0    25        0    39        1    47        0
+##  8      8        0    42        1    64        0    15        0    68        1
+##  9      9        0    26        0    22        0   -99        1    44        1
+## 10     10        1    77        0    65        1    59        1    28        0
 ## # ℹ 121 more rows
 ## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
 ## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
@@ -389,9 +390,9 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 ##    key_ID name     value
 ##     &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;
 ##  1      1 female_1     1
-##  2      1 age_1       49
+##  2      1 age_1       27
 ##  3      1 female_2     1
-##  4      1 age_2       34
+##  4      1 age_2       66
 ##  5      1 female_3     1
 ##  6      1 age_3       36
 ##  7      1 female_4    NA
@@ -414,32 +415,25 @@ at all.
 I can do all of this within the <code>pivot_longer()</code> call by using the <code>names_to</code>
 and <code>names_sep</code> options:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="datawrangling.html#cb10-1" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="datawrangling.html#cb10-2" tabindex="-1"></a>    <span class="fu">rename_with</span>(<span class="sc">~</span> <span class="fu">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot;&quot;</span>, .)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-3"><a href="datawrangling.html#cb10-3" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="sc">!</span>keyID, </span>
-<span id="cb10-4"><a href="datawrangling.html#cb10-4" tabindex="-1"></a>                 <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">&quot;.value&quot;</span>, <span class="st">&quot;member_ID&quot;</span>),</span>
-<span id="cb10-5"><a href="datawrangling.html#cb10-5" tabindex="-1"></a>                 <span class="at">names_sep=</span><span class="st">&quot;_&quot;</span>,</span>
-<span id="cb10-6"><a href="datawrangling.html#cb10-6" tabindex="-1"></a>                 <span class="at">values_drop_na =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb10-7"><a href="datawrangling.html#cb10-7" tabindex="-1"></a>                 <span class="at">names_transform =</span> <span class="fu">list</span>(<span class="at">member_ID =</span> as.integer))</span></code></pre></div>
-<pre><code>## # A tibble: 131 × 40
-##    keyID member_ID female1  age1 female2  age2 female3  age3 female4  age4
-##    &lt;dbl&gt;     &lt;int&gt;   &lt;int&gt; &lt;dbl&gt;   &lt;int&gt; &lt;dbl&gt;   &lt;int&gt; &lt;dbl&gt;   &lt;int&gt; &lt;dbl&gt;
-##  1     1        NA       1    49       1    34       1    36      NA    NA
-##  2     2        NA       0    26       0    37       1    16       1    76
-##  3     3        NA       1    21       1     1       0    76       0    15
-##  4     4        NA       1    70       0    41       1     5       0    73
-##  5     5        NA       1    31       0    10       1    26       1    16
-##  6     6        NA       0    24       1    71       0    76      NA    NA
-##  7     7        NA       0    36       1     2       1    80       0    59
-##  8     8        NA       1    40       1    58       0    38       1    66
-##  9     9        NA       1    84       0    51       0     1       0    68
-## 10    10        NA       0    72       1    45       0    59       0    48
-## # ℹ 121 more rows
-## # ℹ 30 more variables: female5 &lt;int&gt;, age5 &lt;dbl&gt;, female6 &lt;int&gt;, age6 &lt;dbl&gt;,
-## #   female7 &lt;int&gt;, age7 &lt;dbl&gt;, female8 &lt;int&gt;, age8 &lt;dbl&gt;, female9 &lt;int&gt;,
-## #   age9 &lt;dbl&gt;, female10 &lt;int&gt;, age10 &lt;dbl&gt;, female11 &lt;int&gt;, age11 &lt;dbl&gt;,
-## #   female12 &lt;int&gt;, age12 &lt;dbl&gt;, female13 &lt;int&gt;, age13 &lt;dbl&gt;, female14 &lt;int&gt;,
-## #   age14 &lt;dbl&gt;, female15 &lt;int&gt;, age15 &lt;dbl&gt;, female16 &lt;int&gt;, age16 &lt;dbl&gt;,
-## #   female17 &lt;int&gt;, age17 &lt;dbl&gt;, female18 &lt;int&gt;, age18 &lt;dbl&gt;, female19 &lt;int&gt;, …</code></pre>
+<span id="cb10-2"><a href="datawrangling.html#cb10-2" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="sc">!</span>key_ID, </span>
+<span id="cb10-3"><a href="datawrangling.html#cb10-3" tabindex="-1"></a>                 <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">&quot;.value&quot;</span>, <span class="st">&quot;member_ID&quot;</span>),</span>
+<span id="cb10-4"><a href="datawrangling.html#cb10-4" tabindex="-1"></a>                 <span class="at">names_sep=</span><span class="st">&quot;_&quot;</span>,</span>
+<span id="cb10-5"><a href="datawrangling.html#cb10-5" tabindex="-1"></a>                 <span class="at">values_drop_na =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb10-6"><a href="datawrangling.html#cb10-6" tabindex="-1"></a>                 <span class="at">names_transform =</span> <span class="fu">list</span>(<span class="at">member_ID =</span> as.integer))</span></code></pre></div>
+<pre><code>## # A tibble: 942 × 4
+##    key_ID member_ID female   age
+##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
+##  1      1         1      1    27
+##  2      1         2      1    66
+##  3      1         3      1    36
+##  4      2         1      1    30
+##  5      2         2      1     9
+##  6      2         3      1    69
+##  7      2         4      0    24
+##  8      2         5      0    66
+##  9      2         6      0    67
+## 10      2         7      1    46
+## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand. It’s good to think first
 what the original data looks like, and how I intend to transform it.
 The wide data has columns key_ID, age_1-19 and female_1-19.
@@ -468,9 +462,6 @@ The parentheses indicate how the string should be separated to form variable nam
 <li>If the separator is used in other places in variable names (<code>member_age_1</code> etc…):
 <code>names_pattern = "(.*)_([0-9]+)$"</code>.</li>
 </ul></li>
-<li>If there is no separator, or if the separator is used in other places
-in your variable names you’ll have to use the<code>names_pattern</code> option.
-In this case <code>names_pattern = "(.*)_([0-9]+)$"</code> would work.</li>
 <li><code>values_drop_na = TRUE</code>: tells R to drop rows that have missing data for
 all variables. This prevents the issue where we hadd too many rows.</li>
 <li><code>names_transform</code>: by default, all <code>name</code> columns will be character types, but
@@ -552,16 +543,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    49 God     2016-11-17 00:00:00
-##  2      1         2      1    34 God     2016-11-17 00:00:00
+##  1      1         1      1    27 God     2016-11-17 00:00:00
+##  2      1         2      1    66 God     2016-11-17 00:00:00
 ##  3      1         3      1    36 God     2016-11-17 00:00:00
-##  4      2         1      0    26 God     2016-11-17 00:00:00
-##  5      2         2      0    37 God     2016-11-17 00:00:00
-##  6      2         3      1    16 God     2016-11-17 00:00:00
-##  7      2         4      1    76 God     2016-11-17 00:00:00
-##  8      2         5      1    81 God     2016-11-17 00:00:00
-##  9      2         6      0     5 God     2016-11-17 00:00:00
-## 10      2         7      1    16 God     2016-11-17 00:00:00
+##  4      2         1      1    30 God     2016-11-17 00:00:00
+##  5      2         2      1     9 God     2016-11-17 00:00:00
+##  6      2         3      1    69 God     2016-11-17 00:00:00
+##  7      2         4      0    24 God     2016-11-17 00:00:00
+##  8      2         5      0    66 God     2016-11-17 00:00:00
+##  9      2         6      0    67 God     2016-11-17 00:00:00
+## 10      2         7      1    46 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -579,16 +570,16 @@ as missing, using a simple <code>mutate()</code> to conver them to <code>NA</cod
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         3     39.7
-##  2      2       7         4     36.7
-##  3      3      10         5     31.9
-##  4      4       7         3     53  
-##  5      5       7         3     33.1
-##  6      6       3         1     57  
-##  7      7       6         3     43.8
-##  8      8      12        10     44.4
-##  9      9       8         4     43.2
-## 10     10      12         5     38.2
+##  1      1       3         3     43  
+##  2      2       7         4     44.4
+##  3      3      10         5     44.7
+##  4      4       7         3     48.4
+##  5      5       7         1     55.4
+##  6      6       3         1     24  
+##  7      7       6         2     44.8
+##  8      8      12         8     34.6
+##  9      9       8         4     37  
+## 10     10      12         5     52.2
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="row-wise-operations" class="section level2 hasAnchor">
@@ -612,16 +603,16 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
 ##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        1    49        1    34        1    36       NA    NA       NA
-##  2      2        0    26        0    37        1    16        1    76        1
-##  3      3        1    21        1     1        0    76        0    15        1
-##  4      4        1    70        0    41        1     5        0    73        0
-##  5      5        1    31        0    10        1    26        1    16        0
-##  6      6        0    24        1    71        0    76       NA    NA       NA
-##  7      7        0    36        1     2        1    80        0    59        1
-##  8      8        1    40        1    58        0    38        1    66        0
-##  9      9        1    84        0    51        0     1        0    68        1
-## 10     10        0    72        1    45        0    59        0    48        0
+##  1      1        1    27        1    66        1    36       NA    NA       NA
+##  2      2        1    30        1     9        1    69        0    24        0
+##  3      3        1    21        1    36        0    34        0    30        0
+##  4      4        0    24        1    44        1    78        1    38        0
+##  5      5        0    68        0    68        1     5        0    86        0
+##  6      6        1    31        0    20        0    21       NA    NA       NA
+##  7      7        0    50        0    25        0    39        1    47        0
+##  8      8        0    42        1    64        0    15        0    68        1
+##  9      9        0    26        0    22        0    NA        1    44        1
+## 10     10        1    77        0    65        1    59        1    28        0
 ## # ℹ 121 more rows
 ## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
 ## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
@@ -653,16 +644,16 @@ section on <a href="plotting.html#faceting">faceting</a> for an example.</li>
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         3     39.7
-##  2      2       7         4     36.7
-##  3      3      10         5     31.9
-##  4      4       7         3     53  
-##  5      5       7         3     33.1
-##  6      6       3         1     57  
-##  7      7       6         3     43.8
-##  8      8      12        10     44.4
-##  9      9       8         4     43.2
-## 10     10      12         5     38.2
+##  1      1       3         3     43  
+##  2      2       7         4     44.4
+##  3      3      10         5     44.7
+##  4      4       7         3     48.4
+##  5      5       7         1     55.4
+##  6      6       3         1     24  
+##  7      7       6         2     44.8
+##  8      8      12         8     34.6
+##  9      9       8         4     37  
+## 10     10      12         5     52.2
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensures all summaries are computed per row, and <code>c_across()</code>
@@ -702,6 +693,129 @@ ways to do this, but the most convenient is using <code>sepate_longer()</code></
 ## #   owns_sterio &lt;dbl&gt;, owns_computer &lt;dbl&gt;, owns_car &lt;dbl&gt;</code></pre>
 <p>Note that the original <code>items_owned</code> variable is lost during the <code>separate_longer_delim()</code>
 step, so I used <code>left_join()</code> to merge it back in for demonstration purposes.</p>
+</div>
+<div id="renaming-many-variables" class="section level2 hasAnchor">
+<h2>Renaming many variables<a href="datawrangling.html#renaming-many-variables" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Let’s say we need to rename a bunch of variables.</p>
+<p>One way is to use a named list:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="datawrangling.html#cb26-1" tabindex="-1"></a><span class="co"># this follows the pattern new_name = old_name</span></span>
+<span id="cb26-2"><a href="datawrangling.html#cb26-2" tabindex="-1"></a>newnames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;no_livestock&quot;</span> <span class="ot">=</span> <span class="st">&quot;liv_count&quot;</span>, </span>
+<span id="cb26-3"><a href="datawrangling.html#cb26-3" tabindex="-1"></a>              <span class="st">&quot;no_rooms&quot;</span> <span class="ot">=</span> <span class="st">&quot;rooms&quot;</span>,</span>
+<span id="cb26-4"><a href="datawrangling.html#cb26-4" tabindex="-1"></a>               <span class="st">&quot;affect_conflicts&quot;</span> <span class="ot">=</span> <span class="st">&quot;ffect_conflicts&quot;</span>)</span>
+<span id="cb26-5"><a href="datawrangling.html#cb26-5" tabindex="-1"></a></span>
+<span id="cb26-6"><a href="datawrangling.html#cb26-6" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb26-7"><a href="datawrangling.html#cb26-7" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="fu">any_of</span>(newnames)) <span class="sc">%&gt;%</span></span>
+<span id="cb26-8"><a href="datawrangling.html#cb26-8" tabindex="-1"></a>    <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 131
+## Columns: 14
+## $ key_ID               &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15…
+## $ village              &lt;chr&gt; &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, …
+## $ interview_date       &lt;dttm&gt; 2016-11-17, 2016-11-17, 2016-11-17, 2016-11-17, …
+## $ no_membrs            &lt;dbl&gt; 3, 7, 10, 7, 7, 3, 6, 12, 8, 12, 6, 7, 6, 10, 5, …
+## $ years_liv            &lt;dbl&gt; 4, 9, 15, 6, 40, 3, 38, 70, 6, 23, 20, 20, 8, 20,…
+## $ respondent_wall_type &lt;chr&gt; &quot;muddaub&quot;, &quot;muddaub&quot;, &quot;burntbricks&quot;, &quot;burntbricks…
+## $ no_rooms             &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 3, 1, 5, 1, 3, 1, 3, 2, 1, 1…
+## $ memb_assoc           &lt;chr&gt; NA, &quot;yes&quot;, NA, NA, NA, NA, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;no…
+## $ affect_conflicts     &lt;chr&gt; NA, &quot;once&quot;, NA, NA, NA, NA, &quot;never&quot;, &quot;never&quot;, &quot;ne…
+## $ no_livestock         &lt;dbl&gt; 1, 3, 1, 2, 4, 1, 1, 2, 3, 2, 2, 2, 3, 3, 3, 4, 1…
+## $ items_owned          &lt;chr&gt; &quot;bicycle;television;solar_panel;table&quot;, &quot;cow_cart…
+## $ no_meals             &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 2…
+## $ months_lack_food     &lt;chr&gt; &quot;Jan&quot;, &quot;Jan;Sept;Oct;Nov;Dec&quot;, &quot;Jan;Feb;Mar;Oct;N…
+## $ instanceID           &lt;chr&gt; &quot;uuid:ec241f2c-0609-46ed-b5e8-fe575f6cefef&quot;, &quot;uui…</code></pre>
+<p>Note that <code>"affect_conflicts" = "ffect_conflicts"</code> didn’t do anything,
+as there is no <code>ffect_conflicts</code> variable.
+<code>any_of()</code> just ignored any variables not present in the data.
+This can be useful in data pipelines using multiple files,
+where some files have mistyped variable names.</p>
+<p>What if we want to do the same thing to many variables?
+For example, turning them all to uppercase?</p>
+<p>We could use <code>newnames = c(KEY_ID = key_ID, VILLAGE = village)</code>
+etc. etc.,
+but that’d be extremely tedious.
+Instead, there is <code>rename_with()</code>, which takes two arugments:</p>
+<ul>
+<li><code>.fn</code>: A <a href="programming.html#functions">function</a> that takes the variable names of your dataset as an argument.</li>
+<li><code>.cols</code>: a tidy select statement defining which columns to change. Defaults
+to all columns.</li>
+</ul>
+<p>This is what it’d look like:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="datawrangling.html#cb28-1" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb28-2"><a href="datawrangling.html#cb28-2" tabindex="-1"></a>    <span class="fu">rename_with</span>(<span class="at">.fn =</span> toupper) <span class="sc">%&gt;%</span> </span>
+<span id="cb28-3"><a href="datawrangling.html#cb28-3" tabindex="-1"></a>    <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 131
+## Columns: 14
+## $ KEY_ID               &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15…
+## $ VILLAGE              &lt;chr&gt; &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, …
+## $ INTERVIEW_DATE       &lt;dttm&gt; 2016-11-17, 2016-11-17, 2016-11-17, 2016-11-17, …
+## $ NO_MEMBRS            &lt;dbl&gt; 3, 7, 10, 7, 7, 3, 6, 12, 8, 12, 6, 7, 6, 10, 5, …
+## $ YEARS_LIV            &lt;dbl&gt; 4, 9, 15, 6, 40, 3, 38, 70, 6, 23, 20, 20, 8, 20,…
+## $ RESPONDENT_WALL_TYPE &lt;chr&gt; &quot;muddaub&quot;, &quot;muddaub&quot;, &quot;burntbricks&quot;, &quot;burntbricks…
+## $ ROOMS                &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 3, 1, 5, 1, 3, 1, 3, 2, 1, 1…
+## $ MEMB_ASSOC           &lt;chr&gt; NA, &quot;yes&quot;, NA, NA, NA, NA, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;no…
+## $ AFFECT_CONFLICTS     &lt;chr&gt; NA, &quot;once&quot;, NA, NA, NA, NA, &quot;never&quot;, &quot;never&quot;, &quot;ne…
+## $ LIV_COUNT            &lt;dbl&gt; 1, 3, 1, 2, 4, 1, 1, 2, 3, 2, 2, 2, 3, 3, 3, 4, 1…
+## $ ITEMS_OWNED          &lt;chr&gt; &quot;bicycle;television;solar_panel;table&quot;, &quot;cow_cart…
+## $ NO_MEALS             &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 2…
+## $ MONTHS_LACK_FOOD     &lt;chr&gt; &quot;Jan&quot;, &quot;Jan;Sept;Oct;Nov;Dec&quot;, &quot;Jan;Feb;Mar;Oct;N…
+## $ INSTANCEID           &lt;chr&gt; &quot;uuid:ec241f2c-0609-46ed-b5e8-fe575f6cefef&quot;, &quot;uui…</code></pre>
+<p>The variables names are used as the argument to <code>toupper()</code>,
+which returns them in upper case.</p>
+<p>But what if we need to provide more arguments?
+Let’s say we want to append <code>_0</code> to all columns,
+except the ID columns,
+to indicate this is baseline data.</p>
+<p>We use <code>paste0()</code> which takes two arguments,
+the variable name and string we wish to append:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="datawrangling.html#cb30-1" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb30-2"><a href="datawrangling.html#cb30-2" tabindex="-1"></a>    <span class="fu">rename_with</span>(<span class="at">.fn =</span> <span class="sc">~</span><span class="fu">paste0</span>(.x, <span class="st">&quot;_0&quot;</span>), <span class="at">.cols =</span> <span class="sc">!</span>key_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb30-3"><a href="datawrangling.html#cb30-3" tabindex="-1"></a>    <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 131
+## Columns: 14
+## $ key_ID                 &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, …
+## $ village_0              &lt;chr&gt; &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;…
+## $ interview_date_0       &lt;dttm&gt; 2016-11-17, 2016-11-17, 2016-11-17, 2016-11-17…
+## $ no_membrs_0            &lt;dbl&gt; 3, 7, 10, 7, 7, 3, 6, 12, 8, 12, 6, 7, 6, 10, 5…
+## $ years_liv_0            &lt;dbl&gt; 4, 9, 15, 6, 40, 3, 38, 70, 6, 23, 20, 20, 8, 2…
+## $ respondent_wall_type_0 &lt;chr&gt; &quot;muddaub&quot;, &quot;muddaub&quot;, &quot;burntbricks&quot;, &quot;burntbric…
+## $ rooms_0                &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 3, 1, 5, 1, 3, 1, 3, 2, 1,…
+## $ memb_assoc_0           &lt;chr&gt; NA, &quot;yes&quot;, NA, NA, NA, NA, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;…
+## $ affect_conflicts_0     &lt;chr&gt; NA, &quot;once&quot;, NA, NA, NA, NA, &quot;never&quot;, &quot;never&quot;, &quot;…
+## $ liv_count_0            &lt;dbl&gt; 1, 3, 1, 2, 4, 1, 1, 2, 3, 2, 2, 2, 3, 3, 3, 4,…
+## $ items_owned_0          &lt;chr&gt; &quot;bicycle;television;solar_panel;table&quot;, &quot;cow_ca…
+## $ no_meals_0             &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 3, 2, 3, 3, 2, 3, 2, 3, 2, 3,…
+## $ months_lack_food_0     &lt;chr&gt; &quot;Jan&quot;, &quot;Jan;Sept;Oct;Nov;Dec&quot;, &quot;Jan;Feb;Mar;Oct…
+## $ instanceID_0           &lt;chr&gt; &quot;uuid:ec241f2c-0609-46ed-b5e8-fe575f6cefef&quot;, &quot;u…</code></pre>
+<p>In this case, we specify the function as a
+<a href="https://adv-r.hadley.nz/functionals.html#purrr-shortcuts">a purrr-style inline anonymous function</a>
+(i.e. preceded by a <code>~</code>), and we supply the variable names as <code>.x</code>.
+(This all works the same as <code>across()</code> above.)</p>
+<p>Now, let’s replace all instances of <code>membrs</code> or <code>memb</code> in variable names with
+<code>members</code> (so <code>no_membrs</code> becomes <code>no_members</code>,
+and <code>memb_assoc</code> becomes <code>members_assoc</code>.
+For this I will use <code>gsub()</code>,
+which takes three arguments:
+- A pattern (expressed as a <a href="https://www.datacamp.com/tutorial/regex-r-regular-expressions-guide">regular expression</a>) to look for;
+- a replacement for all matches of the pattern; and,
+- the data to look in (in this case the varaible names).</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="datawrangling.html#cb32-1" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb32-2"><a href="datawrangling.html#cb32-2" tabindex="-1"></a>    <span class="fu">rename_with</span>(<span class="at">.fn =</span> <span class="sc">~</span><span class="fu">gsub</span>(<span class="st">&quot;membrs|memb&quot;</span>, <span class="st">&quot;members&quot;</span>,.x)) <span class="sc">%&gt;%</span></span>
+<span id="cb32-3"><a href="datawrangling.html#cb32-3" tabindex="-1"></a>    <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 131
+## Columns: 14
+## $ key_ID               &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15…
+## $ village              &lt;chr&gt; &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, &quot;God&quot;, …
+## $ interview_date       &lt;dttm&gt; 2016-11-17, 2016-11-17, 2016-11-17, 2016-11-17, …
+## $ no_members           &lt;dbl&gt; 3, 7, 10, 7, 7, 3, 6, 12, 8, 12, 6, 7, 6, 10, 5, …
+## $ years_liv            &lt;dbl&gt; 4, 9, 15, 6, 40, 3, 38, 70, 6, 23, 20, 20, 8, 20,…
+## $ respondent_wall_type &lt;chr&gt; &quot;muddaub&quot;, &quot;muddaub&quot;, &quot;burntbricks&quot;, &quot;burntbricks…
+## $ rooms                &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 3, 1, 5, 1, 3, 1, 3, 2, 1, 1…
+## $ members_assoc        &lt;chr&gt; NA, &quot;yes&quot;, NA, NA, NA, NA, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;no…
+## $ affect_conflicts     &lt;chr&gt; NA, &quot;once&quot;, NA, NA, NA, NA, &quot;never&quot;, &quot;never&quot;, &quot;ne…
+## $ liv_count            &lt;dbl&gt; 1, 3, 1, 2, 4, 1, 1, 2, 3, 2, 2, 2, 3, 3, 3, 4, 1…
+## $ items_owned          &lt;chr&gt; &quot;bicycle;television;solar_panel;table&quot;, &quot;cow_cart…
+## $ no_meals             &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 2…
+## $ months_lack_food     &lt;chr&gt; &quot;Jan&quot;, &quot;Jan;Sept;Oct;Nov;Dec&quot;, &quot;Jan;Feb;Mar;Oct;N…
+## $ instanceID           &lt;chr&gt; &quot;uuid:ec241f2c-0609-46ed-b5e8-fe575f6cefef&quot;, &quot;uui…</code></pre>
 
 </div>
 </div>
