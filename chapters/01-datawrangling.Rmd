@@ -388,6 +388,7 @@ Now, let's replace all instances of `membrs` or `memb` in variable names with
 and `memb_assoc` becomes `members_assoc`. 
 For this I will use `gsub()`, 
 which takes three arguments:
+
  - A pattern (expressed as a [regular expression](https://www.datacamp.com/tutorial/regex-r-regular-expressions-guide)) to look for;
  - a replacement for all matches of the pattern; and,
  - the data to look in (in this case the varaible names).   
