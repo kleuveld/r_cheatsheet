@@ -327,16 +327,16 @@ be <code>-99</code>, which should be considered missing.</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      1    27
-##  2      1         2      1    66
-##  3      1         3      1    36
-##  4      2         1      1    30
-##  5      2         2      1     9
-##  6      2         3      1    69
-##  7      2         4      0    24
-##  8      2         5      0    66
-##  9      2         6      0    67
-## 10      2         7      1    46
+##  1      1         1      1    58
+##  2      1         2      1    30
+##  3      1         3      0    45
+##  4      2         1      0    85
+##  5      2         2      1    51
+##  6      2         3      0    29
+##  7      2         4      0    61
+##  8      2         5      1    43
+##  9      2         6      1    61
+## 10      2         7      1    85
 ## # ℹ 932 more rows</code></pre>
 </div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
@@ -352,16 +352,16 @@ be <code>-99</code>, which should be considered missing.</p>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
 ##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        1    27        1    66        1    36       NA    NA       NA
-##  2      2        1    30        1     9        1    69        0    24        0
-##  3      3        1    21        1    36        0    34        0    30        0
-##  4      4        0    24        1    44        1    78        1    38        0
-##  5      5        0    68        0    68        1     5        0    86        0
-##  6      6        1    31        0    20        0    21       NA    NA       NA
-##  7      7        0    50        0    25        0    39        1    47        0
-##  8      8        0    42        1    64        0    15        0    68        1
-##  9      9        0    26        0    22        0   -99        1    44        1
-## 10     10        1    77        0    65        1    59        1    28        0
+##  1      1        1    58        1    30        0    45       NA    NA       NA
+##  2      2        0    85        1    51        0    29        0    61        1
+##  3      3        1    31        1    63        0    80        0     2        0
+##  4      4        0    53        0    80        0    12        1    47        0
+##  5      5        1    47        0     5        1    44        1     5        1
+##  6      6        0    47        1    57        0    75       NA    NA       NA
+##  7      7        0    41        0    82        0     9        0    20        0
+##  8      8        0    65        1     1        0     6        0    44        1
+##  9      9        0    27        0     7        1    85        1    28        0
+## 10     10        1    75        0    43        0    12        1    70        1
 ## # ℹ 121 more rows
 ## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
 ## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
@@ -390,11 +390,11 @@ long data, we’d have to use <code>pivot_longer()</code>:</p>
 ##    key_ID name     value
 ##     &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;
 ##  1      1 female_1     1
-##  2      1 age_1       27
+##  2      1 age_1       58
 ##  3      1 female_2     1
-##  4      1 age_2       66
-##  5      1 female_3     1
-##  6      1 age_3       36
+##  4      1 age_2       30
+##  5      1 female_3     0
+##  6      1 age_3       45
 ##  7      1 female_4    NA
 ##  8      1 age_4       NA
 ##  9      1 female_5    NA
@@ -423,16 +423,16 @@ and <code>names_sep</code> options:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      1    27
-##  2      1         2      1    66
-##  3      1         3      1    36
-##  4      2         1      1    30
-##  5      2         2      1     9
-##  6      2         3      1    69
-##  7      2         4      0    24
-##  8      2         5      0    66
-##  9      2         6      0    67
-## 10      2         7      1    46
+##  1      1         1      1    58
+##  2      1         2      1    30
+##  3      1         3      0    45
+##  4      2         1      0    85
+##  5      2         2      1    51
+##  6      2         3      0    29
+##  7      2         4      0    61
+##  8      2         5      1    43
+##  9      2         6      1    61
+## 10      2         7      1    85
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand. It’s good to think first
 what the original data looks like, and how I intend to transform it.
@@ -543,16 +543,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      1    27 God     2016-11-17 00:00:00
-##  2      1         2      1    66 God     2016-11-17 00:00:00
-##  3      1         3      1    36 God     2016-11-17 00:00:00
-##  4      2         1      1    30 God     2016-11-17 00:00:00
-##  5      2         2      1     9 God     2016-11-17 00:00:00
-##  6      2         3      1    69 God     2016-11-17 00:00:00
-##  7      2         4      0    24 God     2016-11-17 00:00:00
-##  8      2         5      0    66 God     2016-11-17 00:00:00
-##  9      2         6      0    67 God     2016-11-17 00:00:00
-## 10      2         7      1    46 God     2016-11-17 00:00:00
+##  1      1         1      1    58 God     2016-11-17 00:00:00
+##  2      1         2      1    30 God     2016-11-17 00:00:00
+##  3      1         3      0    45 God     2016-11-17 00:00:00
+##  4      2         1      0    85 God     2016-11-17 00:00:00
+##  5      2         2      1    51 God     2016-11-17 00:00:00
+##  6      2         3      0    29 God     2016-11-17 00:00:00
+##  7      2         4      0    61 God     2016-11-17 00:00:00
+##  8      2         5      1    43 God     2016-11-17 00:00:00
+##  9      2         6      1    61 God     2016-11-17 00:00:00
+## 10      2         7      1    85 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables, by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
 </div>
@@ -570,16 +570,16 @@ as missing, using a simple <code>mutate()</code> to conver them to <code>NA</cod
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         3     43  
-##  2      2       7         4     44.4
-##  3      3      10         5     44.7
-##  4      4       7         3     48.4
-##  5      5       7         1     55.4
-##  6      6       3         1     24  
-##  7      7       6         2     44.8
-##  8      8      12         8     34.6
-##  9      9       8         4     37  
-## 10     10      12         5     52.2
+##  1      1       3         2     44.3
+##  2      2       7         4     59.3
+##  3      3      10         5     46  
+##  4      4       7         2     34.3
+##  5      5       7         5     38.4
+##  6      6       3         1     59.7
+##  7      7       6         0     44  
+##  8      8      12         5     37.6
+##  9      9       8         3     34.8
+## 10     10      12         7     29.8
 ## # ℹ 121 more rows</code></pre>
 </div>
 <div id="row-wise-operations" class="section level2 hasAnchor">
@@ -603,16 +603,16 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
 ##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        1    27        1    66        1    36       NA    NA       NA
-##  2      2        1    30        1     9        1    69        0    24        0
-##  3      3        1    21        1    36        0    34        0    30        0
-##  4      4        0    24        1    44        1    78        1    38        0
-##  5      5        0    68        0    68        1     5        0    86        0
-##  6      6        1    31        0    20        0    21       NA    NA       NA
-##  7      7        0    50        0    25        0    39        1    47        0
-##  8      8        0    42        1    64        0    15        0    68        1
-##  9      9        0    26        0    22        0    NA        1    44        1
-## 10     10        1    77        0    65        1    59        1    28        0
+##  1      1        1    58        1    30        0    45       NA    NA       NA
+##  2      2        0    85        1    51        0    29        0    61        1
+##  3      3        1    31        1    63        0    80        0     2        0
+##  4      4        0    53        0    80        0    12        1    47        0
+##  5      5        1    47        0     5        1    44        1     5        1
+##  6      6        0    47        1    57        0    75       NA    NA       NA
+##  7      7        0    41        0    82        0     9        0    20        0
+##  8      8        0    65        1     1        0     6        0    44        1
+##  9      9        0    27        0     7        1    85        1    28        0
+## 10     10        1    75        0    43        0    12        1    70        1
 ## # ℹ 121 more rows
 ## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
 ## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
@@ -644,16 +644,16 @@ section on <a href="plotting.html#faceting">faceting</a> for an example.</li>
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         3     43  
-##  2      2       7         4     44.4
-##  3      3      10         5     44.7
-##  4      4       7         3     48.4
-##  5      5       7         1     55.4
-##  6      6       3         1     24  
-##  7      7       6         2     44.8
-##  8      8      12         8     34.6
-##  9      9       8         4     37  
-## 10     10      12         5     52.2
+##  1      1       3         2     44.3
+##  2      2       7         4     59.3
+##  3      3      10         5     46  
+##  4      4       7         2     34.3
+##  5      5       7         5     38.4
+##  6      6       3         1     59.7
+##  7      7       6         0     44  
+##  8      8      12         5     37.6
+##  9      9       8         3     34.8
+## 10     10      12         7     29.8
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensures all summaries are computed per row, and <code>c_across()</code>
@@ -793,10 +793,12 @@ the variable name and string we wish to append:</p>
 <code>members</code> (so <code>no_membrs</code> becomes <code>no_members</code>,
 and <code>memb_assoc</code> becomes <code>members_assoc</code>.
 For this I will use <code>gsub()</code>,
-which takes three arguments:
-- A pattern (expressed as a <a href="https://www.datacamp.com/tutorial/regex-r-regular-expressions-guide">regular expression</a>) to look for;
-- a replacement for all matches of the pattern; and,
-- the data to look in (in this case the varaible names).</p>
+which takes three arguments:</p>
+<ul>
+<li>A pattern (expressed as a <a href="https://www.datacamp.com/tutorial/regex-r-regular-expressions-guide">regular expression</a>) to look for;</li>
+<li>a replacement for all matches of the pattern; and,</li>
+<li>the data to look in (in this case the varaible names).</li>
+</ul>
 <div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="datawrangling.html#cb32-1" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb32-2"><a href="datawrangling.html#cb32-2" tabindex="-1"></a>    <span class="fu">rename_with</span>(<span class="at">.fn =</span> <span class="sc">~</span><span class="fu">gsub</span>(<span class="st">&quot;membrs|memb&quot;</span>, <span class="st">&quot;members&quot;</span>,.x)) <span class="sc">%&gt;%</span></span>
 <span id="cb32-3"><a href="datawrangling.html#cb32-3" tabindex="-1"></a>    <span class="fu">glimpse</span>()</span></code></pre></div>
