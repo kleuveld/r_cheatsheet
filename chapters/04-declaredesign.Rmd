@@ -243,7 +243,7 @@ I define another estimator that includes covariates in
 its model specification, and add it to my original design, 
 hoping this will increase power.
 
-```{r diagnose_simpe_cov_power}
+```{r diagnose_simpe_cov_power, , eval = run_diagnosis}
 
 estimator_simple_cov <-
   declare_estimator(Y ~ Z + LandOwned + educated + female,
