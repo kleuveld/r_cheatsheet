@@ -14,10 +14,15 @@ Adoption depends on the treatment and education and a random component.
 The page on [DeclareDesign](#declaredesign) has more advanced techniques
 to generate fake data.
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r}
 
 library(tidyverse)
 library(here)
+library(modelsummary)
+library(flextable)
+library(estimatr)
+library(lmtest)
+library(clubSandwich)
 
 rm(list=ls())
 set.seed(1)
@@ -53,7 +58,7 @@ it in the `labelizor()` function, which applies labels to a flextable object. I 
 apply the `autofit()` and `fix_border_issues()` functions to make the table look nicer.
 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 library(modelsummary)
 library(flextable)
@@ -87,7 +92,7 @@ Flextables can be easily exported to Word using the `save_as_docx()` function.
 Using `modelsummary`'s `datasummary_balance()` table function, it is easy
 to create a balance table:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 treat_labels <- c("0" = "Control", "1" = "Treated")
 
@@ -113,7 +118,7 @@ First, make a data frame with summary statistics. I duplicate the data set using
 to create an overall group. Then I use [`summarize(across(...))`](https://dplyr.tidyverse.org/reference/across.html) to apply summarizing functions
 to a number of variables. 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 summstats <-
   bind_rows(data %>% 
@@ -149,7 +154,7 @@ control the ordering.
 
 I've added a bunch of statistics to show the flexibility:
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 library(flextable)
 
@@ -172,7 +177,7 @@ I need to). Then I use
 [`summarize(across(...))`](https://dplyr.tidyverse.org/reference/across.html) 
 in much the same way as above, now to create a dataframe called `difcol`. 
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 
 get_diffs <- function(var,by){
@@ -208,7 +213,7 @@ argument. Below, I also use a few other flextable function to make the
 table nicer. In particular, `labelizor()` to add variable
 labels, for which I use the named vector I defined above.
 
-```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
+```{r}
 
 descriptive_table_flex <-
   summstats %>%
@@ -254,7 +259,7 @@ level, using the same procedures Stata uses, I use
 library(estimatr)
 lmrobust <-
   lm_robust(uses_fertilizer ~ treatment + educated, 
-            data = data, clusters = village, se_type = "stata")
+            data = data, clusters = village, se_type = "CR2")
 
 
 modelsummary(list("LM" = lm, "Robust" = lmrobust), output = "flextable")
@@ -278,7 +283,7 @@ If you want to add the number of clusters, you will need to do some
 work. `modelsummary()` gets the N etc. from the 
 [`broom::glance()`](https://declaredesign.org/r/estimatr/reference/estimatr_glancers.html)
 function. For `lm_robust()` models, this doesn't report the number of 
-clusters (even if the documentation says it does!).
+clusters.
 However, you can make sure that it does, by making a custom 
 glance methods for lm_robust objects (see 
 [here](https://modelsummary.com/articles/modelsummary.html) 
@@ -316,43 +321,54 @@ modelsummary(list("LM" = lm, "Robust" = lmrobust, "Probit"  = probit),
 
 
 Adding cluster-robust standard errors to the probit model is a bit more 
-complex. There is no `glm_robust()` function. However, you can create 
-one, including `tidy()` and `glance()` methods that return the right 
-statistics to `modelsummary()`:
+complex. There is no `glm_robust()` function. 
+You can estimate a probit model, 
+then use `coeftest()` to get clustered standard errors, 
+and then use the `glance_custom ` method to add the number of clusters to that. 
+
+However, 
+you can create your own `glm_robust` function, 
+~~with blackjack and hookers~~
+including `tidy()` and `glance()` methods that return everything
+you want to `modelsummary()`.
+I use `vcovCR` from the `clubSandwich` package to compute `CR2` standard errors,
+which are the default in `estimatr`,
+so everything is nice and consistent with the linear probability model.
 
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+```{r}
 
 # this function estimates a probit model, and 
 # then computes the cluster-robust standad errors using
-# sandwich and coeftest
+# clubSandwich and coeftest
 # it returns a glm_robust object, which is just a modified 
 # coeftest object
-glm_robust <- function(formula,family,data,cluster) {
+glm_robust <- function(formula,family,data,cluster, type = "CR2") {
   library(lmtest)
-  library(sandwich)
+  library(clubSandwich)
+ 
+  probit <- 
+    glm(formula, 
+        family = family, 
+        data = data)
 
-  probit <- glm(formula, 
-               family = family, 
-                data = data)
-  
-  # it's easier if the cluster is entered as a string, so
-  # here I convert it to a formula
-  cluster_formula <- as.formula(paste0("~", cluster))
+  model <-
+    probit%>%
+    coeftest(.,
+             vcovCR({.}, 
+                    cluster = data[[cluster]], 
+                    type = type), 
+              save = TRUE) 
 
-  model <- 
-    coeftest(probit, vcov = vcovBS(probit,cluster=cluster_formula))
-
-  class(model) <- "glm_robust"
 
   # this computes the number of unique clusters in the data used
   # for the original mode
   attr(model,"nclusters") <- 
     data[row.names(model.frame(probit)),cluster] %>% unique() %>% nrow()
 
+  class(model) <- "glm_robust"
   model
 }
-
 
 # this is the custom tidy methods for glm_robust objects
 # it returns a dataframe with coefficients
@@ -382,14 +398,12 @@ glance.glm_robust <- function(x, ...){
 You can then simply use the `glm_robust()` function and `modelsummary()`
 will know how to handle its output!
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
+```{r, warning = FALSE}
 
 probitrobust <- 
   glm_robust(uses_fertilizer ~ treatment + educated, 
              family = binomial(link = "probit"), 
-             data = data, cluster="village")
-
+             data = data, cluster="village", type = "CR2")
 
 modelsummary(list("LM" = lm, "LM Robust" = lmrobust, 
                   "Probit"  = probit, "Probit Robust" = probitrobust), 
@@ -397,6 +411,9 @@ modelsummary(list("LM" = lm, "LM Robust" = lmrobust,
              coef_map = labels,
              stars = TRUE,
              output = "flextable") %>%
-autofit()
+  autofit()
+
+
+
 
 ```
