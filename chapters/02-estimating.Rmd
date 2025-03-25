@@ -111,12 +111,14 @@ data %>%
 
 ### Advanced: Using only Flextable
 
-For more control, the flextable package can covert data frames into good-looking table using the 
+For more control, the flextable package can convert data frames into good-looking tables using the 
 `tabulator()` function.
 
-First, make a data frame with summary statistics. I duplicate the data set using `bind_rows()`
-to create an overall group. Then I use [`summarize(across(...))`](https://dplyr.tidyverse.org/reference/across.html) to apply summarizing functions
-to a number of variables. 
+First, make a data frame with summary statistics. 
+I duplicate the data set using `bind_rows()` to create an overall group. 
+Then I use 
+[`summarize(across(...))`](https://dplyr.tidyverse.org/reference/across.html)
+to apply summarizing functionsto a number of variables. 
 
 ```{r}
 
@@ -127,6 +129,7 @@ summstats <-
                                         "  Control")),
             data %>% 
               mutate(Treatment = "Overall")) %>% 
+  mutate(Treatment = factor(Treatment)) %>%
   select(where(is.numeric),Treatment,-key_ID,-treatment) %>%
   group_by(Treatment) %>%
   summarize(across(.cols = everything(),
@@ -142,15 +145,21 @@ summstats <-
                  names_to = c("Variable",".value"),
                  names_sep="-") 
 
+
+
 summstats
+
+
+
 
 ```
 
 
 Then use I flextable's `tabulator()` to make output that looks good in word. 
-Note that `tabulator()` sorts the columns alphabetically, so that would be
-control, overall, treatment. That doesn't make sense, so I have used spaces (`" Treatment"`) to 
-control the ordering. 
+Note that `tabulator()` sorts the columns alphabetically, 
+so that would be `control - overall - treatment`. 
+That doesn't make sense, 
+so I have used spaces (`" Treatment"`) to control the ordering. 
 
 I've added a bunch of statistics to show the flexibility:
 
@@ -159,13 +168,13 @@ I've added a bunch of statistics to show the flexibility:
 library(flextable)
 
 summstats %>%
-tabulator(rows = "Variable",
+  tabulator(rows = "Variable",
           columns = "Treatment",
           `N` = as_paragraph(as_chunk(n,digits=0)),
           `Mean (SD)` =  as_paragraph(as_chunk(fmt_avg_dev(mean, 
                                       sd, digit1=2,digit2 = 2))),
-          Range = as_paragraph(as_chunk(min), "-",as_chunk(max)) ) %>%
-as_flextable() 
+          Range = as_paragraph(as_chunk(min,digits=3), "-",as_chunk(max,digits=3)) ) %>%
+  as_flextable()
 
 
 ```
@@ -173,20 +182,23 @@ as_flextable()
 To add a column with differences, I first define a 
 [function](#functions) to compute the differences (I use a regression 
 rather than a ttest, so I can cluster my standard errors etc. to this if
-I need to). Then I use 
+I need to). 
+Then I use 
 [`summarize(across(...))`](https://dplyr.tidyverse.org/reference/across.html) 
 in much the same way as above, now to create a dataframe called `difcol`. 
 
 ```{r}
 
+library(estimatr)
 
-get_diffs <- function(var,by){
+get_diffs <- function(equation, clusters = NULL, weights = NULL, std.error = FALSE){
 
   reg <-  
-    lm(var ~ by) %>% 
+    lm_robust(equation, clusters = {{ clusters }}, weights = {{ weights }}) %>% 
     broom::tidy()
 
-  coeff = round(reg[2,2],2)
+  estimate <- round(reg[2,2],2)
+
   p <- reg[2,5]
 
   stars = case_when(p < 0.001 ~ "***",
@@ -194,17 +206,20 @@ get_diffs <- function(var,by){
                     p < 0.05 ~ "*",
                     .default = "" )
 
-  paste0(coeff,stars)
+    paste0(estimate,stars)
+  
 }
 
 difcol <-
   data %>%
-  select(where(is.numeric),-key_ID,treatment) %>%
-  summarize(across(.cols = c(everything(), -treatment),
-                   .fns = ~get_diffs(var = .x, by = treatment))) %>%
+  select(where(is.numeric),-key_ID,treatment,village) %>%
+  summarize(across(.cols = c(everything(), -treatment, -village),
+                   .fns = ~get_diffs(.x ~ treatment, clusters = village))) %>% 
   pivot_longer(cols =everything(),
                names_to = "Variable",
                values_to="Difference")  
+
+
 
 ```
 
@@ -223,7 +238,7 @@ descriptive_table_flex <-
             `N` = as_paragraph(as_chunk(n,digits=0)),
             `Mean (SD)` =  as_paragraph(as_chunk(fmt_avg_dev(mean, sd, digit1=2,digit2 = 2)))) %>%
   as_flextable()  %>%
-  labelizor(j = "Variable", labels = labels, part = "all") %>% 
+  labelizor(j = "Variable", labels = labels, part = "body") %>% 
   fix_border_issues() %>% 
   autofit()
 
