@@ -1,3 +1,5 @@
+# (PART) Programming essentials for writing reuable code {-}
+
 # Programming with R {#programming}
 
 You can improve your R code by using programming features such as 

@@ -1,0 +1,21 @@
+# Making sure your packages keep working
+
+## Introduction
+
+The power of R lies in the many packages that are available.
+However, here also lies a risk:
+there's no guarantee packages keep working the way they work now,
+meaning that any update may break your work.
+However, you shouldn't stay at an old version of a package for all your work,
+just so that one old project of yours will keep working.
+What if you want to collaborate with someone using a newer version of that 
+package?
+
+`renv` gets around this by instead of having a global package library, 
+it has a project-specific project-library.
+
+## Starting a project with Renv
+
+In RStudio, just tick the box "use renv" when creating a new project.
+Otherwise, type `renv::init()`
+
