@@ -311,6 +311,35 @@ Note that the original `items_owned` variable is lost during the `separate_longe
 step, so I used `left_join()` to merge it back in for demonstration purposes.
 
 
+If you need to do this to many columns (wich is likely),
+it is worth creating a [function](#functions):
+
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+
+create_dummies <- function(df,stringvar,prefix="",delim = ";") {
+  #Function that generates dummies from a string variable
+  #containing multi-response answers
+  #returns dataset without original var, but with dummies.
+
+  df %>%
+    separate_longer_delim({{ stringvar }}, delim = delim) %>%
+      mutate(value = 1) %>%
+      pivot_wider(names_from = {{stringvar}},
+                  values_from = value,
+                  names_prefix = prefix,
+                  values_fill = 0) 
+}
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
+  create_dummies(stringvar = items_owned, prefix = "owns_") %>%
+  create_dummies(months_lack_food,"lack_food_")
+
+```
+
+
 ## Renaming many variables
 
 Let's say we need to rename a bunch of variables.
