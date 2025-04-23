@@ -1,9 +1,9 @@
 # Programming with R {#programming}
 
-You can improve your R code by using programming features such as 
-loops and functions to make your code reusable. This prevents errors, 
-while saving you time.
-
+You can make your R code more reproducible by using programming features such as 
+loops and functions.
+This prevents errors, saves you time and allows you to share you code 
+more easily.
 
 ## Loops
 
@@ -13,14 +13,16 @@ Loops repeat code a number of time, they have the following structure:
 ```{r}
 
 for (i in 1:4){
-	print(i)
+  print(i)
 }
 
 ```
 
-The `i` is the iterator, and each iteration of the loop it takes on the value of
-a different element of the object that follows the `in`; in this case, `i` takes 
-on 1,2,3 and finally 4 as its values. Therefore, this code is equivalent to:
+The `i` is the iterator,
+and each iteration of the loop it takes on the value of a different element of 
+the object that follows the `in`; 
+in this case, `i` takes on 1,2,3 and finally 4 as its values. 
+Therefore, this code is equivalent to:
 
 ```{r}
 
@@ -37,7 +39,8 @@ Using loops, you don't need to copy-paste a thing, leading to fewer errors.
 
 While loops can be a perfectly fine way of  doing repeated work, most R 
 programmers prefer not to use loops, but instead use functions such as 
-`lapply()` and `map()`. However, for this you will need to know functions.
+`lapply()` and `map()`. 
+However, for this you will need to know how to write functions.
 
 ## Functions {#functions}
 
@@ -77,7 +80,8 @@ variable1_cleaned
 ```
 
 This works, but I need to do this at many different places in my code, and when
-copying the code to other places, it's easy to make small mistakes. Moreover, if
+copying the code to other places, it's easy to make small mistakes. 
+Moreover, if
 I notice my procedure for cleaning missing data is wrong, I will have to hunt 
 down all the places I've copied this code to, and change it (which, again, is 
 an error prone process). 
@@ -91,9 +95,9 @@ with missings, I now only have to make changes in one place:
 
 clean_missing <- function(input_data) {
 
-	returned_data <- if_else(input_data == -99, NA, input_data)
-	
-	return(returned_data)
+  returned_data <- if_else(input_data == -99, NA, input_data)
+  
+  return(returned_data)
 }
 
 
@@ -135,8 +139,8 @@ used a return value of the function:
 
 clean_missing <- function(input_data) {
 
-	if_else(input_data == -99, NA, input_data)
-	
+  if_else(input_data == -99, NA, input_data)
+  
 }
 
 clean_missing(variable1)
@@ -158,7 +162,7 @@ from there:
 data_frame <- tibble(variable1 = variable1)
 
 data_frame %>%
-	mutate(variable1 = if_else(variable1 == -99,NA,variable1))
+  mutate(variable1 = if_else(variable1 == -99,NA,variable1))
 
 ```
 
@@ -170,13 +174,13 @@ is the first argument!
 ```{r}
 
 clean_missing_df <- function(input_dataframe, variablename){
-	input_dataframe %>%
-		mutate(variablename = if_else(variablename == -99,NA, variablename))
-	
+  input_dataframe %>%
+    mutate(variablename = if_else(variablename == -99,NA, variablename))
+  
 }
 
 data_frame %>%
-	clean_missing_df(variable1)
+  clean_missing_df(variable1)
 
 
 ```
@@ -192,135 +196,18 @@ in `{{` and `}}`, and change the `=` in `mutatate` to `:=`.
 
 
 clean_missing_df <- function(input_dataframe, variablename){
-		input_dataframe %>%
-		mutate({{ variablename }} := if_else({{ variablename }} == -99,
-											 NA,
-											 {{ variablename }}))
-	
-}
+    input_dataframe %>%
+    mutate({{ variablename }} := if_else({{ variablename }} == -99,
+                                         NA,
+                                         {{ variablename }}))
 
+}
 
 data_frame %>%
-	clean_missing_df(variable1)
+  clean_missing_df(variable1)
 
 
 ```
-
-### Example 1: Re-using plot specifications {#plot-function}
-
-If you're writing a report that includes the same type of plot in many
-places, it makes sense to make it into a function. 
-
-Let's take the [stacked bar plot from the plotting chapter](#stacked-wur):
-
-```{r}
-
-library(ggthemewur)
-
-stacked_bar_plot <- function(df, by, fill) {
-  # outputs a stacked bar chart
-  
-  df %>%
-    mutate( {{ by }} := count_label( {{ by }})) %>%
-
-    ggplot(aes(y = {{ by }}, fill = {{ fill }})) +
-      geom_bar(position = position_fill(reverse = TRUE)) +
-      labs(x= "") +
-      theme_wur() +
-      scale_fill_wur_discrete() +
-       geom_text(stat = "count", 
-                 aes(label = after_stat(count)), 
-                 position = position_fill(vjust = 0.5, reverse = TRUE), 
-                 color = "white") +
-      scale_x_continuous(labels = scales::percent_format()) +
-      theme(legend.position="bottom") +
-      guides(fill = guide_legend(nrow = 1, 
-                                 title.position="top", 
-                                 title.hjust = 0.5)) 
-}
-
-count_label <- function(vector) {
-  # takes a vector of strings or factor, 
-  # output a factor vector with N = N included in the labels
-  fct_recode(factor(vector), 
-             !!!vector %>%
-               as_tibble() %>%
-               group_by(value) %>%
-               summarize(n = n()) %>%
-               mutate(value = as.character(value),
-                      newlabel = paste0(value,"\nn=",n)) %>%
-               pull(value, name = newlabel))
-  
-}
-
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-  stacked_bar_plot(village,respondent_wall_type)
-
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-  stacked_bar_plot(village,affect_conflicts)
-
-```
-
-Note that the `count_label()` function adds group counts to factor variable labels. 
-This is useful for the `by` variable.
-I am not sure if I understand what the `!!!` operator means, but it works. 
-The function basically creates a named vector, where the vector values are the old
-factor labels, and the vector names are new factor labels.
-The new labels include the N, which is computed using a 
-standard `group_by() %>% summarize()` pipeline. 
-
-
-### Example 2: Function to create dummies from text
-
-Remember our code to generate dummies based on text:
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-read_csv("data/SAFI_clean.csv", na = "NULL") %>%
-    mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-    select(key_ID,items_owned) %>%
-    separate_longer_delim(items_owned, delim = ";") %>%
-    mutate(value = 1) %>%
-    pivot_wider(names_from = items_owned,
-                values_from = value,
-                names_prefix = "owns_",
-                values_fill = 0) 
-
-```
-
-I now want to apply this same principle to `months_lack_food` column.
-I could copy-paste the code, but the better solution is to make a function:
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-
-create_dummies <- function(df,stringvar,prefix="",delim = ";") {
-	#Function that generates dummies from a string variable
-	#containing multi-response answers
-	#returns dataset without original var, but with dummies.
-
-	df %>%
-		separate_longer_delim({{ stringvar }}, delim = delim) %>%
-	    mutate(value = 1) %>%
-	    pivot_wider(names_from = {{stringvar}},
-	                values_from = value,
-	                names_prefix = prefix,
-	                values_fill = 0) 
-}
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-	mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-	create_dummies(stringvar = items_owned, prefix = "owns_") %>%
-	create_dummies(months_lack_food,"lack_food_")
-
-```
-
-The code is now clear, I can update the function in one place and all variables will
-be updated accordingly. Plus, if I want to use the same code in another project, I can
-easily do it. 
-
 
 ## Map() {#map}
 
@@ -365,15 +252,15 @@ df <- tibble(y = rnorm(50),x1 = rnorm(50),x2 = rnorm(50))
 
 models <-
 list("X1 only" = "x1", 
-	 "X2 only" = "x2", 
-	  "Both" = c("x1","x2"))
+   "X2 only" = "x2", 
+    "Both" = c("x1","x2"))
 
 
 # map() works nicely in  dplyr pipe!
 # the ~ creates a purrr-style anonymous function, where .x is current element of the list
 models %>%
-	map(~lm(reformulate(.x, response="y"),data = df)) %>%
-	modelsummary(output = "flextable")
+  map(~lm(reformulate(.x, response="y"),data = df)) %>%
+  modelsummary(output = "flextable")
 
 
 ```
