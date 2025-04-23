@@ -1,5 +1,5 @@
 --- 
-title: "R Cheat Sheet"
+title: "R Cookbook for reproducible social science"
 author: "Koen"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
@@ -8,7 +8,7 @@ documentclass: book
 # url: your book url like https://bookdown.org/yihui/bookdown
 # cover-image: path to the social sharing image like images/cover.jpg
 description: |
-  This page contains some quick R tips.
+  This page contains tips to make your R code reproducible.
 link-citations: yes
 github-repo: kleuveld/r_cheatsheet
 ---
@@ -30,10 +30,17 @@ knitr::opts_chunk$set(eval=TRUE,
 ## About
 
 This website is intended as a quick reference for some techiques 
-that I think I may need when cleaning, analyzing, or presenting data. 
+that I think people may need to keep their code reprodubicle
+when cleaning, analyzing, or presenting data. 
 For a more basic intro to R try 
 [the R for Social Science Data Carpentry Workshop](https://datacarpentry.org/r-socialsci/)
 , on which some of this website is based.
+
+The site covers advice on workflows, 
+and general R techniques such as loops and functions, 
+as well as specific code examples to do common tasks such as reporting
+on regressions,
+power calculations and visualizing data.
 
 ## Setting up {#setup}
 
