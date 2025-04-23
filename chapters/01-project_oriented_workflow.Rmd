@@ -1,0 +1,174 @@
+# Reproducible Workflows
+
+## Introduction
+
+While the code you write should be reproducible, 
+the most important thing is to make sure that you organize your work
+in such a way that it transfers easily from user to user, 
+and from machine to machine.
+This helps you, 
+if you need to come back to your own code on a new device 
+(potentially years after initially working on it),
+and this helps your co-workers, as they can easily use your code.
+However, there is an up-front cost in setting up things,
+so make sure everything works before you get too busy with actual work!
+
+This chapter discusses two R-specific aspects of reproducible workflows:
+projects and the renv package.
+I also recommend using git, but that goes beyond the scope of this cookbook.
+
+
+## Projects
+
+Oftentimes, you will see R scripts start with `setwd()`.
+This means the script is no longer reproducible, 
+as it relies on the exact folder structure of the machine the script
+was written on.
+
+A better practice is to adopt a project-oriented workflow. 
+[In the words of Jenny Bryan](https://www.tidyverse.org/blog/2017/12/workflow-vs-script/):
+
+> I suggest organizing each data analysis into a project: 
+> a folder on your computer that holds all the files relevant to 
+> that particular piece of work. 
+> I’m not assuming this is an RStudio Project, 
+> though this is a nice implementation discussed below.
+
+> Any resident R script is written assuming that it will be run from a fresh 
+> R process with working directory set to the project directory. 
+> It creates everything it needs, 
+> in its own workspace or folder,
+> and it touches nothing it did not create.
+> For example, it does not install additional packages (another pet peeve of mine).
+
+> This convention guarantees that the project can be moved around on your 
+> computer or onto other computers and will still “just work”
+
+
+### RStudio
+
+One way to do this is to use RStudio's Project feature. 
+Opening an .Rproj file ensures that the working directory is properly set,
+and you're working with a clean R environment, 
+unaffected by whatever other thing you were doing in R just before you switched
+to work on your current project.
+
+Just make sure that whenever you start working on a new project, 
+you do so by creating a new RProject in a new folder.
+
+### Here
+
+Whether you use RStudio projects VS Code,
+VIM, Sublime Text, or some custom solution,
+the `here` package, 
+makes referencing files in a project-oriented much easier.
+
+Any time you include `library(here)` in a script, 
+it will start looking for the project root folder of the project. 
+This is either the `.RProj` file, a .git folder for if you use git, 
+or some other file you specify.
+`here` will start looking at the current working folder 
+(usually the folder containing the file you just opened),
+then if it can't find the file, recursively looks in the parent folder
+until it's found.
+
+You can then reference files using `here("path/to","yourfile")`.
+This path will work wherever you move your file,
+which is especially useful for RMarkdown files, 
+which tend to ignore your project root folder.
+
+### Using machine-specific paths
+
+Sometimes, you may want to be able to reference files outside your project.
+This is not great, from a project workflow point of view, 
+but sometimes it can't be helped.
+For example, 
+your project lives on git, 
+but you need a file from your teams environment.
+
+To get around this, you can use the `.Renviron` file, 
+which could be located in your home directory (`c:\users\%username%` on windows) 
+or in your project root folder (if using the project root folder, 
+make sure there's a way to not sync it with other machines),
+and in it put the following:
+
+```
+
+TEAMS = "C:/path/to/teams"
+
+```
+
+This sets an environment variable called teams if you load your project.
+Access the variable using `Sys.getenv("TEAMS")`. 
+So put the following on the top of any script using files from teams:
+
+```
+
+teams_path <-  Sys.getenv("TEAMS")
+
+```
+
+This way,
+you can just use `teams_path` wherever you had wanted to use the path to teams,
+and it should work for anyone,
+regardless of the exact path to their teams folder.
+
+
+## renv
+
+The power of R lies in the many packages that are available.
+However, here also lies a risk:
+there's no guarantee packages keep working the way they work now,
+meaning that any update may break your work.
+However, you shouldn't stay at an old version of a package for all your work,
+just so that one old project of yours will keep working.
+What if you want to collaborate with someone using a newer version of that 
+package?
+
+`renv` gets around this by instead of having a global package library, 
+it has a project-specific project-library.
+
+NB: renv only really works with collaborators if you use 
+some form of version control like git. 
+Something like onedrive, teams of dropbox is difficult, 
+as some folder created by renv should not be shared with co-workers.
+
+
+## Starting a project with Renv
+
+In RStudio, just tick the box "use renv" when creating a new project.
+Otherwise, type `renv::init()`. 
+This will create:
+
+- The lock file `renv.lock`, which logs all the pacakges and their versions.
+- The renv folder, which contains the project pacakge library.
+
+## Installing new Pacakges with Renv
+
+When starting a new project, that project's library will be empty,
+so you'll have to reinstall all packages, just by using `install.packages()`.
+Fortunately, 
+renv keeps a global cache of the packages you use across all your projects,
+so any packages that you already have will install very quickly.
+
+After installing the packages, use `renv::snapshot()` to make sure that
+all packages are in the lockfile. 
+You should then commit this snapshot to git, 
+so your co-workers can easily update their own packages.
+
+## Restoring a project
+
+If you join an existing project, 
+or copy a project you were working on to a new device,
+you simply type `renv::restore()` after opening the project to install all
+packages listed in the lockfile.
+
+That's it!
+
+
+
+
+
+
+
+
