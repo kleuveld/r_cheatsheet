@@ -1,0 +1,13 @@
+{
+  "name": "R DevContainer with renv",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "settings": {},
+  "extensions": [
+    "REditorSupport.r"
+  ],
+  "mounts": [
+    "source=${env:HOME}/.cache/R/renv,target=/root/.cache/R/renv,type=bind"
+  ]
+}
