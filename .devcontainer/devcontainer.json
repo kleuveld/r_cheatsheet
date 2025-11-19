@@ -1,13 +1,16 @@
 {
-  "name": "R DevContainer with renv",
-  "dockerComposeFile": ["../docker-compose.yml"],
-  "service": "koentainr",
-  "workspaceFolder": "/docs",
+  "name": "Bookdown Dev Container",
+  "image": "ghcr.io/kleuveld/koentainr:0.3.r_cheatsheet",
+  "workspaceFolder": "/doc", // Set the container's working directory to /doc
+  "workspaceMount": "source=/home/koen/git/r_cheatsheet,target=/doc,type=bind",
+  "overrideCommand": true, // Prevents the entrypoint script from running
   "customizations": {
     "vscode": {
-      "settings": {},
       "extensions": [
-        "REditorSupport.r"
+        "reditorsupport.r-syntax",
+        "reditorsupport.r",
+        "ikuyadeu.r-pack",
+        "yzhang.markdown-all-in-one"
       ]
     }
   }

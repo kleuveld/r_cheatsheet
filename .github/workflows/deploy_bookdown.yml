@@ -16,7 +16,7 @@ jobs:
           - name: Check out the repo
             uses: actions/checkout@v2
           - name: Run the build process with Docker
-            run: docker run --rm -v ${{ github.workspace }}:/doc docker.io/koenleuveld/rmarkdown2pdf:latest index.Rmd
+            run: docker run --rm -v ${{ github.workspace }}:/doc ghcr.io/kleuveld/koentainr:0.3.r_cheatsheet  index.Rmd
           - name: Deploy to GitHub Pages
             uses: Cecilapp/GitHub-Pages-deploy@v3
             env:
