@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Page not found | R Cookbook for reproducible social science</title>
+  <title>Reproducible Workflows | R Cookbook for reproducible social science</title>
   <meta name="description" content="This page contains tips to make your R code reproducible." />
   <meta name="generator" content="bookdown 0.42 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Page not found | R Cookbook for reproducible social science" />
+  <meta property="og:title" content="Reproducible Workflows | R Cookbook for reproducible social science" />
   <meta property="og:type" content="book" />
   
   <meta property="og:description" content="This page contains tips to make your R code reproducible." />
   <meta name="github-repo" content="kleuveld/r_cheatsheet" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Page not found | R Cookbook for reproducible social science" />
+  <meta name="twitter:title" content="Reproducible Workflows | R Cookbook for reproducible social science" />
   
   <meta name="twitter:description" content="This page contains tips to make your R code reproducible." />
   
@@ -30,8 +30,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-
-
+<link rel="prev" href="index.html"/>
+<link rel="next" href="programming.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -268,19 +268,169 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="page-not-found" class="section level1">
-<h1>Page not found</h1>
-<p>The page you requested cannot be found (perhaps it was moved or renamed).</p>
-<p>You may want to try searching to find the page's new location, or use
-the table of contents to find the page you are looking for.</p>
+<div id="reproducible-workflows" class="section level1 hasAnchor">
+<h1>Reproducible Workflows<a href="reproducible-workflows.html#reproducible-workflows" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="introduction-1" class="section level2 hasAnchor">
+<h2>Introduction<a href="reproducible-workflows.html#introduction-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>While the code you write should be reproducible,
+the most important thing is to make sure that you organize your work
+in such a way that it transfers easily from user to user,
+and from machine to machine.
+This helps you,
+if you need to come back to your own code on a new device
+(potentially years after initially working on it),
+and this helps your co-workers, as they can easily use your code.
+However, there is an up-front cost in setting up things,
+so make sure everything works before you get too busy with actual work!</p>
+<p>This chapter discusses two R-specific aspects of reproducible workflows:
+projects and the renv package.
+I also recommend using git, but that goes beyond the scope of this cookbook.</p>
+</div>
+<div id="projects" class="section level2 hasAnchor">
+<h2>Projects<a href="reproducible-workflows.html#projects" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Oftentimes, you will see R scripts start with <code>setwd()</code>.
+This means the script is no longer reproducible,
+as it relies on the exact folder structure of the machine the script
+was written on.</p>
+<p>A better practice is to adopt a project-oriented workflow.
+<a href="https://www.tidyverse.org/blog/2017/12/workflow-vs-script/">In the words of Jenny Bryan</a>:</p>
+<blockquote>
+<p>I suggest organizing each data analysis into a project:
+a folder on your computer that holds all the files relevant to
+that particular piece of work.
+I’m not assuming this is an RStudio Project,
+though this is a nice implementation discussed below.</p>
+</blockquote>
+<blockquote>
+<p>Any resident R script is written assuming that it will be run from a fresh
+R process with working directory set to the project directory.
+It creates everything it needs,
+in its own workspace or folder,
+and it touches nothing it did not create.
+For example, it does not install additional packages (another pet peeve of mine).</p>
+</blockquote>
+<blockquote>
+<p>This convention guarantees that the project can be moved around on your
+computer or onto other computers and will still “just work”</p>
+</blockquote>
+<p>How to exactly implement this depends on your editor of choice,
+but most will support some form of project-oriented workflow.
+RStudio and Sublime text have built-in support for projects,
+VSCode calls them workspaces.
+They all have in common that when you open a project,
+the working directory is properly set,
+and you’re working with a clean R environment
+unaffected by whatever other thing you were doing in R just before you switched
+to work on your current project.</p>
+<p>As long as you make sure that all scripts and data are in subfolders of your project,
+you can reference files using relative paths,
+i.e. paths that start from the project root folder.
+These relative paths will work on any machine.</p>
+<div id="here" class="section level3 hasAnchor">
+<h3>Here<a href="reproducible-workflows.html#here" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Whether you use RStudio projects VS Code,
+VIM, Sublime Text, or some custom solution,
+the <code>here</code> package,
+makes referencing files in a project-oriented much easier.</p>
+<p>Any time you include <code>library(here)</code> in a script,
+it will start looking for the project root folder of the project.
+This is either the <code>.RProj</code> file, a .git folder for if you use git,
+or some other file you specify.
+<code>here</code> will start looking at the current working folder
+(usually the folder containing the file you just opened),
+then if it can’t find the file, recursively looks in the parent folder
+until it’s found.</p>
+<p>You can then reference files using <code>here("path/to","yourfile")</code>.
+This path will work wherever you move your file,
+which is especially useful for RMarkdown files,
+which tend to ignore your project root folder.</p>
+</div>
+<div id="using-machine-specific-paths" class="section level3 hasAnchor">
+<h3>Using machine-specific paths<a href="reproducible-workflows.html#using-machine-specific-paths" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Sometimes, you may want to be able to reference files outside your project.
+This is not great, from a project workflow point of view,
+but sometimes it can’t be helped.
+For example,
+your project lives on git,
+but you need a file from your teams environment (data is supposed to be on git).</p>
+<p>To get around this, you can use the <code>.Renviron</code> file,
+which could be located in your home directory (<code>c:\users\%username%</code> on windows)
+or in your project root folder (if using the project root folder,
+make sure there’s a way to not sync it with other machines, which git allows),
+and in it put the following:</p>
+<pre><code>
+TEAMS = &quot;C:/path/to/teams&quot;
+</code></pre>
+<p>This sets an environment variable called teams if you load your project.
+Access the variable using <code>Sys.getenv("TEAMS")</code>.
+So put the following on the top of any script using files from teams:</p>
+<pre><code>
+teams_path &lt;-  Sys.getenv(&quot;TEAMS&quot;)
+</code></pre>
+<p>This way,
+you can just use <code>teams_path</code> wherever you had wanted to use the path to teams,
+and it should work for anyone,
+regardless of the exact path to their teams folder.</p>
+</div>
+</div>
+<div id="renv" class="section level2 hasAnchor">
+<h2>renv<a href="reproducible-workflows.html#renv" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The power of R lies in the many packages that are available.
+However, here also lies a risk:
+there’s no guarantee packages keep working the way they work now,
+meaning that any update may break your work.
+However, you shouldn’t stay at an old version of a package for all your work,
+just so that one old project of yours will keep working.
+What if you want to collaborate with someone using a newer version of that
+package?</p>
+<p><code>renv</code> gets around this by instead of having a global package library,
+it has a project-specific project-library.</p>
+<p>NB: renv only really works with collaborators if you use
+some form of version control like git.
+Something like onedrive, teams of dropbox is difficult,
+as some folders created by renv should not be shared with co-workers.
+I am sure there is work-around for this,
+but if you’re working on R scripts with collaborators there is much to say for git.</p>
+<div id="starting-a-project-with-renv" class="section level3 hasAnchor">
+<h3>Starting a project with Renv<a href="reproducible-workflows.html#starting-a-project-with-renv" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>In RStudio, just tick the box “use renv” when creating a new project.
+Otherwise, type <code>renv::init()</code>.
+This will create:</p>
+<ul>
+<li>The lock file <code>renv.lock</code>, which logs all the pacakges and their versions.</li>
+<li>The renv folder, which contains the project pacakge library.</li>
+</ul>
+</div>
+<div id="installing-new-pacakges-with-renv" class="section level3 hasAnchor">
+<h3>Installing new Pacakges with Renv<a href="reproducible-workflows.html#installing-new-pacakges-with-renv" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>When starting a new project, that project’s library will be empty,
+so you’ll have to reinstall all packages, just by using <code>install.packages()</code>.
+Fortunately,
+renv keeps a global cache of the packages you use across all your projects,
+so any packages that you already have will install very quickly.</p>
+<p>After installing the packages, use <code>renv::snapshot()</code> to make sure that
+all packages are in the lockfile.
+You should then commit this snapshot to git,
+so your co-workers can easily update their own packages.</p>
+</div>
+<div id="restoring-a-project" class="section level3 hasAnchor">
+<h3>Restoring a project<a href="reproducible-workflows.html#restoring-a-project" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>If you join an existing project,
+or copy a project you were working on to a new device,
+you simply type <code>renv::restore()</code> after opening the project to install all
+packages listed in the lockfile.</p>
+<p>That’s it! You now the exact same packages as your co-workers!</p>
+
+</div>
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-
+<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="programming.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -311,7 +461,7 @@ gitbook.start({
     "size": 2
   },
   "edit": {
-    "link": "https://github.com/kleuveld/r_cheatsheet/edit/main/%s",
+    "link": "https://github.com/kleuveld/r_cheatsheet/edit/main/chapters/01-project_oriented_workflow.Rmd",
     "text": "Edit"
   },
   "history": {

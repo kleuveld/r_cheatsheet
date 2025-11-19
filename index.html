@@ -4,26 +4,26 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>R Cheat Sheet</title>
-  <meta name="description" content="This page contains some quick R tips." />
-  <meta name="generator" content="bookdown 0.40 and GitBook 2.6.7" />
+  <title>R Cookbook for reproducible social science</title>
+  <meta name="description" content="This page contains tips to make your R code reproducible." />
+  <meta name="generator" content="bookdown 0.42 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="R Cheat Sheet" />
+  <meta property="og:title" content="R Cookbook for reproducible social science" />
   <meta property="og:type" content="book" />
   
-  <meta property="og:description" content="This page contains some quick R tips." />
+  <meta property="og:description" content="This page contains tips to make your R code reproducible." />
   <meta name="github-repo" content="kleuveld/r_cheatsheet" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="R Cheat Sheet" />
+  <meta name="twitter:title" content="R Cookbook for reproducible social science" />
   
-  <meta name="twitter:description" content="This page contains some quick R tips." />
+  <meta name="twitter:description" content="This page contains tips to make your R code reproducible." />
   
 
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2025-03-25" />
+<meta name="date" content="2025-11-19" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -31,7 +31,7 @@
   
   
 
-<link rel="next" href="datawrangling.html"/>
+<link rel="next" href="reproducible-workflows.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -66,8 +66,9 @@
 
 
 <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -77,7 +78,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -156,6 +157,32 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#about"><i class="fa fa-check"></i>About</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#setup"><i class="fa fa-check"></i>Setting up</a></li>
 </ul></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html"><i class="fa fa-check"></i>Reproducible Workflows</a>
+<ul>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#introduction-1"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#projects"><i class="fa fa-check"></i>Projects</a>
+<ul>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#here"><i class="fa fa-check"></i>Here</a></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#using-machine-specific-paths"><i class="fa fa-check"></i>Using machine-specific paths</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#renv"><i class="fa fa-check"></i>renv</a>
+<ul>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#starting-a-project-with-renv"><i class="fa fa-check"></i>Starting a project with Renv</a></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#installing-new-pacakges-with-renv"><i class="fa fa-check"></i>Installing new Pacakges with Renv</a></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#restoring-a-project"><i class="fa fa-check"></i>Restoring a project</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html"><i class="fa fa-check"></i>Programming with R</a>
+<ul>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#loops"><i class="fa fa-check"></i>Loops</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions"><i class="fa fa-check"></i>Functions</a>
+<ul>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#basic-functions"><i class="fa fa-check"></i>Basic Functions</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions-and-the-tidyverse"><i class="fa fa-check"></i>Functions and the tidyverse</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#map"><i class="fa fa-check"></i>Map()</a></li>
+<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#making-functions-re-usable-with-box"><i class="fa fa-check"></i>Making functions re-usable with box</a></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html"><i class="fa fa-check"></i>Data Wrangling</a>
 <ul>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#basic-data-manipulation"><i class="fa fa-check"></i>Basic Data Manipulation</a></li>
@@ -189,14 +216,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html"><i class="fa fa-check"></i>Plotting using ggplot</a>
 <ul>
-<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#introduction-1"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#introduction-2"><i class="fa fa-check"></i>Introduction</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#data-prep"><i class="fa fa-check"></i>Data Prep</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#scatter-plot"><i class="fa fa-check"></i>Scatter plot</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#boxplot"><i class="fa fa-check"></i>Boxplot</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#bar-chart"><i class="fa fa-check"></i>Bar chart</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#labels"><i class="fa fa-check"></i>Labels</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#faceting"><i class="fa fa-check"></i>Faceting</a></li>
-<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#stacked-wur"><i class="fa fa-check"></i>Stacked bar chart with WUR template and observation counts</a></li>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#stacked-wur"><i class="fa fa-check"></i>Stacked bar chart with WUR template and observation counts</a>
+<ul>
+<li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#as-a-re-usable-function"><i class="fa fa-check"></i>As a re-usable function</a></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#ordering-of-labels"><i class="fa fa-check"></i>Ordering of labels</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#lollipop-plot"><i class="fa fa-check"></i>Lollipop plot</a></li>
 <li class="chapter" data-level="" data-path="plotting.html"><a href="plotting.html#maps"><i class="fa fa-check"></i>Maps</a></li>
@@ -218,24 +248,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="declaredesign.html"><a href="declaredesign.html#power"><i class="fa fa-check"></i>Power</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="" data-path="data-exploration.html"><a href="data-exploration.html"><i class="fa fa-check"></i>Data Exploration</a>
-<ul>
-<li class="chapter" data-level="" data-path="data-exploration.html"><a href="data-exploration.html#setup-1"><i class="fa fa-check"></i>Setup</a></li>
-<li class="chapter" data-level="" data-path="data-exploration.html"><a href="data-exploration.html#making-a-codebook-from-a-stata-.dta"><i class="fa fa-check"></i>Making a codebook from a Stata .dta</a></li>
-<li class="chapter" data-level="" data-path="data-exploration.html"><a href="data-exploration.html#correlogram"><i class="fa fa-check"></i>Correlogram</a></li>
-</ul></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html"><i class="fa fa-check"></i>Programming with R</a>
-<ul>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#loops"><i class="fa fa-check"></i>Loops</a></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions"><i class="fa fa-check"></i>Functions</a>
-<ul>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#basic-functions"><i class="fa fa-check"></i>Basic Functions</a></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#functions-and-the-tidyverse"><i class="fa fa-check"></i>Functions and the tidyverse</a></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#plot-function"><i class="fa fa-check"></i>Example 1: Re-using plot specifications</a></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#example-2-function-to-create-dummies-from-text"><i class="fa fa-check"></i>Example 2: Function to create dummies from text</a></li>
-</ul></li>
-<li class="chapter" data-level="" data-path="programming.html"><a href="programming.html#map"><i class="fa fa-check"></i>Map()</a></li>
-</ul></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
 
@@ -248,7 +260,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">R Cheat Sheet</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">R Cookbook for reproducible social science</a>
           </h1>
         </div>
 
@@ -257,19 +269,25 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
             <section class="normal" id="section-">
 <div id="header">
-<h1 class="title">R Cheat Sheet</h1>
+<h1 class="title">R Cookbook for reproducible social science</h1>
 <p class="author"><em>Koen</em></p>
-<p class="date"><em>2025-03-25</em></p>
+<p class="date"><em>2025-11-19</em></p>
 </div>
 <div id="introduction" class="section level1 hasAnchor">
 <h1>Introduction<a href="index.html#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="about" class="section level2 hasAnchor">
 <h2>About<a href="index.html#about" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>This website is intended as a quick reference for some techiques
-that I think I may need when cleaning, analyzing, or presenting data.
+that I think people may need to keep their code reprodubicle
+when cleaning, analyzing, or presenting data.
 For a more basic intro to R try
 <a href="https://datacarpentry.org/r-socialsci/">the R for Social Science Data Carpentry Workshop</a>
 , on which some of this website is based.</p>
+<p>The site covers advice on workflows,
+and general R techniques such as loops and functions,
+as well as specific code examples to do common tasks such as reporting
+on regressions,
+power calculations and visualizing data.</p>
 </div>
 <div id="setup" class="section level2 hasAnchor">
 <h2>Setting up<a href="index.html#setup" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -301,7 +319,7 @@ paths.</p>
         </div>
       </div>
 
-<a href="datawrangling.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="reproducible-workflows.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -315,42 +333,42 @@ paths.</p>
 <script>
 gitbook.require(["gitbook"], function(gitbook) {
 gitbook.start({
-"sharing": {
-"github": false,
-"facebook": false,
-"twitter": false,
-"linkedin": false,
-"weibo": false,
-"instapaper": false,
-"vk": false,
-"whatsapp": false,
-"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
-},
-"fontsettings": {
-"theme": "white",
-"family": "sans",
-"size": 2
-},
-"edit": {
-"link": "https://github.com/kleuveld/r_cheatsheet/edit/main/index.Rmd",
-"text": "Edit"
-},
-"history": {
-"link": null,
-"text": null
-},
-"view": {
-"link": null,
-"text": null
-},
-"download": null,
-"search": {
-"engine": "fuse",
-"options": null
-},
-"toc": {
-"collapse": "none"
-}
+  "sharing": {
+    "github": false,
+    "facebook": false,
+    "twitter": false,
+    "linkedin": false,
+    "weibo": false,
+    "instapaper": false,
+    "vk": false,
+    "whatsapp": false,
+    "all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+  },
+  "fontsettings": {
+    "theme": "white",
+    "family": "sans",
+    "size": 2
+  },
+  "edit": {
+    "link": "https://github.com/kleuveld/r_cheatsheet/edit/main/index.Rmd",
+    "text": "Edit"
+  },
+  "history": {
+    "link": null,
+    "text": null
+  },
+  "view": {
+    "link": null,
+    "text": null
+  },
+  "download": null,
+  "search": {
+    "engine": "fuse",
+    "options": null
+  },
+  "toc": {
+    "collapse": "none"
+  }
 });
 });
 </script>
