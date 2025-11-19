@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  packages: read # Grant permission to read private container images
 
 name: Render book and deploy
 
@@ -15,13 +16,17 @@ jobs:
         steps:
           - name: Check out the repo
             uses: actions/checkout@v2
+
+          - name: Authenticate with GitHub Container Registry
+            run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
           - name: Run the build process with Docker
-            run: docker run --rm -v ${{ github.workspace }}:/doc ghcr.io/kleuveld/koentainr:0.3.r_cheatsheet  index.Rmd
+            run: docker run --rm -v ${{ github.workspace }}:/doc ghcr.io/kleuveld/koentainr:0.3.r_cheatsheet index.Rmd
+
           - name: Deploy to GitHub Pages
             uses: Cecilapp/GitHub-Pages-deploy@v3
             env:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             with:
              email: koen.leuveld@outlook.com
-             build_dir: output/             
-    
+             build_dir: output/
