@@ -49,7 +49,7 @@ However, for this you will need to know how to write functions.
 A function is an R object that's essentially a shortcut to run a bit of code. 
 Usually, a function takes an argument (the input), and returns an output. The 
 argument is always provided within parentheses. The  `sqrt()` function, for 
-example, takes a number as its argument and returns the square root.
+example, takes a number as its argument and returns the square root of that number.
 
 ```{r}
 
@@ -66,6 +66,8 @@ Take for example the following code that cleans missing data.
 
 
 ```{r}
+
+library(tidyverse) # needed for if_else()
 
 #define an example variable
 variable1 = c(1,2,3,-99,5,6)
@@ -157,7 +159,7 @@ It's useful to start with the code without a function, and then to generalize
 from there:
 
 ```{r}
-
+library(tidyverse)
 
 data_frame <- tibble(variable1 = variable1)
 
@@ -265,4 +267,146 @@ models %>%
 
 ```
 
+## Making functions re-usable with box
 
+Now that you have a bunch of functions, 
+it's a good idea to make them re-usable across projects.
+The [box package](https://box.r-lib.org/) makes this easy.
+
+You define your functions in a script, say `box_modules/functions.R`:
+
+```{r, eval=FALSE,}
+
+prop_miss <- function(x,na.rm = TRUE) {
+  box::use(r/core[...])  
+  mean(is.na(x))
+}
+
+
+```
+
+This is just a fucntion that returns the proportion of missing values in a vector.
+`box::use(r/core[...])` loads all functions from the core package,
+so you can use them in your function (box modules don't load anything you don't tell them to).  
+You can then use this function in any project loading the entire script:
+
+```{r include=FALSE}
+
+box::use(box_modules/functions)
+
+
+```
+
+```{r, eval=FALSE,}
+box::use(./box_modules/functions)
+
+```
+
+This looks in the folder where your script is located for a folder called box_modules,
+and loads all functions in the functions.R script.
+
+You can run the function by:
+
+```{r}
+
+functions$prop_miss(c(1,2,NA,4))
+
+```
+
+Box even allows you to load packages:
+
+```{r}
+
+box::use(dplyr)
+
+
+dplyr$starwars |>
+  dplyr$filter(species == "Droid")
+
+```
+
+In fact, when writing your own box modules, 
+this is the only way to load packages (hence thr `box::use(r/core[...]` in the function above).
+Note that you have to use the `$` operator to access functions and data
+from the package or module you loaded. 
+If you dont want that you can also attach specific functions:
+
+```{r}
+
+box::use(dplyr[filter, `%>%`])
+
+
+dplyr$starwars %>%
+  filter(species == "Droid")
+
+```
+
+Or just attach everything just like you would with `library()`:
+
+```{r}
+
+box::use(dplyr[...])
+
+starwars %>%
+  filter(species == "Droid")
+
+```
+
+Alright, let's unload our own function, so we can load it in another way, using:
+
+```{r}
+box::unload(functions)
+
+```
+
+Alternatively, you can specify a search path, 
+where `box` will look for modules. 
+I will put my box modules in `C:/Users/koen/documents/box_modules`.
+
+The following code will allow box to look in that folder for modules:
+
+```{r, eval=FALSE,}
+
+options('box.path' = "C:/Users/koen/documents/") # <-- the parent folder!!
+
+```
+
+Note that I have used the parent folder of box_modules, 
+because for whatever reason you have to do that 
+(the .R files need to be in a subfolder). 
+By adding this to your `[.Rprofile](https://docs.posit.co/ide/user/ide/guide/environments/r/managing-r.html)` file, 
+it will be run any time you open R.
+
+Now I can just use the following code in any project to access my functions:
+```{r}
+
+box::use(box_modules/functions)
+
+functions$prop_miss(c(1,2,NA,4,5,NA))
+
+
+```
+
+Of course you are no longer working project-oriented: 
+your box modules aren't in your project folder!
+
+If you want to use box modules within your project folder, 
+best to add the root folder as search path:
+
+```{r, eval=FALSE,}
+
+options('box.path' = h c(here::here(), getOption('box.path'))
+
+```
+
+The function `getOption('box.path')` gets your current box search path,
+and `c()` combines it with your project root folder returned by `here()`.
+
+One way I like to organize my box modules
+is to have them in a git repository
+and use it as a [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) in my projects.
+That way you can have a specific version or branch of all your box modules in every 
+project.
+You can also merge changes you make to you box modules of one project, 
+back to all your other active projects.
+It's fantastic, but a bit finnicky to set up.

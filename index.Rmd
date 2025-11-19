@@ -15,6 +15,9 @@ github-repo: kleuveld/r_cheatsheet
 
 ```{r setup, include=FALSE}
 
+options('box.path' = here::here())
+
+
 knitr::opts_chunk$set(eval=TRUE, 
                       include = TRUE, 
                       echo=TRUE, 

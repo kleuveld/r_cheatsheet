@@ -283,6 +283,10 @@ The key trick here is the combination of `rowwise()` and `c_across()`.
 `rowwise()` ensures all summaries are computed per row, and `c_across()`
 allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
 
+Do not that this is very flexible, but it can be EXTREMLY slow.
+If you have a large dataset, `rowSums()`and `rowMeans()` are fast and may just be
+what you need.
+
 
 ## Splitting multi-response variable into dummies {#seperate_longer}
 
@@ -301,8 +305,11 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
                 values_from = value,
                 names_glue = "owns_{items_owned}",
                 values_fill = 0) %>%
-    left_join(read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% select(key_ID,items_owned)) %>%
-    select(items_owned, starts_with("owns_")) %>%
+    left_join(
+        read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
+            select(key_ID,items_owned)) %>%
+            select(items_owned, starts_with("owns_")
+        ) %>%
     head()
 
 ```

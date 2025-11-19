@@ -44,17 +44,21 @@ A better practice is to adopt a project-oriented workflow.
 > This convention guarantees that the project can be moved around on your 
 > computer or onto other computers and will still “just work”
 
-
-### RStudio
-
-One way to do this is to use RStudio's Project feature. 
-Opening an .Rproj file ensures that the working directory is properly set,
-and you're working with a clean R environment, 
+How to exactly implement this depends on your editor of choice, 
+but most will support some form of project-oriented workflow.
+RStudio and Sublime text have built-in support for projects,
+VSCode calls them workspaces. 
+They all have in common that when you open a project, 
+the working directory is properly set,
+and you're working with a clean R environment
 unaffected by whatever other thing you were doing in R just before you switched
 to work on your current project.
 
-Just make sure that whenever you start working on a new project, 
-you do so by creating a new RProject in a new folder.
+As long as you make sure that all scripts and data are in subfolders of your project,
+you can reference files using relative paths,
+i.e. paths that start from the project root folder.
+These relative paths will work on any machine.
+
 
 ### Here
 
@@ -84,12 +88,12 @@ This is not great, from a project workflow point of view,
 but sometimes it can't be helped.
 For example, 
 your project lives on git, 
-but you need a file from your teams environment.
+but you need a file from your teams environment (data is supposed to be on git).
 
 To get around this, you can use the `.Renviron` file, 
 which could be located in your home directory (`c:\users\%username%` on windows) 
 or in your project root folder (if using the project root folder, 
-make sure there's a way to not sync it with other machines),
+make sure there's a way to not sync it with other machines, which git allows),
 and in it put the following:
 
 ```
@@ -131,10 +135,12 @@ it has a project-specific project-library.
 NB: renv only really works with collaborators if you use 
 some form of version control like git. 
 Something like onedrive, teams of dropbox is difficult, 
-as some folder created by renv should not be shared with co-workers.
+as some folders created by renv should not be shared with co-workers.
+I am sure there is work-around for this, 
+but if you're working on R scripts with collaborators there is much to say for git.
 
 
-## Starting a project with Renv
+### Starting a project with Renv
 
 In RStudio, just tick the box "use renv" when creating a new project.
 Otherwise, type `renv::init()`. 
@@ -143,7 +149,7 @@ This will create:
 - The lock file `renv.lock`, which logs all the pacakges and their versions.
 - The renv folder, which contains the project pacakge library.
 
-## Installing new Pacakges with Renv
+### Installing new Pacakges with Renv
 
 When starting a new project, that project's library will be empty,
 so you'll have to reinstall all packages, just by using `install.packages()`.
@@ -156,18 +162,14 @@ all packages are in the lockfile.
 You should then commit this snapshot to git, 
 so your co-workers can easily update their own packages.
 
-## Restoring a project
+### Restoring a project
 
 If you join an existing project, 
 or copy a project you were working on to a new device,
 you simply type `renv::restore()` after opening the project to install all
 packages listed in the lockfile.
 
-That's it!
-
-
-
-
+That's it! You now the exact same packages as your co-workers!
 
 
 
