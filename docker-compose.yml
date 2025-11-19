@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  koentainr:
+    image: rocker/verse:latest # Example image, replace with your desired image
+    volumes:
+      - .:/docs
+      #- ${HOME}/.cache/R/renv:/root/.cache/R/renv
+    environment:
+      - PASSWORD=yourpassword # Example environment variable, adjust as needed
