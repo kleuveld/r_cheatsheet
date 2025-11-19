@@ -17,8 +17,6 @@ jobs:
           - name: Check out the repo
             uses: actions/checkout@v2
 
-          - name: Authenticate with GitHub Container Registry
-            run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
           - name: Run the build process with Docker
             run: docker run --rm -v ${{ github.workspace }}:/doc ghcr.io/kleuveld/koentainr:0.3.r_cheatsheet index.Rmd
