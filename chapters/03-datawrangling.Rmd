@@ -257,10 +257,31 @@ Notes:
 - You can also combine `across()` with `summarize()` to summarize multiple variables more easily. See the
 section on [faceting](#faceting) for an example.
 
+### rowSums() and rowMeans(): fast row-wise sums and means
+
+To compute means and sums across rows, use `rowSums()` and `rowMeans()`:
+
+
+```{r}
+
+wide_data %>%
+    mutate(across(.cols = starts_with("age_"),
+                  .fn = ~if_else(.x == -99,NA,.x))) %>%
+    mutate(mean_age = rowMeans(across(starts_with("age_")),
+                           na.rm=TRUE),
+           num_women =  rowSums(across(starts_with("female_")),
+                            na.rm=TRUE),
+           hh_size = rowSums(!is.na(across(starts_with("female_"))))) %>%
+    select(key_ID,hh_size,num_women, mean_age) %>%
+    ungroup()
+
+
+```
 
 ### c_across(): passing values from multiple variables to summarizing functions
 
-Then I have to pass all the `female_` and `age_` variables to `sum()` and `mean()`:
+If you want  to compute something other than means or sums, you can use `c_across()`
+to get a bunch of variables into any function you want:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
@@ -268,12 +289,11 @@ wide_data %>%
     mutate(across(.cols = starts_with("age_"),
                   .fn = ~if_else(.x == -99,NA,.x))) %>%
     rowwise() %>%
-    mutate(mean_age = mean(c_across(starts_with("age_")),
+    mutate(max_age = max(c_across(starts_with("age_")),
                            na.rm=TRUE),
-           num_women =  sum(c_across(starts_with("female_")),
-                            na.rm=TRUE),
-           hh_size = sum(!is.na(c_across(starts_with("female_"))))) %>%
-    select(key_ID,hh_size,num_women, mean_age) %>%
+           sd_age =  sd(c_across(starts_with("age_")),
+                            na.rm=TRUE)) %>%
+    select(key_ID,max_age,sd_age) %>%
     ungroup()
 
 
@@ -281,11 +301,10 @@ wide_data %>%
 
 The key trick here is the combination of `rowwise()` and `c_across()`.
 `rowwise()` ensures all summaries are computed per row, and `c_across()`
-allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within the `mean()` and `sum()` functions.
+allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within any function.
 
-Do not that this is very flexible, but it can be EXTREMLY slow.
-If you have a large dataset, `rowSums()`and `rowMeans()` are fast and may just be
-what you need.
+Do note that while this is very flexible, it can be EXTREMLY slow.
+If you have a large dataset, it's probably faster to pivot the data to long first.
 
 
 ## Splitting multi-response variable into dummies {#seperate_longer}

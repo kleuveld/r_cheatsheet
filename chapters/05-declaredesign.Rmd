@@ -45,7 +45,7 @@ library(DeclareDesign)
 n_clusters = 18
 
 rhomis <-
-  read_csv("data/RHoMIS_Indicators.csv") %>%
+  read_csv(here("data/RHoMIS_Indicators.csv")) %>%
   filter(Country == "Burundi") %>%
 
   # split the sample in villages, by lattitude
@@ -66,8 +66,6 @@ rhomis <-
   mutate(across(c(LandOwned,NFertInput,educated),
               ~ if_else(is.na(.x),0,.x)))
 
-
-mean(rhomis$HFIAS_status == "FoodSecure")
 
 ```
 
@@ -238,7 +236,7 @@ diagnosis_simple %>%
 
 We can reliably detect an effect size between 150 and 200 kgs of fertilizer.
 The mean fertilizer use is 70kg, so that seems unlikely to be realistic. 
-Perhaps we should add covariates?
+Perhaps we should add covariates to reduce the standard error?
 
 #### Adding more estimators
 
@@ -294,7 +292,7 @@ diagnosis_simple_cov %>%
 
 ```
 
-Turns out it doesn't help at all...
+Turns out it doesn't help at all in this case.
 
 ## Dif in diff
 
@@ -371,7 +369,7 @@ designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
 ```{r}
 
 library(fixest)
-# library(broom)
+library(broom)
 
 estimator_dd <-
   declare_estimator(Y ~ Z | treatment_group + t,
@@ -417,7 +415,9 @@ diagnosis_dd <- read_csv(file =  here("data/diagnosis_dd.csv"))
 ```
 
 
-Our power is now a lot better, even if we turn up the variance
+Our power is now a lot better, even if we turn up the variance. 
+However, this all depends on the correlation between years. 
+If there is more between-year variation, you lose the benefits of a DiD design.
 
 
 ```{r}
