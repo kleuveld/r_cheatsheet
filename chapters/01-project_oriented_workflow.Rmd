@@ -10,8 +10,12 @@ This helps you,
 if you need to come back to your own code on a new device 
 (potentially years after initially working on it),
 and this helps your co-workers, as they can easily use your code.
-However, there is an up-front cost in setting up things,
-so make sure everything works before you get too busy with actual work!
+In fact, this website was made using these principles: 
+you can download the all code from github and run it on your own machine.
+
+Do note that there is an up-front cost in setting up reproducible workflows,
+so plan for that, making sure all collaborators are on-board with how you approach 
+the organization of your code and data.
 
 This chapter discusses two R-specific aspects of reproducible workflows:
 projects and the renv package.
@@ -129,16 +133,18 @@ just so that one old project of yours will keep working.
 What if you want to collaborate with someone using a newer version of that 
 package?
 
-`renv` gets around this by instead of having a global package library, 
+`[renv](https://rstudio.github.io/renv/)` 
+gets around this by instead of having a global package library, 
 it has a project-specific project-library.
+So different projects can use different versions of the same package,
+without interfering with each other.
 
 NB: renv only really works with collaborators if you use 
 some form of version control like git. 
-Something like onedrive, teams of dropbox is difficult, 
+Something like onedrive, teams or dropbox is difficult, 
 as some folders created by renv should not be shared with co-workers.
 I am sure there is work-around for this, 
-but if you're working on R scripts with collaborators there is much to say for git.
-
+but since git is so great anyway, I haven't bothered looking.
 
 ### Starting a project with Renv
 
@@ -146,10 +152,10 @@ In RStudio, just tick the box "use renv" when creating a new project.
 Otherwise, type `renv::init()`. 
 This will create:
 
-- The lock file `renv.lock`, which logs all the pacakges and their versions.
-- The renv folder, which contains the project pacakge library.
+- The lock file `renv.lock`, which logs all the packages and their versions.
+- The renv folder, which contains the project package library.
 
-### Installing new Pacakges with Renv
+### Installing new packages with Renv
 
 When starting a new project, that project's library will be empty,
 so you'll have to reinstall all packages, just by using `install.packages()`.

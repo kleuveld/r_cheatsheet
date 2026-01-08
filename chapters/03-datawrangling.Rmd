@@ -1,50 +1,144 @@
 # Data Wrangling {#datawrangling}
 
+Data never quite comes in the form you want,
+and the form you want your data in changes depending on what you want to do with it.
+So for every project, you'll likely do a substantial amount of data wrangling.
+
+The goal of reproducible data wrangling is that at any moment,
+you can re-run your code to go from raw data to outputs.
+This is only useful, however, if you organize and document your code in such a way
+that people unfamiliar with the project (this could be future you!) can understand
+and modify the code.
+
+To keep things manageable, it's usually best to split your work into separate,
+well-documented rmarkdown files. 
+Each file has a number of well-defined inputs and outputs.
+- a data cleaning scripts that loads your raw data and outputs an analysis-ready data set; and
+- an analysis scripts that takes the cleaned data and outputs figures, tables or a document.
+
+This separation is useful when working with large data sets, 
+as running the data cleaning code can take a long time, 
+which you don't want to do every time you tweak your analysis code.
+In some cases you may need more scripts, while in others so little cleaning is needed
+that you can get away with one script. 
+Whatever you choose, it must be well document, both in the scripts,
+and in a project README file.
+
+This chapter will give some tips on a common data cleaning tasks,
+and how to do them on many variables in one go, 
+which can prevent errors and save work.
 Make sure you have the `tidyverse` installed, and the SAFI data set
 downloaded to your data folder by running the code from the [Set-up section](#setup)
 
-## Basic Data Manipulation
+## The basic pattern
+
+Below are some common data wrangling tasks, organized as follows:
+1. Loading raw data
+2. Cleaning data using `dplyr`, including filtering, mutating and changing factor levels.
+3. Saving cleaned data, so it can be used in analysis scripts.
+
+Note that objects are never overwritten: 
+data is loaded as `raw_data`,
+and once manipulated, saved as `clean_data`.
+This helps avoid mistakes where you accidentally use
+partially cleaned data further down the script,
+and makes going back to previous versions easier.
 
 ```{r }
 
+# loading packages
 library(tidyverse)
 library(here)
 
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
-    filter(village == "Chirodzo") %>%
-    mutate(people_per_room = no_membrs / rooms,
-           years_liv = if_else(years_liv > 90, NA, years_liv),
-           respondent_wall_type = as_factor(respondent_wall_type),
-           respondent_wall_type = fct_recode(respondent_wall_type, 
-                                             "Burned bricks" = "burntbricks",
-                                             "Mud Daub" = "muddaub",
-                                             "Sun bricks" = "sunbricks"),
-           conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
-                                   affect_conflicts == "more_once" ~ 1,
-                                   affect_conflicts == "once" ~ 1,
-                                   affect_conflicts == "never" ~ 0,
-                                   .default = NA),
-           day = day(interview_date),
-           month = month(interview_date),
-           year = year(interview_date)) %>% 
-    select(key_ID:rooms, day:people_per_room, -village) %>%
-    filter(interview_date > "2016-11-16" & interview_date < '2017-01-01')
+# loading raw data
+raw_data <- 
+  read_csv(here("data/SAFI_clean.csv"), na = "NULL") 
+
+# data cleaning
+clean_data <-
+  raw_data %>% 
+  filter(village == "Chirodzo") %>%
+  mutate(people_per_room = no_membrs / rooms,
+          years_liv = if_else(years_liv > 90, NA, years_liv),
+          respondent_wall_type = as_factor(respondent_wall_type),
+          respondent_wall_type = fct_recode(respondent_wall_type, 
+                                              "Burned bricks" = "burntbricks",
+                                              "Mud Daub" = "muddaub",
+                                              "Sun bricks" = "sunbricks"),
+          conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
+                                  affect_conflicts == "more_once" ~ 1,
+                                  affect_conflicts == "once" ~ 1,
+                                  affect_conflicts == "never" ~ 0,
+                                  .default = NA),
+          day = day(interview_date),
+          month = month(interview_date),
+          year = year(interview_date)) %>% 
+  select(key_ID:rooms, day:people_per_room, -village) %>%
+  filter(interview_date > "2016-11-16" & interview_date < '2017-01-01')
+
+# saving clean data for later use
+clean_data %>% saveRDS(here("data/SAFI_cleaner.rds")) 
+
+
 
 ```
-## Pivoting (or reshaping)
 
-In tidyverse, reshaping is called pivoting. Here's how you 
-pivot a household roster (reshape wider) so you can merge 
-it with the household data.
+## Using plots to identify data issues reproducibly
+
+A key part of data cleaning is identifying issues in the data.
+This is often done by plotting the data,
+inspecting summary statistics, or tabulating values.
+In R, this is easy to do in a reproducible way using `ggplot2`.
+For example, to identify outliers in the `years_liv` variable,
+we can make a boxplot:  
+
+```{r }{}
+
+clean_data %>% 
+  ggplot(aes(x = years_liv)) + 
+  geom_boxplot()
 
 
-### Creating fake data
+```
 
-First, I create sa fake household roster, based on the SAFI data,
+From the boxplot, we can see that there's no super unplausible numbers.
+But let's say we are worried, and want to winsorize this variable at 95%, 
+just so that the few high values don't affect our analysis too much.
+
+```{r}
+clean_data <-
+ clean_data %>% 
+  mutate(years_liv = if_else(years_liv > quantile(years_liv, 0.95, na.rm=TRUE),
+                             quantile(years_liv, 0.95, na.rm=TRUE),
+                             years_liv))
+
+```
+
+Note that in this case I did overwrite `clean_data`.
+So if I interactively want to run code out of order (common when tweaking code),
+I will get into trouble: 
+to undo my edits to clean_data, I will have to rerun all previous steps.
+To prevent this, 
+I can split my cleaning in different steps,
+consisting of plotting and cleaning, 
+where each step saves to a new object.
+This is a common pattern when dealing with multi-level data, 
+so it's easy to incorporate it there.
+
+## Dealing with multiple levels of data
+
+In many surveys, data is collected at multiple levels, for example the village, 
+household, and  individual level, with each level having its own data set.
+For analysis purposes these data sets often need to be merged together.
+
+First, let's make sure our dataset has multiple levels. 
+The SAFI data set doesn't have this, 
+but we can generate some fake individual-level data,
 making sure that the household roster has a number of lines
 for each household that is equal to the household size, and has two
 randomly generated variables: `female` and `age`. Note that `age` may
 be `-99`, which should be considered missing.
+
 
 ```{r }
 
@@ -62,37 +156,45 @@ long_data <-
 
 long_data
 
-
+long_data %>% write_csv(here("data/rawSAFI_roster.csv"))
 ```
+
 
 ### Pivoting long to wide
 
-To merge this into our main data set, we need to make sure we go back to having 1 observation per household. We will do this by using `pivot_wider()`:
+To merge this roster data to our household data, 
+we need to make sure we have one row per household. 
+We do this by making `age` and `female` variables for each household member (age_1, age_2, etc.),
+For this, we use the `pivot_wider()` function (in Stata this would be called reshaping ).
+
 
 ```{r }
 
 wide_data <-
     long_data %>% 
     pivot_wider(names_from = member_ID,
-                values_from = !ends_with("_ID")) %>% 
-    relocate(key_ID, ends_with(paste0("_",1:19)))
+                values_from = !ends_with("_ID"),
+                names_vary = "slowest") 
 
 wide_data 
 
 ```
 
-We only needed to specify two options:
+We only needed to specify three options:
 
-- names_from: this is the column that contains the names (or usually numbers)
-for each of our units of analysis. In this case, the `member_ID`.
+- names_from: this is the column that contains the names (or often numbers)
+for each of our units of analysis. In this case, the `member_ID`. 
+The values of this variable will be appended to the original variable names to create
+new variable names. So `age` becomes `age_1`, `age_2`, etc.
 - values_from: the variables containing the data. All variables you specify 
 here, will get one column for each possible value of names_from. 
 In our case, these variables `female` and `age`. 
 I used [tidy select syntax](https://tidyr.tidyverse.org/reference/tidyr_tidy_select.html) 
 to specify all variables except the ones ending in `_ID`. 
-- I use `relocate()` to reorder the variables.
-
-
+- names_vary: this controls the ordering of the variables. 
+By default ("fastest"), R will create all age variables, and then all female variables,
+by specifying slowest, we ensure that first all variables for member 1 are created, 
+then all variables for member 2, etc.
 
 ### Pivoting wide to long
 
@@ -109,9 +211,8 @@ This was easy since the syntax of `pivot_longer()` is the exact opposite of
 `pivot_wider()`, but the result is pretty useless:
 
 - The `name` column contains two things: a variable name and a `member_ID`;
-- The data is too long: I'd like `age` and `female` to be two separate variables
-; and
-- There's many empty rows: there's and age and female row for 19 possible members
+- The data is too long: I'd like `age` and `female` to be two separate variables; and
+- There's many empty rows: there's an age and female row for 19 possible members
 for each household, but most households are smaller than that. 
 
 I could use [`separate_wider_delim()`](https://tidyr.tidyverse.org/reference/separate_wider_delim.html), 
@@ -123,9 +224,9 @@ and `names_sep` options:
 ```{r }
 
 wide_data %>%
-    pivot_longer(!key_ID, 
+    pivot_longer(!key_ID,
                  names_to = c(".value", "member_ID"),
-                 names_sep="_",
+                 names_sep = "_",
                  values_drop_na = TRUE,
                  names_transform = list(member_ID = as.integer))
 
@@ -163,7 +264,7 @@ all variables. This prevents the issue where we hadd too many rows.
 `member_ID` only contains integers, so we transform it to integer. This is
 completely optional.
 
-## Joining (or merging) data
+### Joining (or merging) data
 
 Tidyverse has four functions to join (or merge, as Stata calls it) two
 data sets. The functions that differ in the way they treat observations that are in one data set but not the other. 
@@ -181,7 +282,14 @@ The four join functions work as follows:
 - `right_join(x,y)` will keep areas B and C.
 - `full_join(x,y)` will keep areas A, B, and C.
 
-In our case, the data sets match perfectly, i.e. we only have an area B, so there is no practical difference. I chose `left_join()` so the number of 
+There's also filtering joins:
+
+    - `semi_join(x,y)` will only keep area B, but won't add columns to X
+    - `anti_join(x,y)`, will only keep area A, and won't add columns to X.
+
+In our case, the data sets match perfectly, i.e. we only have an area B, 
+so there is no practical difference between the four regular joins. 
+I chose `left_join()` so the number of 
 observations in my household survey is guaranteed to remain the same.
 To merge the roster to the household data, we use the join_by function:
 
@@ -206,13 +314,15 @@ long_data %>%
         read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
             select(key_ID,village,interview_date))
 ```
-Note that here I only merged in two variables, by using `select` and a pipe within the `left_join()` function.
+Note that here I only merged in two variables,
+by using `select` and a pipe within the `left_join()` function.
 
-## Summarizing over groups (or collapsing data)
+### Summarizing over groups (or collapsing data)
 
-To compute summary statistics (sums, counts, means etc.) over a group,
-we use the `group_by()` and `summarize()` functions. For example, to
-compute the household size, number of women and average age in each household. 
+Another way to transform individual-level data to household-level data is to compute summary statistics (sums, counts, means etc.).
+For this, we use the `group_by()` and `summarize()` functions.
+For example, 
+to compute the household size, number of women and average age in each household. 
 But before doing anything, I make sure the `-99`s in the `age` variable are treated 
 as missing, using a simple `mutate()` to conver them to `NA`.
 
@@ -226,19 +336,56 @@ long_data %>%
 ```
 
 
-## Row-wise Operations 
 
-Suppose we wanted to run an operation over multiple variables. For example to
-get the household size, number of women and average age from our wide data. 
-The easiest, and probably best, way to do this in R is by reshaping to long, 
-and then use summarize, like we did above. But in Stata you would probably use some sort of 
-`egen` function, so that may come natural.
-You can do similar things in R. It's just a bit more complex than in Stata.
+## Editing many variables at once
+
+Often, you'll to do the same operation to many variables. 
+For example, recoding missing values. 
+While you can copy paste the code for each variable,
+this may lead to errors (if you forget to change the variable name somewhere),
+and is tedious to maintain (if you need to change something later on.
+So, it's better to do this in a programmatic way.
+Here's some pointers:
+
 
 ### across(): doing the same operations on multiple variables using across
 
-First, we need to make sure we update `-99` to `NA` in *all* `age_` variables.
-I use the `across()` function, which takes two arguments: a column specifcation 
+The main function to do this is `across()`, which is used within `mutate()` or `summarize()`.
+For example, we need to make sure we update `-99` to `NA` in *all* `age_` variables 
+in our wide data.
+
+We could write this:
+
+```{r}
+
+wide_data %>%
+  mutate(age_1 = if_else(age_1 == -99,NA,age_1),
+          age_2 = if_else(age_2 == -99,NA,age_2),
+          age_3 = if_else(age_3 == -99,NA,age_3),
+          age_4 = if_else(age_4 == -99,NA,age_4),
+          age_5 = if_else(age_5 == -99,NA,age_5),
+          age_6 = if_else(age_6 == -99,NA,age_6),
+          age_7 = if_else(age_7 == -99,NA,age_7),
+          age_8 = if_else(age_8 == -99,NA,age_8),
+          age_9 = if_else(age_9 == -99,NA,age_9),
+          age_10 = if_else(age_10 == -99,NA,age_10),
+          age_11 = if_else(age_11 == -99,NA,age_11),
+          age_12 = if_else(age_12 == -99,NA,age_12),
+          age_13 = if_else(age_13 == -99,NA,age_13),
+          age_14 = if_else(age_14 == -99,NA,age_14),
+          age_15 = if_else(age_15 == -99,NA,age_15),
+          age_16 = if_else(age_16 == -99,NA,age_16),
+          age_17 = if_else(age_17 == -99,NA,age_17),
+          age_18 = if_else(age_18 == -99,NA,age_18),
+          age_19 = if_else(age_19 == -99,NA,age_19)
+  )
+
+```
+
+However, this is extremely tedious and error-prone (though AI makes this easier nowadays!),
+and makes your unreusable, as you may not have household of 19 members in another dataset.
+
+Instead, I use the `across()` function, which takes two arguments: a column specifcation 
 (for which I use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) 
 syntax), and a [function](#functions): basically, the syntax is the same as in the `mutate()` 
 step above, but with a tilde (`~`) in front of `ifelse()` and `.x` instead of the variable name.
@@ -257,7 +404,121 @@ Notes:
 - You can also combine `across()` with `summarize()` to summarize multiple variables more easily. See the
 section on [faceting](#faceting) for an example.
 
-### rowSums() and rowMeans(): fast row-wise sums and means
+You can also define the function separately, for more reusable code.
+This also eliminates the need for the tilde (`~`) and `.x` syntax:
+
+
+```{r}
+
+cleanmissing <- function(x) {
+  if_else(x == -99, NA, x)
+}
+
+
+wide_data %>%
+  mutate(across(.cols = starts_with("age_"),
+                .fns = cleanmissing))
+
+```
+
+### Pivoting
+
+Of course, in the example above, 
+it would have been possible to pivot the data to long first, 
+so that we have one `age` variable, and no need to use across.
+
+```{r}
+
+wide_data %>%
+    pivot_longer(!key_ID,
+                 names_to = c(".value", "member_ID"),
+                 names_sep = "_",
+                 values_drop_na = TRUE,
+                 names_transform = list(member_ID = as.integer)) %>%
+    mutate(age = if_else(age == -99,NA,age)))  %>% 
+    pivot_wider(names_from = member_ID,
+                values_from = !ends_with("_ID"),
+                names_vary = "slowest") 
+
+```
+
+This is a bit more work, but often more flexible, 
+and the more operations you need to do, the more worthwhile it is to pivot to long first.
+
+The pivoting approach can also be useful even if you don't really have another 
+level of analysis, but just repeated questions. 
+Let's say we have a bunch of related variables:
+
+```{r}
+
+expenditures_raw <- 
+
+  wide_data %>%
+  select(key_ID) %>%
+
+  # generate some repeated questions
+  mutate(expenditures_fertilizer = rnorm(n = nrow(.)),
+         expenditures_seeds = rnorm(n = nrow(.)),
+         expenditures_tools = rnorm(n = nrow(.))) 
+
+```
+
+Here's a common pattern in dealing with this:
+- plot data
+- identify issues and outliers, and describe them in rmarkdown
+- clean data
+
+We could do all three steps for each variable separately, 
+but by pivoting we can do it one go, by pivoting to long, which is the format `ggplot2` expects. 
+
+
+```{r}
+expenditures_long <- 
+  expenditures_raw %>%
+  
+  #pivot
+  pivot_longer(cols = starts_with("expenditures_"),
+               names_to = "expenditure_type",
+               values_to = "amount")
+
+expenditures_long %>% 
+  ggplot(aes(x = expenditure_type, y = amount)) +
+  geom_boxplot()
+
+```
+
+The beauty of RMarkdown is that you have this plot, and you code in one place.
+So you'd write down your observations about the data here, and explain your actions.
+For example, if you spot certain outliers, you'd describe them here, 
+and then move on to the code that deals with these outliers.
+
+In this case, 
+we  could notice the negative expenditures, and argue that those should be zero.
+
+```{r}
+expenditures_cleaned <-
+  expenditures_long %>% 
+  mutate(amount = if_else(amount < 0, 0, amount)) %>% 
+  pivot_wider(names_from = expenditure_type,
+              values_from = amount)
+
+```
+
+
+
+Now you have a dataframe with a bunch of variables, ready to be merged in with the 
+rest.
+
+
+
+### Using many variables as inputs 
+Suppose we wanted to use many variables as input for a calculation.
+For example to
+get the household size, number of women and average age from our wide data. 
+The easiest, and probably best, way to do this in R is by reshaping to long, 
+and then use summarize, like we did above. But in Stata you would probably use some sort of 
+`egen` function, so that may come natural.
+You can do similar things in R. It's just a bit more complex than in Stata.
 
 To compute means and sums across rows, use `rowSums()` and `rowMeans()`:
 
@@ -277,8 +538,6 @@ wide_data %>%
 
 
 ```
-
-### c_across(): passing values from multiple variables to summarizing functions
 
 If you want  to compute something other than means or sums, you can use `c_across()`
 to get a bunch of variables into any function you want:
@@ -306,70 +565,9 @@ allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy
 Do note that while this is very flexible, it can be EXTREMLY slow.
 If you have a large dataset, it's probably faster to pivot the data to long first.
 
-
-## Splitting multi-response variable into dummies {#seperate_longer}
-
-The SAFI data contains a number of columns that contain all responses selected
-in a multiple response questions. For example, the variables `items_owned` can
-contain something like `"bicycle;television;solar_panel;table"`. We want to 
-split this into dummies: one for each possible answers. There's a number of 
-ways to do this, but the most convenient is using `sepate_longer()`
-
-```{r }
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    separate_longer_delim(items_owned, delim = ";") %>%
-    mutate(value = 1) %>%
-    pivot_wider(names_from = items_owned,
-                values_from = value,
-                names_glue = "owns_{items_owned}",
-                values_fill = 0) %>%
-    left_join(
-        read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
-            select(key_ID,items_owned)) %>%
-            select(items_owned, starts_with("owns_")
-        ) %>%
-    head()
-
-```
-
-Note that the original `items_owned` variable is lost during the `separate_longer_delim()`
-step, so I used `left_join()` to merge it back in for demonstration purposes.
-
-
-If you need to do this to many columns (wich is likely),
-it is worth creating a [function](#functions):
-
-
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
-
-
-create_dummies <- function(df,stringvar,prefix="",delim = ";") {
-  #Function that generates dummies from a string variable
-  #containing multi-response answers
-  #returns dataset without original var, but with dummies.
-
-  df %>%
-    separate_longer_delim({{ stringvar }}, delim = delim) %>%
-      mutate(value = 1) %>%
-      pivot_wider(names_from = {{stringvar}},
-                  values_from = value,
-                  names_prefix = prefix,
-                  values_fill = 0) 
-}
-
-read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-  mutate(items_owned = ifelse(is.na(items_owned),"None",items_owned)) %>%
-  create_dummies(stringvar = items_owned, prefix = "owns_") %>%
-  create_dummies(months_lack_food,"lack_food_")
-
-```
-
-
-## Renaming many variables
+### Renaming many variables
 
 Let's say we need to rename a bunch of variables.
-
 
 One way is to use a named list:
 
@@ -454,4 +652,49 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     rename_with(.fn = ~gsub("membrs|memb", "members",.x)) %>%
     glimpse()
 
+```
+
+
+## Splitting multi-response variable into dummies {#seperate_longer}
+
+The SAFI data contains a number of columns that contain all responses selected
+in a multiple response questions. For example, the variables `items_owned` can
+contain something like `"bicycle;television;solar_panel;table"`. We want to 
+split this into dummies: one for each possible answers. There's a number of 
+ways to do this, but the most convenient is using `separate_longer()`
+
+```{r }
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+    separate_longer_delim(items_owned, delim = ";") %>%
+    mutate(value = 1) %>%
+    pivot_wider(names_from = items_owned,
+                values_from = value,
+                names_glue = "owns_{items_owned}",
+                values_fill = 0) %>%
+    left_join(
+        read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
+            select(key_ID,items_owned)) %>%
+            select(items_owned, starts_with("owns_")
+        ) %>%
+    head()
+
+```
+
+Note that the original `items_owned` variable is lost during the `separate_longer_delim()`
+step, so I used `left_join()` to merge it back in for demonstration purposes.
+
+
+
+## Structure of a cleaning Rmarkdown doc with multi-level data
+
+In a script, I would typically deal with each level separately, 
+and then merge them together at the end:
+
+
+
+```{r include_example_rmd, echo=FALSE, comment=""}
+# Print the contents of an Rmd file verbatim, including code fences
+example_file <- here::here("scripts/example_datacleaning.Rmd")
+cat(readLines(example_file), sep = "\n")
 ```

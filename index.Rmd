@@ -1,5 +1,5 @@
 --- 
-title: "R Cookbook for reproducible social science"
+title: "Field guide to reproducible and reusable social science with R: "
 author: "Koen"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
@@ -32,8 +32,8 @@ knitr::opts_chunk$set(eval=TRUE,
 
 ## About
 
-This website is intended as a quick reference for some techiques 
-that I think people may need to keep their code reprodubicle
+This website is intended as a quick reference for some techniques 
+that I think people may need to keep their code reproducible
 when cleaning, analyzing, or presenting data. 
 For a more basic intro to R try 
 [the R for Social Science Data Carpentry Workshop](https://datacarpentry.org/r-socialsci/)

@@ -45,14 +45,14 @@ library(DeclareDesign)
 n_clusters = 18
 
 rhomis <-
-  read_csv(here("data/RHoMIS_Indicators.csv")) %>%
-  filter(Country == "Burundi") %>%
+  read_csv(here("data/RHoMIS_Indicators.csv")) %>% #names()
+  filter(Country == "Burundi") %>% 
 
   # split the sample in villages, by lattitude
   filter(!is.na(GPS_LAT)) %>%
   arrange(GPS_LAT) %>%
   mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) %>%
-  select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput) %>%
+  select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput, total_income_USD_PPP_pHH_Yr) %>%
   
   # create some variables
   mutate(HFIAS_status = factor(HFIAS_status, levels = c("FoodSecure", "MildlyFI", "ModeratelyFI", "SeverelyFI")),
@@ -455,8 +455,6 @@ a correlation of `rho` with the household being educated, using `fabricatr`'s
 `correlate()` function. 
 Education is also a strong predictor of `food_security`, creating inherent bias.
 
-
-
 I compare a standard difference in means, as well as a custom matching function that 
 uses the `MatchIt` package to create a balanced data set, that I can then use for
 regular regressions, weighted by the propensity score.
@@ -464,14 +462,35 @@ regular regressions, weighted by the propensity score.
 
 ```{r}
 
+rhomis_psm <-
+  rhomis %>% 
+  mutate(Head_EducationLevel = if_else(is.na(Head_EducationLevel),"No_school", Head_EducationLevel),
+         income = mean(total_income_USD_PPP_pHH_Yr, na.rm = TRUE) + rnorm(n(), 0, 1000), 
+         income = income + if_else(Head_EducationLevel == "primary", 5000, 0) + 
+                         if_else(Head_EducationLevel == "secondary", 10000, 0) +
+                         if_else(Head_EducationLevel == "adult_education", 20000, 0) +
+                         if_else(Head_EducationLevel == "postsecondary", 50000, 0),
+         prob_treat = 0.3, 
+         prob_treat = prob_treat + if_else(Head_EducationLevel == "primary", 0.1, 0) + 
+                         if_else(Head_EducationLevel == "secondary", 0.2, 0) +
+                         if_else(Head_EducationLevel == "adult_education", 0.3, 0) +
+                         if_else(Head_EducationLevel == "postsecondary", 0.4, 0),         
+
+  ) 
+
+
 set.seed(1)
 
 library(MatchIt, exclude("select")) # the select function would conflict with dplyr
                                     # this syntax requires R 4.0 or higher
 
 # set parameters
-effect <- 0.2
-rho <- 0.2
+effect <- 10000
+#rho <- 0.2
+
+
+rhomis_psm %>% mutate(sample = draw_binary(prob = prob_treat)) %>% count(sample)
+rhomis_psm %>% mutate(sample = simple_ra(N= nrow(.), prob_unit = prob_treat)) %>% count(sample)
 
 
 population_psm <- declare_population(
@@ -480,20 +499,21 @@ population_psm <- declare_population(
   #          potential_outcomes(Y ~ pmin(1,food_secure + Z * draw_binary(effect,nrow(.)))))
   N = nrow(rhomis),
   rhomis,
-  potential_outcomes(Y ~ pmin(1,food_secure + Z * draw_binary(effect,N)))
+  #potential_outcomes(Y ~ pmin(1,food_secure + Z * draw_binary(effect,N)))
+  potential_outcomes(Y ~ income + Z * effect)
 )
 
 
 
 assignment_psm <- declare_assignment(
-  treated_hh = correlate(given = educated, draw_handler = draw_binary, prob = 0.5 , rho = rho),
+  treated_hh = simple_ra(N= nrow(.), prob_unit = prob_treat),
   treated_vill = cluster_ra(clusters = village, prob = 0.5),
   Z = treated_hh * treated_vill
 )
 ```
 
 I then re-sample from the original data using  `resample_hhs()` I define below.
-To include the funciton in our design, we need to use `declare_step()`
+To include the function in our design, we need to use `declare_step()`
 
 - I ensure I have more control household than treatment households.
 - I drop any untreated households in treated villages.
@@ -514,7 +534,7 @@ clusters_control_multi <- 1 # multiplier for oversampling control clusters
 hh_control_multi <- 2 # multiplier for oversampling control hhs
 
 resample_hhs <- function(data){
-  # this function filters any control househols in treated communities
+  # this function filters any control households in treated communities
   # and it sets the sample size
   data %>%
     mutate(drop = if_else(treated_vill == 1 & treated_hh == 0,1,0)) %>%
@@ -539,6 +559,7 @@ resampling_psm <- declare_step(
 Measurement and inquiry are standard. I also add an OLS estimator to check for bias.
 
 ```{r}
+
 measurement_psm <- declare_measurement(Y = reveal_outcomes(Y ~ Z)
 ) 
 
@@ -566,6 +587,7 @@ a matched data set,
 I define a function that does that, and some labelling:
 
 ```{r}
+
 custom_match <- function(data, equation, outcome = "Y", term = "Z") {
   
   # the command filter(term == term) wouldn't do anything, so this is a workaround

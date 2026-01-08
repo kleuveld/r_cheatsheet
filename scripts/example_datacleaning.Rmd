@@ -1,0 +1,115 @@
+---
+title: "Example Data Wrangling RMarkdown"
+output: html_document
+---
+
+# introduction
+This is an example of a data cleaning RMarkdown script for multi-level data (household and individual level).
+
+It takes the raw data files in the data/raw folder,
+and outputs a cleaned data file in the data/cleaned folder.
+
+
+# loading raw data
+
+```{r}
+raw_data_hh <- 
+  read_csv(here("data/raw/SAFI_clean.csv"), na = "NULL") 
+
+
+raw_data_individual <- read_csv(here("data/rawSAFI_roster.csv"))
+
+```
+
+# data cleaning
+
+## Selecting and recoding variables
+
+```{r}
+# household level
+clean_data_hh <-
+  raw_data_hh %>% 
+  # we only need one village for this example
+  mutate(people_per_room = no_membrs / rooms,
+          # people should not be older than 90, these are data entry errors
+          respondent_wall_type = as_factor(respondent_wall_type),
+          respondent_wall_type = fct_recode(respondent_wall_type, 
+                                              "Burned bricks" = "burntbricks",
+                                              "Mud Daub" = "muddaub",
+                                              "Sun bricks" = "sunbricks"),
+          conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
+                                  affect_conflicts == "more_once" ~ 1,
+                                  affect_conflicts == "once" ~ 1,
+                                  affect_conflicts == "never" ~ 0,
+                                  .default = NA),
+          day = day(interview_date),
+          month = month(interview_date),
+          year = year(interview_date)) %>% 
+  select(key_ID:rooms, day:people_per_room, -village, years_liv)
+
+```
+
+## outliers
+
+we plot years_live to check if there are outliers:
+```{r}
+# years_liv cleaning
+raw_data %>% 
+  ggplot(aes(x = years_liv)) + 
+  geom_boxplot()
+
+```
+
+Anything higher than 90 years seems unlikely, so we set those to NA:
+
+```{r}
+years_liv_clean <-
+  raw_data %>% 
+  select(key_ID, years_liv) %>%
+  mutate(years_liv = if_else(years_liv > 90, NA, years_liv))
+
+
+```
+
+## househod roster
+
+We reshape the household roster to wide format:
+
+```{r}
+# individual level
+clean_data_individual <-
+  raw_data_individual %>%
+  mutate(age = if_else(age == -99,NA,age))  %>% 
+    pivot_wider(names_from = member_ID,
+                values_from = !ends_with("_ID"),
+                names_vary = "slowest") 
+
+```
+
+And we compute some summary statistics at the household level:
+
+```{r}
+# household size
+household_size <-
+  raw_data_individual %>%
+  group_by(key_ID) %>%
+  mutate(age = if_else(age == -99,NA,age)) %>%
+  summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age, na.rm = TRUE))
+
+```
+
+Finally, we merge everything together, and save it in the clean 
+data folder.
+
+```{r}
+# merge all together
+clean_data <-
+  clean_data_hh %>% 
+  left_join(years_liv_clean) %>%
+  left_join(household_size) %>%
+  left_join(clean_data_individual) 
+
+# saving clean data for later use
+clean_data %>% saveRDS(here("data/clean/SAFI_cleaner_hh.rds")) 
+
+```

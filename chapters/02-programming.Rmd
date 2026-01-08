@@ -1,13 +1,23 @@
 # Programming with R {#programming}
 
-You can make your R code more reproducible by using programming features such as 
-loops and functions.
-This prevents errors, saves you time and allows you to share you code 
-more easily.
+Before diving into specific R techniques about managing social science research,
+first some general programming concepts that will help you make your R code
+more reusable. 
+These techniques help you move away from the specifics of your data,
+and make generalizable solutions that you can then reapply to other data sets.
+This also prevents mistakes, 
+where you copy-paste code and fail to make the necessary changes.
+But perhaps most importantly, it saves you time: these concepts allow you to do 
+a lot of work with just a few simple building blocks of code.
+
+This chapter will cover ways to iterate code 
+(using either loops or the `map()` function),
+functions (which will let you easily reuse code snippets you often need),
+and making code more reusable with the `box` package.
 
 ## Loops
 
-Loops repeat code a number of time, they have the following structure:
+Loops are a fundamental programming concept that allow you to repeat code multiple times without duplicating it. In R, a loop has the following structure:
 
 
 ```{r}
@@ -285,7 +295,7 @@ prop_miss <- function(x,na.rm = TRUE) {
 
 ```
 
-This is just a fucntion that returns the proportion of missing values in a vector.
+This is just a function that returns the proportion of missing values in a vector.
 `box::use(r/core[...])` loads all functions from the core package,
 so you can use them in your function (box modules don't load anything you don't tell them to).  
 You can then use this function in any project loading the entire script:
@@ -294,10 +304,10 @@ You can then use this function in any project loading the entire script:
 
 box::use(box_modules/functions)
 
-
 ```
 
 ```{r, eval=FALSE,}
+
 box::use(./box_modules/functions)
 
 ```
