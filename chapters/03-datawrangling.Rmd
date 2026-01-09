@@ -1,38 +1,28 @@
 # Data Wrangling {#datawrangling}
 
-Data never quite comes in the form you want,
+Data from the field never quite comes in the form you want,
 and the form you want your data in changes depending on what you want to do with it.
 So for every project, you'll likely do a substantial amount of data wrangling.
 
 The goal of reproducible data wrangling is that at any moment,
 you can re-run your code to go from raw data to outputs.
-This is only useful, however, if you organize and document your code in such a way
+This is only useful, if you organize and document your code in such a way
 that people unfamiliar with the project (this could be future you!) can understand
 and modify the code.
+For this, RMarkdown is great, as it contains code, results and documentation 
+all in one place. 
+This chapter will provide examples of common data wrangling patterns,
+as well as how they can fit it into a reproducible data cleaning
+RMarkdown file.
 
-To keep things manageable, it's usually best to split your work into separate,
-well-documented rmarkdown files. 
-Each file has a number of well-defined inputs and outputs.
-- a data cleaning scripts that loads your raw data and outputs an analysis-ready data set; and
-- an analysis scripts that takes the cleaned data and outputs figures, tables or a document.
-
-This separation is useful when working with large data sets, 
-as running the data cleaning code can take a long time, 
-which you don't want to do every time you tweak your analysis code.
-In some cases you may need more scripts, while in others so little cleaning is needed
-that you can get away with one script. 
-Whatever you choose, it must be well document, both in the scripts,
-and in a project README file.
-
-This chapter will give some tips on a common data cleaning tasks,
-and how to do them on many variables in one go, 
-which can prevent errors and save work.
 Make sure you have the `tidyverse` installed, and the SAFI data set
 downloaded to your data folder by running the code from the [Set-up section](#setup)
 
 ## The basic pattern
 
-Below are some common data wrangling tasks, organized as follows:
+Below is an example R Script, 
+with some common data wrangling tasks, organized as follows:
+
 1. Loading raw data
 2. Cleaning data using `dplyr`, including filtering, mutating and changing factor levels.
 3. Saving cleaned data, so it can be used in analysis scripts.
@@ -79,9 +69,13 @@ clean_data <-
 # saving clean data for later use
 clean_data %>% saveRDS(here("data/SAFI_cleaner.rds")) 
 
-
-
 ```
+
+Throughout this chapter, we will add things to this sctructure,
+until we end up with a [basic .Rmd file](#cleaning-rmd) that is easy to work with.
+First we will info on how to include plots,
+then how to use multi-level data, 
+and finally some advanced techniques such as editing multiple varaibles all at once.
 
 ## Using plots to identify data issues reproducibly
 
@@ -94,7 +88,7 @@ we can make a boxplot:
 
 ```{r }{}
 
-clean_data %>% 
+raw_data %>% 
   ggplot(aes(x = years_liv)) + 
   geom_boxplot()
 
@@ -106,24 +100,29 @@ But let's say we are worried, and want to winsorize this variable at 95%,
 just so that the few high values don't affect our analysis too much.
 
 ```{r}
-clean_data <-
- clean_data %>% 
+years_liv_clean <-
+  raw_data %>%
+  select(key_ID, years_liv) %>% 
   mutate(years_liv = if_else(years_liv > quantile(years_liv, 0.95, na.rm=TRUE),
                              quantile(years_liv, 0.95, na.rm=TRUE),
                              years_liv))
 
 ```
 
-Note that in this case I did overwrite `clean_data`.
-So if I interactively want to run code out of order (common when tweaking code),
-I will get into trouble: 
-to undo my edits to clean_data, I will have to rerun all previous steps.
-To prevent this, 
-I can split my cleaning in different steps,
-consisting of plotting and cleaning, 
-where each step saves to a new object.
-This is a common pattern when dealing with multi-level data, 
-so it's easy to incorporate it there.
+I've saved the cleaned variable as a new object, so I don't overwrite anything.
+In the [final .Rmd file](#cleaning-rmd), 
+I will merge this back into the cleaned data.
+This way, my cleaned data only contains data I expicitly select.
+This keeps useless clutters to a minimum,
+making my analysis data file easy to understand for my co-workers.
+
+This pattern is quite common:
+
+- plot data
+- identify issues and outliers, and describe them in rmarkdown
+- clean data
+- merge cleanded data back in data
+
 
 ## Dealing with multiple levels of data
 
@@ -131,12 +130,12 @@ In many surveys, data is collected at multiple levels, for example the village,
 household, and  individual level, with each level having its own data set.
 For analysis purposes these data sets often need to be merged together.
 
-First, let's make sure our dataset has multiple levels. 
-The SAFI data set doesn't have this, 
-but we can generate some fake individual-level data,
+First, let's make sure our dataset has multiple levels, 
+by  generating some fake individual-level data,
 making sure that the household roster has a number of lines
 for each household that is equal to the household size, and has two
-randomly generated variables: `female` and `age`. Note that `age` may
+randomly generated variables: `female` and `age`. 
+Note that `age` may
 be `-99`, which should be considered missing.
 
 
@@ -154,9 +153,11 @@ long_data <-
                           .default = sample(c(0:86,-99),1))) %>%
     ungroup()
 
-long_data
+long_data %>% glimpse()
 
+# I save the data as a CSV
 long_data %>% write_csv(here("data/rawSAFI_roster.csv"))
+
 ```
 
 
@@ -176,7 +177,7 @@ wide_data <-
                 values_from = !ends_with("_ID"),
                 names_vary = "slowest") 
 
-wide_data 
+wide_data %>% glimpse()
 
 ```
 
@@ -203,7 +204,9 @@ long data, we'd have to use `pivot_longer()`:
 
 ```{r }
 
-wide_data %>% pivot_longer(!key_ID, names_to = "name", values_to = "value")
+wide_data %>% 
+  pivot_longer(!key_ID, names_to = "name", values_to = "value") %>% 
+  glimpse()
 
 ```
 
@@ -383,29 +386,16 @@ wide_data %>%
 ```
 
 However, this is extremely tedious and error-prone (though AI makes this easier nowadays!),
-and makes your unreusable, as you may not have household of 19 members in another dataset.
+and makes your code unreusable, 
+as it depends on the highest number of members in your data set to be exactly 19.
+If you have households with 20 members, or no household with more than 10, 
+you'd have to change this code.
 
 Instead, I use the `across()` function, which takes two arguments: a column specifcation 
 (for which I use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) 
-syntax), and a [function](#functions): basically, the syntax is the same as in the `mutate()` 
-step above, but with a tilde (`~`) in front of `ifelse()` and `.x` instead of the variable name.
+syntax), and a [function](#functions). It will then apply the function to all columns:
 
-```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-wide_data %>%
-    mutate(across(.cols = starts_with("age_"),
-                  .fns = ~if_else(.x == -99,NA,.x)))
-
-```
-
-Notes:
-
-- You can use `across(.cols = where(is.numeric), .fn = ...)` to apply a function to all numeric variables.
-- You can also combine `across()` with `summarize()` to summarize multiple variables more easily. See the
-section on [faceting](#faceting) for an example.
-
-You can also define the function separately, for more reusable code.
-This also eliminates the need for the tilde (`~`) and `.x` syntax:
 
 
 ```{r}
@@ -420,6 +410,29 @@ wide_data %>%
                 .fns = cleanmissing))
 
 ```
+
+
+
+We can have variables for 100 household members, and this code will still work!
+Notes:
+
+- You can use `across(.cols = where(is.numeric), .fn = ...)` to apply a function to all numeric variables.
+- You can also combine `across()` with `summarize()` to summarize multiple variables more easily. See the
+section on [faceting](#faceting) for an example.
+
+You can also define the function in line, if you don't plan on using the function 
+anywhere else:
+
+```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
+
+wide_data %>%
+    mutate(across(.cols = starts_with("age_"),
+                  .fns = function(var) if_else(var == -99,NA, var)))
+
+```
+
+Note that throughout this page, I will use different ways of defining these inline
+functions. They all work, so pick what you like and be consistent.
 
 ### Pivoting
 
@@ -447,7 +460,7 @@ and the more operations you need to do, the more worthwhile it is to pivot to lo
 
 The pivoting approach can also be useful even if you don't really have another 
 level of analysis, but just repeated questions. 
-Let's say we have a bunch of related variables:
+Let's say we have a bunch of related variables, such as expenditures on input:
 
 ```{r}
 
@@ -463,13 +476,12 @@ expenditures_raw <-
 
 ```
 
-Here's a common pattern in dealing with this:
-- plot data
-- identify issues and outliers, and describe them in rmarkdown
-- clean data
+These variabes all contain the same type of information, 
+and should be dealth with in the same way.
 
-We could do all three steps for each variable separately, 
-but by pivoting we can do it one go, by pivoting to long, which is the format `ggplot2` expects. 
+We could plot and clean each variable separately, 
+but by pivoting we can do it one go, 
+since `ggplot2` expects long data. 
 
 
 ```{r}
@@ -487,13 +499,10 @@ expenditures_long %>%
 
 ```
 
-The beauty of RMarkdown is that you have this plot, and you code in one place.
-So you'd write down your observations about the data here, and explain your actions.
-For example, if you spot certain outliers, you'd describe them here, 
-and then move on to the code that deals with these outliers.
-
-In this case, 
-we  could notice the negative expenditures, and argue that those should be zero.
+Following the pattern of plotting, documenting and cleaning, 
+we notice negative values of expenditures here.
+That's not possible, so I set them to 0 
+(though in the real world I'd have to argue why not `NA`):
 
 ```{r}
 expenditures_cleaned <-
@@ -504,12 +513,8 @@ expenditures_cleaned <-
 
 ```
 
-
-
 Now you have a dataframe with a bunch of variables, ready to be merged in with the 
 rest.
-
-
 
 ### Using many variables as inputs 
 Suppose we wanted to use many variables as input for a calculation.
@@ -686,12 +691,10 @@ step, so I used `left_join()` to merge it back in for demonstration purposes.
 
 
 
-## Structure of a cleaning Rmarkdown doc with multi-level data
+## Structure of a cleaning Rmarkdown doc with multi-level data{#cleaning-rmd}
 
 In a script, I would typically deal with each level separately, 
 and then merge them together at the end:
-
-
 
 ```{r include_example_rmd, echo=FALSE, comment=""}
 # Print the contents of an Rmd file verbatim, including code fences

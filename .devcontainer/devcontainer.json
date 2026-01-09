@@ -10,7 +10,8 @@
         "reditorsupport.r-syntax",
         "reditorsupport.r",
         "ikuyadeu.r-pack",
-        "yzhang.markdown-all-in-one"
+        "yzhang.markdown-all-in-one",
+        "ritwickdey.liveserver"
       ]
     }
   }
