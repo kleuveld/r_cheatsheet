@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>R Cookbook for reproducible social science</title>
+  <title>Field guide to reproducible and reusable social science with R:</title>
   <meta name="description" content="This page contains tips to make your R code reproducible." />
   <meta name="generator" content="bookdown 0.42 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="R Cookbook for reproducible social science" />
+  <meta property="og:title" content="Field guide to reproducible and reusable social science with R:" />
   <meta property="og:type" content="book" />
   
   <meta property="og:description" content="This page contains tips to make your R code reproducible." />
   <meta name="github-repo" content="kleuveld/r_cheatsheet" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="R Cookbook for reproducible social science" />
+  <meta name="twitter:title" content="Field guide to reproducible and reusable social science with R:" />
   
   <meta name="twitter:description" content="This page contains tips to make your R code reproducible." />
   
@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2025-11-20" />
+<meta name="date" content="2026-01-09" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -168,7 +168,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#renv"><i class="fa fa-check"></i>renv</a>
 <ul>
 <li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#starting-a-project-with-renv"><i class="fa fa-check"></i>Starting a project with Renv</a></li>
-<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#installing-new-pacakges-with-renv"><i class="fa fa-check"></i>Installing new Pacakges with Renv</a></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#installing-new-packages-with-renv"><i class="fa fa-check"></i>Installing new packages with Renv</a></li>
 <li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#restoring-a-project"><i class="fa fa-check"></i>Restoring a project</a></li>
 </ul></li>
 </ul></li>
@@ -185,23 +185,24 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html"><i class="fa fa-check"></i>Data Wrangling</a>
 <ul>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#basic-data-manipulation"><i class="fa fa-check"></i>Basic Data Manipulation</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-or-reshaping"><i class="fa fa-check"></i>Pivoting (or reshaping)</a>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#the-basic-pattern"><i class="fa fa-check"></i>The basic pattern</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-plots-to-identify-data-issues-reproducibly"><i class="fa fa-check"></i>Using plots to identify data issues reproducibly</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#dealing-with-multiple-levels-of-data"><i class="fa fa-check"></i>Dealing with multiple levels of data</a>
 <ul>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#creating-fake-data"><i class="fa fa-check"></i>Creating fake data</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-long-to-wide"><i class="fa fa-check"></i>Pivoting long to wide</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-wide-to-long"><i class="fa fa-check"></i>Pivoting wide to long</a></li>
-</ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#joining-or-merging-data"><i class="fa fa-check"></i>Joining (or merging) data</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i>Summarizing over groups (or collapsing data)</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row-wise Operations</a>
+</ul></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#editing-many-variables-at-once"><i class="fa fa-check"></i>Editing many variables at once</a>
 <ul>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across"><i class="fa fa-check"></i>across(): doing the same operations on multiple variables using across</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#rowsums-and-rowmeans-fast-row-wise-sums-and-means"><i class="fa fa-check"></i>rowSums() and rowMeans(): fast row-wise sums and means</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across(): passing values from multiple variables to summarizing functions</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting"><i class="fa fa-check"></i>Pivoting</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-many-variables-as-inputs"><i class="fa fa-check"></i>Using many variables as inputs</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#renaming-many-variables"><i class="fa fa-check"></i>Renaming many variables</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#seperate_longer"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#renaming-many-variables"><i class="fa fa-check"></i>Renaming many variables</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#structure-of-a-cleaning-rmarkdown-doc-with-multi-level-data"><i class="fa fa-check"></i>Structure of a cleaning Rmarkdown doc with multi-level data</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
@@ -261,7 +262,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">R Cookbook for reproducible social science</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Field guide to reproducible and reusable social science with R:</a>
           </h1>
         </div>
 
@@ -270,16 +271,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
             <section class="normal" id="section-">
 <div id="header">
-<h1 class="title">R Cookbook for reproducible social science</h1>
+<h1 class="title">Field guide to reproducible and reusable social science with R:</h1>
 <p class="author"><em>Koen</em></p>
-<p class="date"><em>2025-11-20</em></p>
+<p class="date"><em>2026-01-09</em></p>
 </div>
 <div id="introduction" class="section level1 hasAnchor">
 <h1>Introduction<a href="index.html#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="about" class="section level2 hasAnchor">
 <h2>About<a href="index.html#about" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>This website is intended as a quick reference for some techiques
-that I think people may need to keep their code reprodubicle
+<p>This website is intended as a quick reference for some techniques
+that I think people may need to keep their code reproducible
 when cleaning, analyzing, or presenting data.
 For a more basic intro to R try
 <a href="https://datacarpentry.org/r-socialsci/">the R for Social Science Data Carpentry Workshop</a>

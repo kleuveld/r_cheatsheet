@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Reproducible Workflows | R Cookbook for reproducible social science</title>
+  <title>Reproducible Workflows | Field guide to reproducible and reusable social science with R:</title>
   <meta name="description" content="This page contains tips to make your R code reproducible." />
   <meta name="generator" content="bookdown 0.42 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Reproducible Workflows | R Cookbook for reproducible social science" />
+  <meta property="og:title" content="Reproducible Workflows | Field guide to reproducible and reusable social science with R:" />
   <meta property="og:type" content="book" />
   
   <meta property="og:description" content="This page contains tips to make your R code reproducible." />
   <meta name="github-repo" content="kleuveld/r_cheatsheet" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Reproducible Workflows | R Cookbook for reproducible social science" />
+  <meta name="twitter:title" content="Reproducible Workflows | Field guide to reproducible and reusable social science with R:" />
   
   <meta name="twitter:description" content="This page contains tips to make your R code reproducible." />
   
@@ -23,7 +23,7 @@
 <meta name="author" content="Koen" />
 
 
-<meta name="date" content="2025-11-20" />
+<meta name="date" content="2026-01-09" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -168,7 +168,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#renv"><i class="fa fa-check"></i>renv</a>
 <ul>
 <li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#starting-a-project-with-renv"><i class="fa fa-check"></i>Starting a project with Renv</a></li>
-<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#installing-new-pacakges-with-renv"><i class="fa fa-check"></i>Installing new Pacakges with Renv</a></li>
+<li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#installing-new-packages-with-renv"><i class="fa fa-check"></i>Installing new packages with Renv</a></li>
 <li class="chapter" data-level="" data-path="reproducible-workflows.html"><a href="reproducible-workflows.html#restoring-a-project"><i class="fa fa-check"></i>Restoring a project</a></li>
 </ul></li>
 </ul></li>
@@ -185,23 +185,24 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html"><i class="fa fa-check"></i>Data Wrangling</a>
 <ul>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#basic-data-manipulation"><i class="fa fa-check"></i>Basic Data Manipulation</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-or-reshaping"><i class="fa fa-check"></i>Pivoting (or reshaping)</a>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#the-basic-pattern"><i class="fa fa-check"></i>The basic pattern</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-plots-to-identify-data-issues-reproducibly"><i class="fa fa-check"></i>Using plots to identify data issues reproducibly</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#dealing-with-multiple-levels-of-data"><i class="fa fa-check"></i>Dealing with multiple levels of data</a>
 <ul>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#creating-fake-data"><i class="fa fa-check"></i>Creating fake data</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-long-to-wide"><i class="fa fa-check"></i>Pivoting long to wide</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting-wide-to-long"><i class="fa fa-check"></i>Pivoting wide to long</a></li>
-</ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#joining-or-merging-data"><i class="fa fa-check"></i>Joining (or merging) data</a></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#summarizing-over-groups-or-collapsing-data"><i class="fa fa-check"></i>Summarizing over groups (or collapsing data)</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#row-wise-operations"><i class="fa fa-check"></i>Row-wise Operations</a>
+</ul></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#editing-many-variables-at-once"><i class="fa fa-check"></i>Editing many variables at once</a>
 <ul>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#across-doing-the-same-operations-on-multiple-variables-using-across"><i class="fa fa-check"></i>across(): doing the same operations on multiple variables using across</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#rowsums-and-rowmeans-fast-row-wise-sums-and-means"><i class="fa fa-check"></i>rowSums() and rowMeans(): fast row-wise sums and means</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#c_across-passing-values-from-multiple-variables-to-summarizing-functions"><i class="fa fa-check"></i>c_across(): passing values from multiple variables to summarizing functions</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#pivoting"><i class="fa fa-check"></i>Pivoting</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#using-many-variables-as-inputs"><i class="fa fa-check"></i>Using many variables as inputs</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#renaming-many-variables"><i class="fa fa-check"></i>Renaming many variables</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#seperate_longer"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#renaming-many-variables"><i class="fa fa-check"></i>Renaming many variables</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#structure-of-a-cleaning-rmarkdown-doc-with-multi-level-data"><i class="fa fa-check"></i>Structure of a cleaning Rmarkdown doc with multi-level data</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
@@ -261,7 +262,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">R Cookbook for reproducible social science</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Field guide to reproducible and reusable social science with R:</a>
           </h1>
         </div>
 
@@ -281,8 +282,11 @@ This helps you,
 if you need to come back to your own code on a new device
 (potentially years after initially working on it),
 and this helps your co-workers, as they can easily use your code.
-However, there is an up-front cost in setting up things,
-so make sure everything works before you get too busy with actual work!</p>
+In fact, this website was made using these principles:
+you can download the all code from github and run it on your own machine.</p>
+<p>Do note that there is an up-front cost in setting up reproducible workflows,
+so plan for that, making sure all collaborators are on-board with how you approach
+the organization of your code and data.</p>
 <p>This chapter discusses two R-specific aspects of reproducible workflows:
 projects and the renv package.
 I also recommend using git, but that goes beyond the scope of this cookbook.</p>
@@ -384,26 +388,29 @@ However, you shouldn’t stay at an old version of a package for all your work,
 just so that one old project of yours will keep working.
 What if you want to collaborate with someone using a newer version of that
 package?</p>
-<p><code>renv</code> gets around this by instead of having a global package library,
-it has a project-specific project-library.</p>
+<p><code>[renv](https://rstudio.github.io/renv/)</code>
+gets around this by instead of having a global package library,
+it has a project-specific project-library.
+So different projects can use different versions of the same package,
+without interfering with each other.</p>
 <p>NB: renv only really works with collaborators if you use
 some form of version control like git.
-Something like onedrive, teams of dropbox is difficult,
+Something like onedrive, teams or dropbox is difficult,
 as some folders created by renv should not be shared with co-workers.
 I am sure there is work-around for this,
-but if you’re working on R scripts with collaborators there is much to say for git.</p>
+but since git is so great anyway, I haven’t bothered looking.</p>
 <div id="starting-a-project-with-renv" class="section level3 hasAnchor">
 <h3>Starting a project with Renv<a href="reproducible-workflows.html#starting-a-project-with-renv" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>In RStudio, just tick the box “use renv” when creating a new project.
 Otherwise, type <code>renv::init()</code>.
 This will create:</p>
 <ul>
-<li>The lock file <code>renv.lock</code>, which logs all the pacakges and their versions.</li>
-<li>The renv folder, which contains the project pacakge library.</li>
+<li>The lock file <code>renv.lock</code>, which logs all the packages and their versions.</li>
+<li>The renv folder, which contains the project package library.</li>
 </ul>
 </div>
-<div id="installing-new-pacakges-with-renv" class="section level3 hasAnchor">
-<h3>Installing new Pacakges with Renv<a href="reproducible-workflows.html#installing-new-pacakges-with-renv" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="installing-new-packages-with-renv" class="section level3 hasAnchor">
+<h3>Installing new packages with Renv<a href="reproducible-workflows.html#installing-new-packages-with-renv" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>When starting a new project, that project’s library will be empty,
 so you’ll have to reinstall all packages, just by using <code>install.packages()</code>.
 Fortunately,
