@@ -202,7 +202,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#renaming-many-variables"><i class="fa fa-check"></i>Renaming many variables</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#seperate_longer"><i class="fa fa-check"></i>Splitting multi-response variable into dummies</a></li>
-<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#structure-of-a-cleaning-rmarkdown-doc-with-multi-level-data"><i class="fa fa-check"></i>Structure of a cleaning Rmarkdown doc with multi-level data</a></li>
+<li class="chapter" data-level="" data-path="datawrangling.html"><a href="datawrangling.html#cleaning-rmd"><i class="fa fa-check"></i>Structure of a cleaning Rmarkdown doc with multi-level data</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i>Estimating and reporting</a>
 <ul>
@@ -272,37 +272,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="datawrangling" class="section level1 hasAnchor">
 <h1>Data Wrangling<a href="datawrangling.html#datawrangling" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>Data never quite comes in the form you want,
+<p>Data from the field never quite comes in the form you want,
 and the form you want your data in changes depending on what you want to do with it.
 So for every project, you’ll likely do a substantial amount of data wrangling.</p>
 <p>The goal of reproducible data wrangling is that at any moment,
 you can re-run your code to go from raw data to outputs.
-This is only useful, however, if you organize and document your code in such a way
+This is only useful, if you organize and document your code in such a way
 that people unfamiliar with the project (this could be future you!) can understand
-and modify the code.</p>
-<p>To keep things manageable, it’s usually best to split your work into separate,
-well-documented rmarkdown files.
-Each file has a number of well-defined inputs and outputs.
-- a data cleaning scripts that loads your raw data and outputs an analysis-ready data set; and
-- an analysis scripts that takes the cleaned data and outputs figures, tables or a document.</p>
-<p>This separation is useful when working with large data sets,
-as running the data cleaning code can take a long time,
-which you don’t want to do every time you tweak your analysis code.
-In some cases you may need more scripts, while in others so little cleaning is needed
-that you can get away with one script.
-Whatever you choose, it must be well document, both in the scripts,
-and in a project README file.</p>
-<p>This chapter will give some tips on a common data cleaning tasks,
-and how to do them on many variables in one go,
-which can prevent errors and save work.
-Make sure you have the <code>tidyverse</code> installed, and the SAFI data set
+and modify the code.
+For this, RMarkdown is great, as it contains code, results and documentation
+all in one place.
+This chapter will provide examples of common data wrangling patterns,
+as well as how they can fit it into a reproducible data cleaning
+RMarkdown file.</p>
+<p>Make sure you have the <code>tidyverse</code> installed, and the SAFI data set
 downloaded to your data folder by running the code from the <a href="index.html#setup">Set-up section</a></p>
 <div id="the-basic-pattern" class="section level2 hasAnchor">
 <h2>The basic pattern<a href="datawrangling.html#the-basic-pattern" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Below are some common data wrangling tasks, organized as follows:
-1. Loading raw data
-2. Cleaning data using <code>dplyr</code>, including filtering, mutating and changing factor levels.
-3. Saving cleaned data, so it can be used in analysis scripts.</p>
+<p>Below is an example R Script,
+with some common data wrangling tasks, organized as follows:</p>
+<ol style="list-style-type: decimal">
+<li>Loading raw data</li>
+<li>Cleaning data using <code>dplyr</code>, including filtering, mutating and changing factor levels.</li>
+<li>Saving cleaned data, so it can be used in analysis scripts.</li>
+</ol>
 <p>Note that objects are never overwritten:
 data is loaded as <code>raw_data</code>,
 and once manipulated, saved as <code>clean_data</code>.
@@ -341,6 +334,11 @@ and makes going back to previous versions easier.</p>
 <span id="cb49-30"><a href="datawrangling.html#cb49-30" tabindex="-1"></a></span>
 <span id="cb49-31"><a href="datawrangling.html#cb49-31" tabindex="-1"></a><span class="co"># saving clean data for later use</span></span>
 <span id="cb49-32"><a href="datawrangling.html#cb49-32" tabindex="-1"></a>clean_data <span class="sc">%&gt;%</span> <span class="fu">saveRDS</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_cleaner.rds&quot;</span>)) </span></code></pre></div>
+<p>Throughout this chapter, we will add things to this sctructure,
+until we end up with a <a href="datawrangling.html#cleaning-rmd">basic .Rmd file</a> that is easy to work with.
+First we will info on how to include plots,
+then how to use multi-level data,
+and finally some advanced techniques such as editing multiple varaibles all at once.</p>
 </div>
 <div id="using-plots-to-identify-data-issues-reproducibly" class="section level2 hasAnchor">
 <h2>Using plots to identify data issues reproducibly<a href="datawrangling.html#using-plots-to-identify-data-issues-reproducibly" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -350,40 +348,44 @@ inspecting summary statistics, or tabulating values.
 In R, this is easy to do in a reproducible way using <code>ggplot2</code>.
 For example, to identify outliers in the <code>years_liv</code> variable,
 we can make a boxplot:</p>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="datawrangling.html#cb50-1" tabindex="-1"></a>clean_data <span class="sc">%&gt;%</span> </span>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="datawrangling.html#cb50-1" tabindex="-1"></a>raw_data <span class="sc">%&gt;%</span> </span>
 <span id="cb50-2"><a href="datawrangling.html#cb50-2" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> years_liv)) <span class="sc">+</span> </span>
 <span id="cb50-3"><a href="datawrangling.html#cb50-3" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>()</span></code></pre></div>
 <p><img src="_main_files/figure-html/%7D%7B-1.png" width="672" /></p>
 <p>From the boxplot, we can see that there’s no super unplausible numbers.
 But let’s say we are worried, and want to winsorize this variable at 95%,
 just so that the few high values don’t affect our analysis too much.</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="datawrangling.html#cb51-1" tabindex="-1"></a>clean_data <span class="ot">&lt;-</span></span>
-<span id="cb51-2"><a href="datawrangling.html#cb51-2" tabindex="-1"></a> clean_data <span class="sc">%&gt;%</span> </span>
-<span id="cb51-3"><a href="datawrangling.html#cb51-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">years_liv =</span> <span class="fu">if_else</span>(years_liv <span class="sc">&gt;</span> <span class="fu">quantile</span>(years_liv, <span class="fl">0.95</span>, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb51-4"><a href="datawrangling.html#cb51-4" tabindex="-1"></a>                             <span class="fu">quantile</span>(years_liv, <span class="fl">0.95</span>, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb51-5"><a href="datawrangling.html#cb51-5" tabindex="-1"></a>                             years_liv))</span></code></pre></div>
-<p>Note that in this case I did overwrite <code>clean_data</code>.
-So if I interactively want to run code out of order (common when tweaking code),
-I will get into trouble:
-to undo my edits to clean_data, I will have to rerun all previous steps.
-To prevent this,
-I can split my cleaning in different steps,
-consisting of plotting and cleaning,
-where each step saves to a new object.
-This is a common pattern when dealing with multi-level data,
-so it’s easy to incorporate it there.</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="datawrangling.html#cb51-1" tabindex="-1"></a>years_liv_clean <span class="ot">&lt;-</span></span>
+<span id="cb51-2"><a href="datawrangling.html#cb51-2" tabindex="-1"></a>  raw_data <span class="sc">%&gt;%</span></span>
+<span id="cb51-3"><a href="datawrangling.html#cb51-3" tabindex="-1"></a>  <span class="fu">select</span>(key_ID, years_liv) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-4"><a href="datawrangling.html#cb51-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">years_liv =</span> <span class="fu">if_else</span>(years_liv <span class="sc">&gt;</span> <span class="fu">quantile</span>(years_liv, <span class="fl">0.95</span>, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb51-5"><a href="datawrangling.html#cb51-5" tabindex="-1"></a>                             <span class="fu">quantile</span>(years_liv, <span class="fl">0.95</span>, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb51-6"><a href="datawrangling.html#cb51-6" tabindex="-1"></a>                             years_liv))</span></code></pre></div>
+<p>I’ve saved the cleaned variable as a new object, so I don’t overwrite anything.
+In the <a href="datawrangling.html#cleaning-rmd">final .Rmd file</a>,
+I will merge this back into the cleaned data.
+This way, my cleaned data only contains data I expicitly select.
+This keeps useless clutters to a minimum,
+making my analysis data file easy to understand for my co-workers.</p>
+<p>This pattern is quite common:</p>
+<ul>
+<li>plot data</li>
+<li>identify issues and outliers, and describe them in rmarkdown</li>
+<li>clean data</li>
+<li>merge cleanded data back in data</li>
+</ul>
 </div>
 <div id="dealing-with-multiple-levels-of-data" class="section level2 hasAnchor">
 <h2>Dealing with multiple levels of data<a href="datawrangling.html#dealing-with-multiple-levels-of-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>In many surveys, data is collected at multiple levels, for example the village,
 household, and individual level, with each level having its own data set.
 For analysis purposes these data sets often need to be merged together.</p>
-<p>First, let’s make sure our dataset has multiple levels.
-The SAFI data set doesn’t have this,
-but we can generate some fake individual-level data,
+<p>First, let’s make sure our dataset has multiple levels,
+by generating some fake individual-level data,
 making sure that the household roster has a number of lines
 for each household that is equal to the household size, and has two
-randomly generated variables: <code>female</code> and <code>age</code>. Note that <code>age</code> may
+randomly generated variables: <code>female</code> and <code>age</code>.
+Note that <code>age</code> may
 be <code>-99</code>, which should be considered missing.</p>
 <div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="datawrangling.html#cb52-1" tabindex="-1"></a>long_data <span class="ot">&lt;-</span> </span>
 <span id="cb52-2"><a href="datawrangling.html#cb52-2" tabindex="-1"></a>    <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/SAFI_clean.csv&quot;</span>), <span class="at">na =</span> <span class="st">&quot;NULL&quot;</span>) <span class="sc">%&gt;%</span></span>
@@ -397,22 +399,15 @@ be <code>-99</code>, which should be considered missing.</p>
 <span id="cb52-10"><a href="datawrangling.html#cb52-10" tabindex="-1"></a>                          <span class="at">.default =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">86</span>,<span class="sc">-</span><span class="dv">99</span>),<span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
 <span id="cb52-11"><a href="datawrangling.html#cb52-11" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
 <span id="cb52-12"><a href="datawrangling.html#cb52-12" tabindex="-1"></a></span>
-<span id="cb52-13"><a href="datawrangling.html#cb52-13" tabindex="-1"></a>long_data</span></code></pre></div>
-<pre><code>## # A tibble: 942 × 4
-##    key_ID member_ID female   age
-##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      0    80
-##  2      1         2      0    26
-##  3      1         3      1    53
-##  4      2         1      1    36
-##  5      2         2      0   -99
-##  6      2         3      0    56
-##  7      2         4      0     1
-##  8      2         5      0    77
-##  9      2         6      0    50
-## 10      2         7      1    67
-## # ℹ 932 more rows</code></pre>
-<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="datawrangling.html#cb54-1" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span> <span class="fu">write_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/rawSAFI_roster.csv&quot;</span>))</span></code></pre></div>
+<span id="cb52-13"><a href="datawrangling.html#cb52-13" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 942
+## Columns: 4
+## $ key_ID    &lt;dbl&gt; 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, …
+## $ member_ID &lt;int&gt; 1, 2, 3, 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,…
+## $ female    &lt;int&gt; 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+## $ age       &lt;dbl&gt; 77, 72, 83, 86, 73, 10, 75, 63, 51, 70, 41, 72, 0, 85, 77, 5…</code></pre>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="datawrangling.html#cb54-1" tabindex="-1"></a><span class="co"># I save the data as a CSV</span></span>
+<span id="cb54-2"><a href="datawrangling.html#cb54-2" tabindex="-1"></a>long_data <span class="sc">%&gt;%</span> <span class="fu">write_csv</span>(<span class="fu">here</span>(<span class="st">&quot;data/rawSAFI_roster.csv&quot;</span>))</span></code></pre></div>
 <div id="pivoting-long-to-wide" class="section level3 hasAnchor">
 <h3>Pivoting long to wide<a href="datawrangling.html#pivoting-long-to-wide" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>To merge this roster data to our household data,
@@ -425,27 +420,48 @@ For this, we use the <code>pivot_wider()</code> function (in Stata this would be
 <span id="cb55-4"><a href="datawrangling.html#cb55-4" tabindex="-1"></a>                <span class="at">values_from =</span> <span class="sc">!</span><span class="fu">ends_with</span>(<span class="st">&quot;_ID&quot;</span>),</span>
 <span id="cb55-5"><a href="datawrangling.html#cb55-5" tabindex="-1"></a>                <span class="at">names_vary =</span> <span class="st">&quot;slowest&quot;</span>) </span>
 <span id="cb55-6"><a href="datawrangling.html#cb55-6" tabindex="-1"></a></span>
-<span id="cb55-7"><a href="datawrangling.html#cb55-7" tabindex="-1"></a>wide_data </span></code></pre></div>
-<pre><code>## # A tibble: 131 × 39
-##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
-##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        0    80        0    26        1    53       NA    NA       NA
-##  2      2        1    36        0   -99        0    56        0     1        0
-##  3      3        0    42        0    53        0    59        0    73        1
-##  4      4        0    20        0   -99        0    66        1    73        0
-##  5      5        1    60        0    74        0    50        0    83        0
-##  6      6        1    70        0    50        0    28       NA    NA       NA
-##  7      7        1    21        1    65        1    62        0    56        1
-##  8      8        0    85        0    63        0    36        0    63        1
-##  9      9        0    83        0    60        1    44        1    76        0
-## 10     10        0    24        1    15        1    55        0    72        1
-## # ℹ 121 more rows
-## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
-## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
-## #   age_9 &lt;dbl&gt;, female_10 &lt;int&gt;, age_10 &lt;dbl&gt;, female_11 &lt;int&gt;, age_11 &lt;dbl&gt;,
-## #   female_12 &lt;int&gt;, age_12 &lt;dbl&gt;, female_13 &lt;int&gt;, age_13 &lt;dbl&gt;,
-## #   female_14 &lt;int&gt;, age_14 &lt;dbl&gt;, female_15 &lt;int&gt;, age_15 &lt;dbl&gt;,
-## #   female_16 &lt;int&gt;, age_16 &lt;dbl&gt;, female_17 &lt;int&gt;, age_17 &lt;dbl&gt;, …</code></pre>
+<span id="cb55-7"><a href="datawrangling.html#cb55-7" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 131
+## Columns: 39
+## $ key_ID    &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1…
+## $ female_1  &lt;int&gt; 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, …
+## $ age_1     &lt;dbl&gt; 77, 86, 41, 69, 25, 44, 23, 63, 28, 56, 78, 47, 23, 71, 60, …
+## $ female_2  &lt;int&gt; 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, …
+## $ age_2     &lt;dbl&gt; 72, 73, 72, 25, 17, 37, 8, 57, 64, 60, 45, 3, 31, 40, 36, 26…
+## $ female_3  &lt;int&gt; 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, …
+## $ age_3     &lt;dbl&gt; 83, 10, 0, 49, 22, 13, 5, 14, 39, 5, 16, 17, 79, 47, 0, 3, 2…
+## $ female_4  &lt;int&gt; NA, 1, 0, 0, 1, NA, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0…
+## $ age_4     &lt;dbl&gt; NA, 75, 85, 30, 62, NA, 60, 44, 28, 77, 78, 18, 13, 77, 45, …
+## $ female_5  &lt;int&gt; NA, 1, 0, 1, 0, NA, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, NA, 1, …
+## $ age_5     &lt;dbl&gt; NA, 63, 77, 81, 5, NA, 58, 55, 4, 45, 20, 81, 7, 78, 6, 76, …
+## $ female_6  &lt;int&gt; NA, 1, 0, 0, 0, NA, 1, 1, 1, 1, 0, 1, 1, 1, NA, 0, 1, NA, 0,…
+## $ age_6     &lt;dbl&gt; NA, 51, 51, 8, 33, NA, 4, 80, 42, 5, 73, 23, 11, 54, NA, 78,…
+## $ female_7  &lt;int&gt; NA, 1, 0, 0, 0, NA, NA, 0, 0, 1, NA, 1, NA, 0, NA, NA, 1, NA…
+## $ age_7     &lt;dbl&gt; NA, 70, 27, 84, 48, NA, NA, 65, 34, 50, NA, 56, NA, 65, NA, …
+## $ female_8  &lt;int&gt; NA, NA, 0, NA, NA, NA, NA, 0, 1, 0, NA, NA, NA, 1, NA, NA, 1…
+## $ age_8     &lt;dbl&gt; NA, NA, 85, NA, NA, NA, NA, 54, 6, 55, NA, NA, NA, 54, NA, N…
+## $ female_9  &lt;int&gt; NA, NA, 0, NA, NA, NA, NA, 0, NA, 1, NA, NA, NA, 1, NA, NA, …
+## $ age_9     &lt;dbl&gt; NA, NA, 56, NA, NA, NA, NA, 18, NA, 26, NA, NA, NA, 9, NA, N…
+## $ female_10 &lt;int&gt; NA, NA, 0, NA, NA, NA, NA, 1, NA, 1, NA, NA, NA, 0, NA, NA, …
+## $ age_10    &lt;dbl&gt; NA, NA, 81, NA, NA, NA, NA, 22, NA, 14, NA, NA, NA, 20, NA, …
+## $ female_11 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, 1, NA, 1, NA, NA, NA, NA, NA, NA…
+## $ age_11    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, 40, NA, 61, NA, NA, NA, NA, NA, …
+## $ female_12 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, 0, NA, 0, NA, NA, NA, NA, NA, NA…
+## $ age_12    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, 53, NA, 18, NA, NA, NA, NA, NA, …
+## $ female_13 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ age_13    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ female_14 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ age_14    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ female_15 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ age_15    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ female_16 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ age_16    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ female_17 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ age_17    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ female_18 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ age_18    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ female_19 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ age_19    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</code></pre>
 <p>We only needed to specify three options:</p>
 <ul>
 <li>names_from: this is the column that contains the names (or often numbers)
@@ -467,21 +483,14 @@ then all variables for member 2, etc.</li>
 <h3>Pivoting wide to long<a href="datawrangling.html#pivoting-wide-to-long" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>If we had started with wide data, and had wanted to transform to
 long data, we’d have to use <code>pivot_longer()</code>:</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="datawrangling.html#cb57-1" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="sc">!</span>key_ID, <span class="at">names_to =</span> <span class="st">&quot;name&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;value&quot;</span>)</span></code></pre></div>
-<pre><code>## # A tibble: 4,978 × 3
-##    key_ID name     value
-##     &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;
-##  1      1 female_1     0
-##  2      1 age_1       80
-##  3      1 female_2     0
-##  4      1 age_2       26
-##  5      1 female_3     1
-##  6      1 age_3       53
-##  7      1 female_4    NA
-##  8      1 age_4       NA
-##  9      1 female_5    NA
-## 10      1 age_5       NA
-## # ℹ 4,968 more rows</code></pre>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="datawrangling.html#cb57-1" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span> </span>
+<span id="cb57-2"><a href="datawrangling.html#cb57-2" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">!</span>key_ID, <span class="at">names_to =</span> <span class="st">&quot;name&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;value&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb57-3"><a href="datawrangling.html#cb57-3" tabindex="-1"></a>  <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 4,978
+## Columns: 3
+## $ key_ID &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+## $ name   &lt;chr&gt; &quot;female_1&quot;, &quot;age_1&quot;, &quot;female_2&quot;, &quot;age_2&quot;, &quot;female_3&quot;, &quot;age_3&quot;, …
+## $ value  &lt;dbl&gt; 1, 77, 1, 72, 0, 83, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</code></pre>
 <p>This was easy since the syntax of <code>pivot_longer()</code> is the exact opposite of
 <code>pivot_wider()</code>, but the result is pretty useless:</p>
 <ul>
@@ -504,16 +513,16 @@ and <code>names_sep</code> options:</p>
 <pre><code>## # A tibble: 942 × 4
 ##    key_ID member_ID female   age
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt;
-##  1      1         1      0    80
-##  2      1         2      0    26
-##  3      1         3      1    53
-##  4      2         1      1    36
-##  5      2         2      0   -99
-##  6      2         3      0    56
-##  7      2         4      0     1
-##  8      2         5      0    77
-##  9      2         6      0    50
-## 10      2         7      1    67
+##  1      1         1      1    77
+##  2      1         2      1    72
+##  3      1         3      0    83
+##  4      2         1      1    86
+##  5      2         2      0    73
+##  6      2         3      1    10
+##  7      2         4      1    75
+##  8      2         5      1    63
+##  9      2         6      1    51
+## 10      2         7      1    70
 ## # ℹ 932 more rows</code></pre>
 <p>In this case, the syntax is a bit harder to understand. It’s good to think first
 what the original data looks like, and how I intend to transform it.
@@ -628,16 +637,16 @@ roster data, is equally easy:</p>
 <pre><code>## # A tibble: 942 × 6
 ##    key_ID member_ID female   age village interview_date     
 ##     &lt;dbl&gt;     &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dttm&gt;             
-##  1      1         1      0    80 God     2016-11-17 00:00:00
-##  2      1         2      0    26 God     2016-11-17 00:00:00
-##  3      1         3      1    53 God     2016-11-17 00:00:00
-##  4      2         1      1    36 God     2016-11-17 00:00:00
-##  5      2         2      0   -99 God     2016-11-17 00:00:00
-##  6      2         3      0    56 God     2016-11-17 00:00:00
-##  7      2         4      0     1 God     2016-11-17 00:00:00
-##  8      2         5      0    77 God     2016-11-17 00:00:00
-##  9      2         6      0    50 God     2016-11-17 00:00:00
-## 10      2         7      1    67 God     2016-11-17 00:00:00
+##  1      1         1      1    77 God     2016-11-17 00:00:00
+##  2      1         2      1    72 God     2016-11-17 00:00:00
+##  3      1         3      0    83 God     2016-11-17 00:00:00
+##  4      2         1      1    86 God     2016-11-17 00:00:00
+##  5      2         2      0    73 God     2016-11-17 00:00:00
+##  6      2         3      1    10 God     2016-11-17 00:00:00
+##  7      2         4      1    75 God     2016-11-17 00:00:00
+##  8      2         5      1    63 God     2016-11-17 00:00:00
+##  9      2         6      1    51 God     2016-11-17 00:00:00
+## 10      2         7      1    70 God     2016-11-17 00:00:00
 ## # ℹ 932 more rows</code></pre>
 <p>Note that here I only merged in two variables,
 by using <code>select</code> and a pipe within the <code>left_join()</code> function.</p>
@@ -657,16 +666,16 @@ as missing, using a simple <code>mutate()</code> to conver them to <code>NA</cod
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;int&gt;     &lt;int&gt;    &lt;dbl&gt;
-##  1      1       3         1     53  
-##  2      2       7         2     47.8
-##  3      3      10         6     53.1
-##  4      4       7         1     38.8
-##  5      5       7         2     69.3
-##  6      6       3         1     49.3
-##  7      7       6         4     57.5
-##  8      8      12         6     50.7
-##  9      9       8         4     54.9
-## 10     10      12         7     41.2
+##  1      1       3         2     77.3
+##  2      2       7         6     61.1
+##  3      3      10         0     57.5
+##  4      4       7         1     49.4
+##  5      5       7         4     30.3
+##  6      6       3         2     31.3
+##  7      7       6         4     26.3
+##  8      8      12         6     47.1
+##  9      9       8         4     30.6
+## 10     10      12         8     39.3
 ## # ℹ 121 more rows</code></pre>
 </div>
 </div>
@@ -709,16 +718,16 @@ in our wide data.</p>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
 ##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        0    80        0    26        1    53       NA    NA       NA
-##  2      2        1    36        0    NA        0    56        0     1        0
-##  3      3        0    42        0    53        0    59        0    73        1
-##  4      4        0    20        0    NA        0    66        1    73        0
-##  5      5        1    60        0    74        0    50        0    83        0
-##  6      6        1    70        0    50        0    28       NA    NA       NA
-##  7      7        1    21        1    65        1    62        0    56        1
-##  8      8        0    85        0    63        0    36        0    63        1
-##  9      9        0    83        0    60        1    44        1    76        0
-## 10     10        0    24        1    15        1    55        0    72        1
+##  1      1        1    77        1    72        0    83       NA    NA       NA
+##  2      2        1    86        0    73        1    10        1    75        1
+##  3      3        0    41        0    72        0     0        0    85        0
+##  4      4        0    69        0    25        0    49        0    30        1
+##  5      5        1    25        1    17        1    22        1    62        0
+##  6      6        1    44        1    37        0    13       NA    NA       NA
+##  7      7        0    23        1     8        0     5        1    60        1
+##  8      8        1    63        1    57        0    14        0    44        1
+##  9      9        1    28        0    64        0    39        1    28        0
+## 10     10        1    56        0    60        1     5        1    77        0
 ## # ℹ 121 more rows
 ## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
 ## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
@@ -727,27 +736,34 @@ in our wide data.</p>
 ## #   female_14 &lt;int&gt;, age_14 &lt;dbl&gt;, female_15 &lt;int&gt;, age_15 &lt;dbl&gt;,
 ## #   female_16 &lt;int&gt;, age_16 &lt;dbl&gt;, female_17 &lt;int&gt;, age_17 &lt;dbl&gt;, …</code></pre>
 <p>However, this is extremely tedious and error-prone (though AI makes this easier nowadays!),
-and makes your unreusable, as you may not have household of 19 members in another dataset.</p>
+and makes your code unreusable,
+as it depends on the highest number of members in your data set to be exactly 19.
+If you have households with 20 members, or no household with more than 10,
+you’d have to change this code.</p>
 <p>Instead, I use the <code>across()</code> function, which takes two arguments: a column specifcation
 (for which I use <a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html">tidy select</a>
-syntax), and a <a href="programming.html#functions">function</a>: basically, the syntax is the same as in the <code>mutate()</code>
-step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> and <code>.x</code> instead of the variable name.</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="datawrangling.html#cb72-1" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
-<span id="cb72-2"><a href="datawrangling.html#cb72-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>),</span>
-<span id="cb72-3"><a href="datawrangling.html#cb72-3" tabindex="-1"></a>                  <span class="at">.fns =</span> <span class="sc">~</span><span class="fu">if_else</span>(.x <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>,.x)))</span></code></pre></div>
+syntax), and a <a href="programming.html#functions">function</a>. It will then apply the function to all columns:</p>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="datawrangling.html#cb72-1" tabindex="-1"></a>cleanmissing <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb72-2"><a href="datawrangling.html#cb72-2" tabindex="-1"></a>  <span class="fu">if_else</span>(x <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>, x)</span>
+<span id="cb72-3"><a href="datawrangling.html#cb72-3" tabindex="-1"></a>}</span>
+<span id="cb72-4"><a href="datawrangling.html#cb72-4" tabindex="-1"></a></span>
+<span id="cb72-5"><a href="datawrangling.html#cb72-5" tabindex="-1"></a></span>
+<span id="cb72-6"><a href="datawrangling.html#cb72-6" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
+<span id="cb72-7"><a href="datawrangling.html#cb72-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>),</span>
+<span id="cb72-8"><a href="datawrangling.html#cb72-8" tabindex="-1"></a>                <span class="at">.fns =</span> cleanmissing))</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
 ##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        0    80        0    26        1    53       NA    NA       NA
-##  2      2        1    36        0    NA        0    56        0     1        0
-##  3      3        0    42        0    53        0    59        0    73        1
-##  4      4        0    20        0    NA        0    66        1    73        0
-##  5      5        1    60        0    74        0    50        0    83        0
-##  6      6        1    70        0    50        0    28       NA    NA       NA
-##  7      7        1    21        1    65        1    62        0    56        1
-##  8      8        0    85        0    63        0    36        0    63        1
-##  9      9        0    83        0    60        1    44        1    76        0
-## 10     10        0    24        1    15        1    55        0    72        1
+##  1      1        1    77        1    72        0    83       NA    NA       NA
+##  2      2        1    86        0    73        1    10        1    75        1
+##  3      3        0    41        0    72        0     0        0    85        0
+##  4      4        0    69        0    25        0    49        0    30        1
+##  5      5        1    25        1    17        1    22        1    62        0
+##  6      6        1    44        1    37        0    13       NA    NA       NA
+##  7      7        0    23        1     8        0     5        1    60        1
+##  8      8        1    63        1    57        0    14        0    44        1
+##  9      9        1    28        0    64        0    39        1    28        0
+## 10     10        1    56        0    60        1     5        1    77        0
 ## # ℹ 121 more rows
 ## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
 ## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
@@ -755,35 +771,31 @@ step above, but with a tilde (<code>~</code>) in front of <code>ifelse()</code> 
 ## #   female_12 &lt;int&gt;, age_12 &lt;dbl&gt;, female_13 &lt;int&gt;, age_13 &lt;dbl&gt;,
 ## #   female_14 &lt;int&gt;, age_14 &lt;dbl&gt;, female_15 &lt;int&gt;, age_15 &lt;dbl&gt;,
 ## #   female_16 &lt;int&gt;, age_16 &lt;dbl&gt;, female_17 &lt;int&gt;, age_17 &lt;dbl&gt;, …</code></pre>
-<p>Notes:</p>
+<p>We can have variables for 100 household members, and this code will still work!
+Notes:</p>
 <ul>
 <li>You can use <code>across(.cols = where(is.numeric), .fn = ...)</code> to apply a function to all numeric variables.</li>
 <li>You can also combine <code>across()</code> with <code>summarize()</code> to summarize multiple variables more easily. See the
 section on <a href="plotting.html#faceting">faceting</a> for an example.</li>
 </ul>
-<p>You can also define the function separately, for more reusable code.
-This also eliminates the need for the tilde (<code>~</code>) and <code>.x</code> syntax:</p>
-<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="datawrangling.html#cb74-1" tabindex="-1"></a>cleanmissing <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb74-2"><a href="datawrangling.html#cb74-2" tabindex="-1"></a>  <span class="fu">if_else</span>(x <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>, <span class="cn">NA</span>, x)</span>
-<span id="cb74-3"><a href="datawrangling.html#cb74-3" tabindex="-1"></a>}</span>
-<span id="cb74-4"><a href="datawrangling.html#cb74-4" tabindex="-1"></a></span>
-<span id="cb74-5"><a href="datawrangling.html#cb74-5" tabindex="-1"></a></span>
-<span id="cb74-6"><a href="datawrangling.html#cb74-6" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
-<span id="cb74-7"><a href="datawrangling.html#cb74-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>),</span>
-<span id="cb74-8"><a href="datawrangling.html#cb74-8" tabindex="-1"></a>                <span class="at">.fns =</span> cleanmissing))</span></code></pre></div>
+<p>You can also define the function in line, if you don’t plan on using the function
+anywhere else:</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="datawrangling.html#cb74-1" tabindex="-1"></a>wide_data <span class="sc">%&gt;%</span></span>
+<span id="cb74-2"><a href="datawrangling.html#cb74-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;age_&quot;</span>),</span>
+<span id="cb74-3"><a href="datawrangling.html#cb74-3" tabindex="-1"></a>                  <span class="at">.fns =</span> <span class="cf">function</span>(var) <span class="fu">if_else</span>(var <span class="sc">==</span> <span class="sc">-</span><span class="dv">99</span>,<span class="cn">NA</span>, var)))</span></code></pre></div>
 <pre><code>## # A tibble: 131 × 39
 ##    key_ID female_1 age_1 female_2 age_2 female_3 age_3 female_4 age_4 female_5
 ##     &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt;    &lt;int&gt;
-##  1      1        0    80        0    26        1    53       NA    NA       NA
-##  2      2        1    36        0    NA        0    56        0     1        0
-##  3      3        0    42        0    53        0    59        0    73        1
-##  4      4        0    20        0    NA        0    66        1    73        0
-##  5      5        1    60        0    74        0    50        0    83        0
-##  6      6        1    70        0    50        0    28       NA    NA       NA
-##  7      7        1    21        1    65        1    62        0    56        1
-##  8      8        0    85        0    63        0    36        0    63        1
-##  9      9        0    83        0    60        1    44        1    76        0
-## 10     10        0    24        1    15        1    55        0    72        1
+##  1      1        1    77        1    72        0    83       NA    NA       NA
+##  2      2        1    86        0    73        1    10        1    75        1
+##  3      3        0    41        0    72        0     0        0    85        0
+##  4      4        0    69        0    25        0    49        0    30        1
+##  5      5        1    25        1    17        1    22        1    62        0
+##  6      6        1    44        1    37        0    13       NA    NA       NA
+##  7      7        0    23        1     8        0     5        1    60        1
+##  8      8        1    63        1    57        0    14        0    44        1
+##  9      9        1    28        0    64        0    39        1    28        0
+## 10     10        1    56        0    60        1     5        1    77        0
 ## # ℹ 121 more rows
 ## # ℹ 29 more variables: age_5 &lt;dbl&gt;, female_6 &lt;int&gt;, age_6 &lt;dbl&gt;,
 ## #   female_7 &lt;int&gt;, age_7 &lt;dbl&gt;, female_8 &lt;int&gt;, age_8 &lt;dbl&gt;, female_9 &lt;int&gt;,
@@ -791,6 +803,8 @@ This also eliminates the need for the tilde (<code>~</code>) and <code>.x</code>
 ## #   female_12 &lt;int&gt;, age_12 &lt;dbl&gt;, female_13 &lt;int&gt;, age_13 &lt;dbl&gt;,
 ## #   female_14 &lt;int&gt;, age_14 &lt;dbl&gt;, female_15 &lt;int&gt;, age_15 &lt;dbl&gt;,
 ## #   female_16 &lt;int&gt;, age_16 &lt;dbl&gt;, female_17 &lt;int&gt;, age_17 &lt;dbl&gt;, …</code></pre>
+<p>Note that throughout this page, I will use different ways of defining these inline
+functions. They all work, so pick what you like and be consistent.</p>
 </div>
 <div id="pivoting" class="section level3 hasAnchor">
 <h3>Pivoting<a href="datawrangling.html#pivoting" class="anchor-section" aria-label="Anchor link to header"></a></h3>
@@ -815,7 +829,7 @@ so that we have one <code>age</code> variable, and no need to use across.</p>
 and the more operations you need to do, the more worthwhile it is to pivot to long first.</p>
 <p>The pivoting approach can also be useful even if you don’t really have another
 level of analysis, but just repeated questions.
-Let’s say we have a bunch of related variables:</p>
+Let’s say we have a bunch of related variables, such as expenditures on input:</p>
 <div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="datawrangling.html#cb78-1" tabindex="-1"></a>expenditures_raw <span class="ot">&lt;-</span> </span>
 <span id="cb78-2"><a href="datawrangling.html#cb78-2" tabindex="-1"></a></span>
 <span id="cb78-3"><a href="datawrangling.html#cb78-3" tabindex="-1"></a>  wide_data <span class="sc">%&gt;%</span></span>
@@ -825,12 +839,11 @@ Let’s say we have a bunch of related variables:</p>
 <span id="cb78-7"><a href="datawrangling.html#cb78-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">expenditures_fertilizer =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">nrow</span>(.)),</span>
 <span id="cb78-8"><a href="datawrangling.html#cb78-8" tabindex="-1"></a>         <span class="at">expenditures_seeds =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">nrow</span>(.)),</span>
 <span id="cb78-9"><a href="datawrangling.html#cb78-9" tabindex="-1"></a>         <span class="at">expenditures_tools =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">nrow</span>(.))) </span></code></pre></div>
-<p>Here’s a common pattern in dealing with this:
-- plot data
-- identify issues and outliers, and describe them in rmarkdown
-- clean data</p>
-<p>We could do all three steps for each variable separately,
-but by pivoting we can do it one go, by pivoting to long, which is the format <code>ggplot2</code> expects.</p>
+<p>These variabes all contain the same type of information,
+and should be dealth with in the same way.</p>
+<p>We could plot and clean each variable separately,
+but by pivoting we can do it one go,
+since <code>ggplot2</code> expects long data.</p>
 <div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="datawrangling.html#cb79-1" tabindex="-1"></a>expenditures_long <span class="ot">&lt;-</span> </span>
 <span id="cb79-2"><a href="datawrangling.html#cb79-2" tabindex="-1"></a>  expenditures_raw <span class="sc">%&gt;%</span></span>
 <span id="cb79-3"><a href="datawrangling.html#cb79-3" tabindex="-1"></a>  </span>
@@ -843,12 +856,10 @@ but by pivoting we can do it one go, by pivoting to long, which is the format <c
 <span id="cb79-10"><a href="datawrangling.html#cb79-10" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> expenditure_type, <span class="at">y =</span> amount)) <span class="sc">+</span></span>
 <span id="cb79-11"><a href="datawrangling.html#cb79-11" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>()</span></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
-<p>The beauty of RMarkdown is that you have this plot, and you code in one place.
-So you’d write down your observations about the data here, and explain your actions.
-For example, if you spot certain outliers, you’d describe them here,
-and then move on to the code that deals with these outliers.</p>
-<p>In this case,
-we could notice the negative expenditures, and argue that those should be zero.</p>
+<p>Following the pattern of plotting, documenting and cleaning,
+we notice negative values of expenditures here.
+That’s not possible, so I set them to 0
+(though in the real world I’d have to argue why not <code>NA</code>):</p>
 <div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="datawrangling.html#cb80-1" tabindex="-1"></a>expenditures_cleaned <span class="ot">&lt;-</span></span>
 <span id="cb80-2"><a href="datawrangling.html#cb80-2" tabindex="-1"></a>  expenditures_long <span class="sc">%&gt;%</span> </span>
 <span id="cb80-3"><a href="datawrangling.html#cb80-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amount =</span> <span class="fu">if_else</span>(amount <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="dv">0</span>, amount)) <span class="sc">%&gt;%</span> </span>
@@ -880,16 +891,16 @@ You can do similar things in R. It’s just a bit more complex than in Stata.</p
 <pre><code>## # A tibble: 131 × 4
 ##    key_ID hh_size num_women mean_age
 ##     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
-##  1      1       3         1     53  
-##  2      2       7         2     47.8
-##  3      3      10         6     53.1
-##  4      4       7         1     38.8
-##  5      5       7         2     69.3
-##  6      6       3         1     49.3
-##  7      7       6         4     57.5
-##  8      8      12         6     50.7
-##  9      9       8         4     54.9
-## 10     10      12         7     41.2
+##  1      1       3         2     77.3
+##  2      2       7         6     61.1
+##  3      3      10         0     57.5
+##  4      4       7         1     49.4
+##  5      5       7         4     30.3
+##  6      6       3         2     31.3
+##  7      7       6         4     26.3
+##  8      8      12         6     47.1
+##  9      9       8         4     30.6
+## 10     10      12         8     39.3
 ## # ℹ 121 more rows</code></pre>
 <p>If you want to compute something other than means or sums, you can use <code>c_across()</code>
 to get a bunch of variables into any function you want:</p>
@@ -906,16 +917,16 @@ to get a bunch of variables into any function you want:</p>
 <pre><code>## # A tibble: 131 × 3
 ##    key_ID max_age sd_age
 ##     &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
-##  1      1      80   27  
-##  2      2      77   26.9
-##  3      3      74   17.4
-##  4      4      73   24.4
-##  5      5      83   12.1
-##  6      6      70   21.0
-##  7      7      71   18.7
-##  8      8      86   23.6
-##  9      9      83   26.4
-## 10     10      84   26.9
+##  1      1      83   5.51
+##  2      2      86  25.0 
+##  3      3      85  28.3 
+##  4      4      84  29.6 
+##  5      5      62  19.3 
+##  6      6      44  16.3 
+##  7      7      60  26.2 
+##  8      8      80  20.3 
+##  9      9      64  19.5 
+## 10     10      77  24.5 
 ## # ℹ 121 more rows</code></pre>
 <p>The key trick here is the combination of <code>rowwise()</code> and <code>c_across()</code>.
 <code>rowwise()</code> ensures all summaries are computed per row, and <code>c_across()</code>
@@ -1086,8 +1097,8 @@ ways to do this, but the most convenient is using <code>separate_longer()</code>
 <p>Note that the original <code>items_owned</code> variable is lost during the <code>separate_longer_delim()</code>
 step, so I used <code>left_join()</code> to merge it back in for demonstration purposes.</p>
 </div>
-<div id="structure-of-a-cleaning-rmarkdown-doc-with-multi-level-data" class="section level2 hasAnchor">
-<h2>Structure of a cleaning Rmarkdown doc with multi-level data<a href="datawrangling.html#structure-of-a-cleaning-rmarkdown-doc-with-multi-level-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="cleaning-rmd" class="section level2 hasAnchor">
+<h2>Structure of a cleaning Rmarkdown doc with multi-level data<a href="datawrangling.html#cleaning-rmd" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>In a script, I would typically deal with each level separately,
 and then merge them together at the end:</p>
 <pre><code>---
