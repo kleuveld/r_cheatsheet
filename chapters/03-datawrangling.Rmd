@@ -24,15 +24,29 @@ Below is an example R Script,
 with some common data wrangling tasks, organized as follows:
 
 1. Loading raw data
-2. Cleaning data using `dplyr`, including filtering, mutating and changing factor levels.
-3. Saving cleaned data, so it can be used in analysis scripts.
+2. Cleaning variables by topic using `dplyr`, including mutating and changing factor levels.
+3. Combine topics into one large data file
+4. Saving cleaned data, so it can be used in analysis scripts.
 
 Note that objects are never overwritten: 
 data is loaded as `raw_data`,
-and once manipulated, saved as `clean_data`.
-This helps avoid mistakes where you accidentally use
-partially cleaned data further down the script,
-and makes going back to previous versions easier.
+and each topic takes its info from there, and then the cleaned variables are 
+saved in their own new data object. 
+The final `clean_data` is then assembled from all separate data files. 
+This has a number of advantages:
+
+- It comparimentalizes your code: any cleaning you do on the conflict data will 
+not affect the housing data. This is especially useful when running code interactively 
+when you're working on it, as you can run the bits out of order without causing problems.
+- Your analysis data set will only contain the data you need. 
+- This makes for data files that are easier to handle, and minimizes the impact of data
+breaches if analyses data needs to be shared with co-authors.
+
+Note furthermore that any filtering is done at the beginging, 
+in the "paradata" section.
+If you need to filter whole observations or villages, 
+this generally is important, and doing it at the top makes sure its more transparent.
+
 
 ```{r }
 
@@ -44,27 +58,43 @@ library(here)
 raw_data <- 
   read_csv(here("data/SAFI_clean.csv"), na = "NULL") 
 
-# data cleaning
-clean_data <-
-  raw_data %>% 
+# paradata
+paradata <- 
+raw_data %>% 
+  mutate(day = day(interview_date),
+         month = month(interview_date),
+         year = year(interview_date)) %>% 
   filter(village == "Chirodzo") %>%
+  filter(interview_date > "2016-11-16" & interview_date < '2017-01-01') %>% 
+  select(key_ID, interview_date, day, month, year, village)
+
+# housing
+housing <- 
+  raw_data %>% 
   mutate(people_per_room = no_membrs / rooms,
-          years_liv = if_else(years_liv > 90, NA, years_liv),
           respondent_wall_type = as_factor(respondent_wall_type),
           respondent_wall_type = fct_recode(respondent_wall_type, 
                                               "Burned bricks" = "burntbricks",
                                               "Mud Daub" = "muddaub",
-                                              "Sun bricks" = "sunbricks"),
-          conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
-                                  affect_conflicts == "more_once" ~ 1,
-                                  affect_conflicts == "once" ~ 1,
-                                  affect_conflicts == "never" ~ 0,
-                                  .default = NA),
-          day = day(interview_date),
-          month = month(interview_date),
-          year = year(interview_date)) %>% 
-  select(key_ID:rooms, day:people_per_room, -village) %>%
-  filter(interview_date > "2016-11-16" & interview_date < '2017-01-01')
+                                              "Sun bricks" = "sunbricks")) %>% 
+  select(key_ID, no_membrs, rooms, people_per_room, respondent_wall_type)
+      
+# conflict
+conflict <- 
+  raw_data %>% 
+  mutate(conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
+                                 affect_conflicts == "more_once" ~ 1,
+                                 affect_conflicts == "once" ~ 1,
+                                 affect_conflicts == "never" ~ 0,
+                                 .default = NA)) %>% 
+  select(key_ID, conflict_yn)
+
+
+# data cleaning
+clean_data <-
+  paradata %>% 
+  left_join(housing) %>% 
+  left_join(conflict)
 
 # saving clean data for later use
 clean_data %>% saveRDS(here("data/SAFI_cleaner.rds")) 
@@ -100,6 +130,7 @@ But let's say we are worried, and want to winsorize this variable at 95%,
 just so that the few high values don't affect our analysis too much.
 
 ```{r}
+
 years_liv_clean <-
   raw_data %>%
   select(key_ID, years_liv) %>% 
@@ -109,12 +140,8 @@ years_liv_clean <-
 
 ```
 
-I've saved the cleaned variable as a new object, so I don't overwrite anything.
-In the [final .Rmd file](#cleaning-rmd), 
-I will merge this back into the cleaned data.
-This way, my cleaned data only contains data I expicitly select.
-This keeps useless clutters to a minimum,
-making my analysis data file easy to understand for my co-workers.
+I've saved the cleaned variable as a new object, 
+ready to be merged into the clean data in the [final .Rmd file](#cleaning-rmd).
 
 This pattern is quite common:
 
