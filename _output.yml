@@ -5,7 +5,7 @@ bookdown::gitbook:
     toc:
       collapse: none 
       before: |
-        <li><a href="./">R Cheat Sheet</a></li>
+        <li><a href="./">Reproducible and reusable social science with R: a field guide</a></li>
       after: |
         <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
     edit: https://github.com/kleuveld/r_cheatsheet/edit/main/%s

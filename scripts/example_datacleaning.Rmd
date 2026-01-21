@@ -8,7 +8,20 @@ This is an example of a data cleaning RMarkdown script for multi-level data (hou
 
 It takes the raw data files in the data/raw folder,
 and outputs a cleaned data file in the data/cleaned folder.
+The cleaned dataset is ready to be used in analyses.
 
+This script uses the the tidyverse and here packages. 
+Packages are managed with renv, 
+so details on package versions can be found in the lock file.
+
+# loading libraries
+
+```{r}
+
+library(tidyverse)
+library(here)
+
+```
 
 # loading raw data
 
@@ -17,44 +30,54 @@ raw_data_hh <-
   read_csv(here("data/raw/SAFI_clean.csv"), na = "NULL") 
 
 
-raw_data_individual <- read_csv(here("data/rawSAFI_roster.csv"))
+raw_data_individual <- read_csv(here("data/raw/SAFI_roster.csv"), na = "NULL")
 
 ```
 
 # data cleaning
 
-## Selecting and recoding variables
+## paradata
+
+We create a data object with all the IDs that we need for our anaylsis.
+We only include observations from the village Chirodzo,
+and interviews done between November 16th 2016 and January 1st 2017,
+for reasons that really should be explained here:
 
 ```{r}
-# household level
-clean_data_hh <-
+paradata <- 
   raw_data_hh %>% 
-  # we only need one village for this example
+  mutate(day = day(interview_date),
+         month = month(interview_date),
+         year = year(interview_date)) %>% 
+  filter(village == "Chirodzo") %>%
+  filter(interview_date > "2016-11-16" & interview_date < "2017-01-01") %>% 
+  select(key_ID, interview_date, day, month, year, village)
+```
+
+## housing
+
+We compute people per room, and recode wall type:
+
+```{r}
+housing <- 
+  raw_data_hh %>% 
   mutate(people_per_room = no_membrs / rooms,
-          # people should not be older than 90, these are data entry errors
-          respondent_wall_type = as_factor(respondent_wall_type),
-          respondent_wall_type = fct_recode(respondent_wall_type, 
-                                              "Burned bricks" = "burntbricks",
-                                              "Mud Daub" = "muddaub",
-                                              "Sun bricks" = "sunbricks"),
-          conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
-                                  affect_conflicts == "more_once" ~ 1,
-                                  affect_conflicts == "once" ~ 1,
-                                  affect_conflicts == "never" ~ 0,
-                                  .default = NA),
-          day = day(interview_date),
-          month = month(interview_date),
-          year = year(interview_date)) %>% 
-  select(key_ID:rooms, day:people_per_room, -village, years_liv)
+         respondent_wall_type = as_factor(respondent_wall_type),
+         respondent_wall_type = fct_recode(respondent_wall_type, 
+                                           "Burned bricks" = "burntbricks",
+                                           "Mud Daub" = "muddaub",
+                                           "Sun bricks" = "sunbricks")) %>% 
+  select(key_ID, no_membrs, rooms, people_per_room, respondent_wall_type)
 
 ```
 
-## outliers
+## years_liv
 
-we plot years_live to check if there are outliers:
+We plot years_live to check if there are outliers:
+
 ```{r}
 # years_liv cleaning
-raw_data %>% 
+raw_data_hh%>% 
   ggplot(aes(x = years_liv)) + 
   geom_boxplot()
 
@@ -64,12 +87,37 @@ Anything higher than 90 years seems unlikely, so we set those to NA:
 
 ```{r}
 years_liv_clean <-
-  raw_data %>% 
+  raw_data_hh %>% 
   select(key_ID, years_liv) %>%
   mutate(years_liv = if_else(years_liv > 90, NA, years_liv))
 
 
 ```
+
+
+## items_owned
+
+We generate dummies based on the seet items_owned variable:
+
+```{r}
+items_owned <- 
+  raw_data_hh %>%
+  select(key_ID, items_owned) %>%
+  filter(!is.na(items_owned)) %>% # non-answers are considered missing
+  separate_longer_delim(items_owned, delim = ";") %>%
+  mutate(value = 1) %>%
+  pivot_wider(names_from = items_owned,
+              values_from = value,
+              names_glue = "owns_{items_owned}",
+              values_fill = 0) %>%
+  select(key_ID, starts_with("owns_"))
+
+```
+
+Note that we set non-answers to missing by filtering them out 
+(leading to NAs in the final merged dataset),
+because we assume this is because the questions is skipped, but we can't be sure
+(this is why there should always be a 'none' option in such questions!).
 
 ## househod roster
 
@@ -89,7 +137,7 @@ clean_data_individual <-
 And we compute some summary statistics at the household level:
 
 ```{r}
-# household size
+
 household_size <-
   raw_data_individual %>%
   group_by(key_ID) %>%
@@ -98,18 +146,41 @@ household_size <-
 
 ```
 
-Finally, we merge everything together, and save it in the clean 
-data folder.
+
+## conflict 
 
 ```{r}
-# merge all together
-clean_data <-
-  clean_data_hh %>% 
-  left_join(years_liv_clean) %>%
-  left_join(household_size) %>%
-  left_join(clean_data_individual) 
-
-# saving clean data for later use
-clean_data %>% saveRDS(here("data/clean/SAFI_cleaner_hh.rds")) 
+conflict <- 
+  raw_data %>% 
+  mutate(conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
+                                 affect_conflicts == "more_once" ~ 1,
+                                 affect_conflicts == "once" ~ 1,
+                                 affect_conflicts == "never" ~ 0,
+                                 .default = NA)) %>% 
+  select(key_ID, conflict_yn)
 
 ```
+
+
+# join and save 
+
+We join all clenaed ojects together, 
+and save it in the clean data folder: 
+
+```{r}
+
+clean_data <-
+  paradata %>% 
+  left_join(housing) %>% 
+  left_join(years_liv_clean) %>%
+  left_join(clean_data_individual) %>%
+  left_join(household_size) %>%
+  left_join(items_owned) %>%
+  left_join(conflict)
+
+# saving clean data for later use
+clean_data %>% saveRDS(here("data/clean/SAFI_cleaner.rds")) 
+
+```
+
+

@@ -1,5 +1,5 @@
 --- 
-title: "Field guide to reproducible and reusable social science with R: "
+title: "Reproducible and reusable social science with R: a field guide"
 author: "Koen"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site

@@ -1,4 +1,4 @@
-# Data Wrangling {#datawrangling}
+# Data Cleaning {#datawrangling}
 
 Data from the field never quite comes in the form you want,
 and the form you want your data in changes depending on what you want to do with it.
@@ -39,13 +39,18 @@ This has a number of advantages:
 not affect the housing data. This is especially useful when running code interactively 
 when you're working on it, as you can run the bits out of order without causing problems.
 - Your analysis data set will only contain the data you need. 
-- This makes for data files that are easier to handle, and minimizes the impact of data
+This makes for data files that are easier to handle, and minimizes the impact of data
 breaches if analyses data needs to be shared with co-authors.
 
 Note furthermore that any filtering is done at the beginging, 
-in the "paradata" section.
-If you need to filter whole observations or villages, 
-this generally is important, and doing it at the top makes sure its more transparent.
+in the "paradata" section. 
+
+Paradata are metadata recorded during data collection 
+(e.g., timestamps, interviewer IDs, and device logs) 
+that document how, when, and by whom data were collected; 
+here the paradata object serves as a central reference to which all other data are joined.
+By doing the filter in a specific object, 
+near the top of your script, you make sure this is done transparently.
 
 
 ```{r }
@@ -58,25 +63,25 @@ library(here)
 raw_data <- 
   read_csv(here("data/SAFI_clean.csv"), na = "NULL") 
 
-# paradata
+# Paradata 
 paradata <- 
-raw_data %>% 
+  raw_data %>% 
   mutate(day = day(interview_date),
          month = month(interview_date),
          year = year(interview_date)) %>% 
   filter(village == "Chirodzo") %>%
-  filter(interview_date > "2016-11-16" & interview_date < '2017-01-01') %>% 
+  filter(interview_date > "2016-11-16" & interview_date < "2017-01-01") %>% 
   select(key_ID, interview_date, day, month, year, village)
 
 # housing
 housing <- 
   raw_data %>% 
   mutate(people_per_room = no_membrs / rooms,
-          respondent_wall_type = as_factor(respondent_wall_type),
-          respondent_wall_type = fct_recode(respondent_wall_type, 
-                                              "Burned bricks" = "burntbricks",
-                                              "Mud Daub" = "muddaub",
-                                              "Sun bricks" = "sunbricks")) %>% 
+         respondent_wall_type = as_factor(respondent_wall_type),
+         respondent_wall_type = fct_recode(respondent_wall_type, 
+                                           "Burned bricks" = "burntbricks",
+                                           "Mud Daub" = "muddaub",
+                                           "Sun bricks" = "sunbricks")) %>% 
   select(key_ID, no_membrs, rooms, people_per_room, respondent_wall_type)
       
 # conflict
@@ -90,7 +95,7 @@ conflict <-
   select(key_ID, conflict_yn)
 
 
-# data cleaning
+# join data
 clean_data <-
   paradata %>% 
   left_join(housing) %>% 
@@ -134,8 +139,8 @@ just so that the few high values don't affect our analysis too much.
 years_liv_clean <-
   raw_data %>%
   select(key_ID, years_liv) %>% 
-  mutate(years_liv = if_else(years_liv > quantile(years_liv, 0.95, na.rm=TRUE),
-                             quantile(years_liv, 0.95, na.rm=TRUE),
+  mutate(years_liv = if_else(years_liv > quantile(years_liv, 0.95, na.rm = TRUE),
+                             quantile(years_liv, 0.95, na.rm = TRUE),
                              years_liv))
 
 ```
@@ -143,13 +148,17 @@ years_liv_clean <-
 I've saved the cleaned variable as a new object, 
 ready to be merged into the clean data in the [final .Rmd file](#cleaning-rmd).
 
-This pattern is quite common:
+If find this to be a very useful pattern to repeat across my data cleaning scripts:
 
 - plot data
 - identify issues and outliers, and describe them in rmarkdown
 - clean data
 - merge cleanded data back in data
 
+The rendered RMarkdown file will then contain the code, the plots on which 
+decisions are made, and documentation of these descisions.
+This means you can share it with people who have no access to the data,
+and they can still assess your work.
 
 ## Dealing with multiple levels of data
 
@@ -183,7 +192,7 @@ long_data <-
 long_data %>% glimpse()
 
 # I save the data as a CSV
-long_data %>% write_csv(here("data/rawSAFI_roster.csv"))
+long_data %>% write_csv(here("data/raw/SAFI_roster.csv"))
 
 ```
 
@@ -487,7 +496,7 @@ and the more operations you need to do, the more worthwhile it is to pivot to lo
 
 The pivoting approach can also be useful even if you don't really have another 
 level of analysis, but just repeated questions. 
-Let's say we have a bunch of related variables, such as expenditures on input:
+Let's say we have a bunch of related variables, such as expenditures on inputs:
 
 ```{r}
 
@@ -506,7 +515,8 @@ expenditures_raw <-
 These variabes all contain the same type of information, 
 and should be dealth with in the same way.
 
-We could plot and clean each variable separately, 
+We could plot and clean each variable separately,
+or even in a loop, 
 but by pivoting we can do it one go, 
 since `ggplot2` expects long data. 
 
@@ -526,10 +536,12 @@ expenditures_long %>%
 
 ```
 
+We now have one plot that we can look at, and one variable to clean.
 Following the pattern of plotting, documenting and cleaning, 
 we notice negative values of expenditures here.
 That's not possible, so I set them to 0 
-(though in the real world I'd have to argue why not `NA`):
+(though in the real world I'd have to argue why not `NA`), 
+and pivot back to wide:
 
 ```{r}
 expenditures_cleaned <-
@@ -544,15 +556,15 @@ Now you have a dataframe with a bunch of variables, ready to be merged in with t
 rest.
 
 ### Using many variables as inputs 
+
 Suppose we wanted to use many variables as input for a calculation.
 For example to
 get the household size, number of women and average age from our wide data. 
 The easiest, and probably best, way to do this in R is by reshaping to long, 
-and then use summarize, like we did above. But in Stata you would probably use some sort of 
+and then use summarize, like we did above. 
+But in Stata you would probably use some sort of 
 `egen` function, so that may come natural.
-You can do similar things in R. It's just a bit more complex than in Stata.
-
-To compute means and sums across rows, use `rowSums()` and `rowMeans()`:
+To compute means and sums across rows in R, use `rowSums()` and `rowMeans()`:
 
 
 ```{r}
@@ -571,7 +583,8 @@ wide_data %>%
 
 ```
 
-If you want  to compute something other than means or sums, you can use `c_across()`
+If you want  to compute something other than means or sums, 
+you can use `rowwise()` and`c_across()`
 to get a bunch of variables into any function you want:
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
@@ -588,18 +601,21 @@ wide_data %>%
     ungroup()
 
 
+
 ```
 
-The key trick here is the combination of `rowwise()` and `c_across()`.
 `rowwise()` ensures all summaries are computed per row, and `c_across()`
 allows you to use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) syntax within any function.
 
-Do note that while this is very flexible, it can be EXTREMLY slow.
+Do note that while this is very flexible, it can be EXTREMELY slow, 
+as all computations are done row by row.
 If you have a large dataset, it's probably faster to pivot the data to long first.
 
 ### Renaming many variables
 
-Let's say we need to rename a bunch of variables.
+While the pivoting option we discussed above is great,
+it does assume your variable names make sense. 
+This is not always the case, so sometimes you need to rename a bunch of variables:
 
 One way is to use a named list:
 
@@ -721,7 +737,7 @@ step, so I used `left_join()` to merge it back in for demonstration purposes.
 ## Structure of a cleaning Rmarkdown doc with multi-level data{#cleaning-rmd}
 
 In a script, I would typically deal with each level separately, 
-and then merge them together at the end:
+and then merge them together at the end.
 
 ```{r include_example_rmd, echo=FALSE, comment=""}
 # Print the contents of an Rmd file verbatim, including code fences
