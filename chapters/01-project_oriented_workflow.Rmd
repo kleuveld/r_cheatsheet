@@ -2,24 +2,28 @@
 
 ## Introduction
 
-While the code you write should be reproducible, 
-the most important thing is to make sure that you organize your work
-in such a way that it transfers easily from user to user, 
-and from machine to machine.
+The most important aspect of reproducibility is not the R code itself,
+but the way you organize your work.
+To be reproducible, your work should be organized in such a way that it easily
+transfers from you to a collaborator,
+and from one machine to another.
 This helps you, 
-if you need to come back to your own code on a new device 
-(potentially years after initially working on it),
-and this helps your co-workers, as they can easily use your code.
+because if you need to come back to your own code on a new device 
+(potentially years after initially working on it), 
+you can easily get it running again.
+It also helps your co-workers, as they can easily use your code.
+It also helps research integrity, as you can easily show how you got your results.
 In fact, this website was made using these principles: 
 you can download the all code from github and run it on your own machine.
 
-Do note that there is an up-front cost in setting up reproducible workflows,
+Do note that there is an up-front cost in setting up such workflows,
 so plan for that, making sure all collaborators are on-board with how you approach 
 the organization of your code and data.
 
 This chapter discusses two R-specific aspects of reproducible workflows:
 projects and the renv package.
 I also recommend using git, but that goes beyond the scope of this cookbook.
+
 
 
 ## Projects
@@ -50,10 +54,10 @@ A better practice is to adopt a project-oriented workflow.
 
 How to exactly implement this depends on your editor of choice, 
 but most will support some form of project-oriented workflow.
-RStudio and Sublime text have built-in support for projects,
-VSCode calls them workspaces. 
-They all have in common that when you open a project, 
-the working directory is properly set,
+RStudio, VSCode and Sublime Text all have built-in support for projects.
+And though they may differ in details,
+they all have in common that when you open a project, 
+the working directory is properly set to the project's root folder,,
 and you're working with a clean R environment
 unaffected by whatever other thing you were doing in R just before you switched
 to work on your current project.
@@ -69,7 +73,7 @@ These relative paths will work on any machine.
 Whether you use RStudio projects VS Code,
 VIM, Sublime Text, or some custom solution,
 the `here` package, 
-makes referencing files in a project-oriented much easier.
+makes referencing files in a project just a little bit easier.
 
 Any time you include `library(here)` in a script, 
 it will start looking for the project root folder of the project. 
@@ -88,11 +92,15 @@ which tend to ignore your project root folder.
 ### Using machine-specific paths
 
 Sometimes, you may want to be able to reference files outside your project.
-This is not great, from a project workflow point of view, 
+This is not great from a project workflow point of view, 
 but sometimes it can't be helped.
 For example, 
 your project lives on git, 
-but you need a file from your teams environment (data is supposed to be on git).
+but you need a file from your Teams environment 
+(research data is not supposed to be on git).
+The bad way to solve this is to hardcode the path to your teams folder in your script.
+This will mean your collaborators (and you, if you change devices) may not be
+able to use the script, even if they have access to Teams.
 
 To get around this, you can use the `.Renviron` file, 
 which could be located in your home directory (`c:\users\%username%` on windows) 
@@ -107,8 +115,7 @@ TEAMS = "C:/path/to/teams"
 ```
 
 This sets an environment variable called teams if you load your project.
-Access the variable using `Sys.getenv("TEAMS")`. 
-So put the following on the top of any script using files from teams:
+Access the variable using `Sys.getenv("TEAMS")`: 
 
 ```
 
@@ -120,7 +127,8 @@ This way,
 you can just use `teams_path` wherever you had wanted to use the path to teams,
 and it should work for anyone,
 regardless of the exact path to their teams folder.
-
+This does take a little coordination, 
+as you should make sure everyone has a .Renviron set.
 
 ## renv
 
