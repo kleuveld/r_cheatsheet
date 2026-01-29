@@ -387,7 +387,7 @@ So, it's better to do this in a programmatic way.
 Here's some pointers:
 
 
-### across(): doing the same operations on multiple variables using across
+### across(): doing the same operations on multiple variables using across{#across}
 
 The main function to do this is `across()`, which is used within `mutate()` or `summarize()`.
 For example, we need to make sure we update `-99` to `NA` in *all* `age_` variables 
@@ -430,9 +430,6 @@ you'd have to change this code.
 Instead, I use the `across()` function, which takes two arguments: a column specifcation 
 (for which I use [tidy select](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html) 
 syntax), and a [function](#functions). It will then apply the function to all columns:
-
-
-
 
 ```{r}
 
