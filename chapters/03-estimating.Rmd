@@ -274,7 +274,7 @@ level, using the same procedures Stata uses, I use
 library(estimatr)
 lmrobust <-
   lm_robust(uses_fertilizer ~ treatment + educated, 
-            data = data, clusters = village, se_type = "CR2")
+            data = data, clusters = village, se_type = "stata")
 
 
 modelsummary(list("LM" = lm, "Robust" = lmrobust), output = "flextable")
@@ -282,42 +282,87 @@ modelsummary(list("LM" = lm, "Robust" = lmrobust), output = "flextable")
 ```
 
 
-I'd like to have just the N, r-squared and Adjusted R-squared:
+I'd like to have just the N, r-squared and Adjusted R-squared, 
+and a row indicating SEs are clustered or not:
 
 ```{r }
 
+# define a custom row to denote clustered SEs
+custom_row <- tribble(
+  ~term, ~LM, ~Robust,
+  "Clustered SEs", "No", "Yes"
+)
 
+# choose what goodness-of-fit statistics to show using gof_map, 
+# and add the custom row using add_rows
 modelsummary(list("LM" = lm, "Robust" = lmrobust), 
              gof_map = c("nobs","r.squared","adj.r.squared"),
-             output = "flextable")
+             add_rows = custom_row,
+             output = "flextable") %>% 
+  autofit()
 
 
 ```
 
-If you want to add the number of clusters, you will need to do some
-work. `modelsummary()` gets the N etc. from the 
+If you want to add the number of clusters,
+you can do so manually, using `add_row`, 
+but you can also spend a lot of time getting R to do if for you, 
+which would save you the few seconds it would take to add it manually!
+On a serious note: having R do it does make for more reproducible code, 
+so that's what we'll do here.
+ `modelsummary()` gets the N etc. from the 
 [`broom::glance()`](https://declaredesign.org/r/estimatr/reference/estimatr_glancers.html)
-function. For `lm_robust()` models, this doesn't report the number of 
-clusters.
-However, you can make sure that it does, by making a custom 
-glance methods for lm_robust objects (see 
-[here](https://modelsummary.com/articles/modelsummary.html) 
-for details on how to make use custom glance methods in modelsumary):
+function. This doesn't report the number of 
+clusters, but it is saved in the `lm_robust()` object.
+
+Fortunately, modelsummary accepts custom methods, 
+so we make a ones for `lm` and `lm_robust objects 
+and add information about the clustering:
+
 
 ```{r eval=TRUE, include = TRUE, echo=TRUE, warning=TRUE, error=TRUE, message=FALSE}
 
+
+# the custom methods checks if there's a nclusters attribute,
+# and if so, adds it to the glance output
+glance_custom.lm <- function(x) {
+  # this function takes glance() output, and adds a nclusters column
+  glance(x) %>%
+    mutate(nclusters = ifelse(!is.null(x$nclusters), x$nclusters, NA_integer_), 
+           clustered = ifelse(!is.null(x$nclusters), "Yes", "No"))
+}
+
+
+# the custom methods checks if there's a nclusters attribute,
+# and if so, adds it to the glance output
 glance_custom.lm_robust <- function(x) {
   # this function takes glance() output, and adds a nclusters column
   glance(x) %>%
-  mutate(nclusters = x$nclusters)
+    mutate(nclusters = ifelse(!is.null(x$nclusters), x$nclusters, NA_integer_), 
+           clustered = ifelse(!is.null(x$nclusters), "Yes", "No"))
 }
 
+# define a custom gof_map to control order and display of statistics
+gof_map_custom <- tribble(
+  ~raw, ~clean, ~fmt,
+  "nobs", "N", 0,
+  "r.squared", "R²", 2,
+  "adj.r.squared", "Adj. R²", 2,
+  "clustered", "Clustered SEs", 0,
+  "nclusters", "Number of clusters", 0
+)
+
 modelsummary(list("LM" = lm, "Robust" = lmrobust), 
-             gof_map = c("nobs","r.squared","adj.r.squared", "nclusters"),
+             #add_rows = custom_row,
+             gof_map = gof_map_custom,
              output = "flextable")
 
 
 ```
+
+Note that I also added a `custom_gof_map` to control the order and display of the 
+goodness-of-fit statistics.
+
 
 Now lets add  a probit model!
 
@@ -328,7 +373,7 @@ probit <- glm(uses_fertilizer ~ treatment + educated,
                 data = data)
 
 modelsummary(list("LM" = lm, "Robust" = lmrobust, "Probit"  = probit), 
-             gof_map = c("nobs","r.squared","adj.r.squared", "nclusters"),
+             gof_map = gof_map_custom,
              output = "flextable")
 
 
@@ -347,8 +392,7 @@ you can create your own `glm_robust` function,
 including `tidy()` and `glance()` methods that return everything
 you want to `modelsummary()`.
 I use `vcovCR` from the `clubSandwich` package to compute `CR2` standard errors,
-which are the default in `estimatr`,
-so everything is nice and consistent with the linear probability model.
+which are the default in `estimatr`:
 
 
 ```{r}
@@ -358,53 +402,59 @@ so everything is nice and consistent with the linear probability model.
 # clubSandwich and coeftest
 # it returns a glm_robust object, which is just a modified 
 # coeftest object
-glm_robust <- function(formula,family,data,cluster, type = "CR2") {
-  library(lmtest)
-  library(clubSandwich)
- 
-  probit <- 
-    glm(formula, 
-        family = family, 
-        data = data)
+# note that it expects cluster to be provided as a string containing the var name
+glm_robust <- function(formula, family, data, cluster, type = "CR2") {
 
-  model <-
-    probit%>%
-    coeftest(.,
-             vcovCR({.}, 
-                    cluster = data[[cluster]], 
-                    type = type), 
-              save = TRUE) 
+  # Estimate model
+  fit <- glm(formula, family = family, data = data)
 
+  # use black magic to get the vector of clusters
+  cluster_vec <- data[[cluster]][as.integer(rownames(model.frame(fit)))]
 
-  # this computes the number of unique clusters in the data used
-  # for the original mode
-  attr(model,"nclusters") <- 
-    data[row.names(model.frame(probit)),cluster] %>% unique() %>% nrow()
+  # Cluster-robust VCOV
+  vcov_cr <- clubSandwich::vcovCR(
+    fit,
+    cluster = cluster_vec,
+    type = type
+  )
 
-  class(model) <- "glm_robust"
-  model
+  # Coefficient test
+  ct <- lmtest::coeftest(fit, vcov. = vcov_cr)
+
+  # Attach useful attributes
+  # these can then be read by other functions, e.g., glance()
+  attr(ct, "vcov")      <- vcov_cr
+  attr(ct, "nclusters") <- length(unique(cluster_vec))
+  attr(ct, "model")     <- fit
+  attr(ct, "nobs")      <- stats::nobs(fit)
+  attr(ct, "logLik")    <- stats::logLik(fit)
+
+  # set the class of my object: this controls what methods are used to extract info
+  class(ct) <- c("glm_robust")
+  ct
 }
 
 # this is the custom tidy methods for glm_robust objects
 # it returns a dataframe with coefficients
 tidy.glm_robust <- function(x, ...){
-  x[,] %>% as_tibble() %>%
-  mutate(term = attr(x,"dimnames")[[1]]) %>%
-  select(term,
-         estimate = Estimate,
-         std.error = `Std. Error`,
-         statistic = `z value`,
-         p.value = `Pr(>|z|)`) 
+  tibble::tibble(
+    term      = rownames(x),
+    estimate  = x[, "Estimate"],
+    std.error = x[, "Std. Error"],
+    statistic = x[, "z value"],
+    p.value   = x[, "Pr(>|z|)"]
+  )
 }
-
 
 # this is the glance method. It returns a data frame with 
 # the number of obserations, log likelihood and number of clusters
 glance.glm_robust <- function(x, ...){
-  tibble(nobs = attr(x,"nobs"),
-         logLik = as.numeric(attr(x,"logLik")),
-        nclusters = attr(x,"nclusters")
-        )
+  tibble::tibble(
+    nobs       = attr(x, "nobs"),
+    logLik     = as.numeric(attr(x, "logLik")),
+    nclusters  = attr(x, "nclusters"),
+    clustered = if_else(!is.null(nclusters), "Yes", "No")
+  )
 }
 
 
@@ -416,19 +466,280 @@ will know how to handle its output!
 ```{r, warning = FALSE}
 
 probitrobust <- 
-  glm_robust(uses_fertilizer ~ treatment + educated, 
-             family = binomial(link = "probit"), 
-             data = data, cluster="village", type = "CR2")
+  glm_robust(uses_fertilizer ~ treatment + educated,
+             family = binomial(link = "probit"),
+             data = data,
+             cluster = "village", # provide it as a string!
+             type = "CR2")
+
+broom::glance(probitrobust)
 
 modelsummary(list("LM" = lm, "LM Robust" = lmrobust, 
                   "Probit"  = probit, "Probit Robust" = probitrobust), 
-             gof_map = c("nobs","r.squared","adj.r.squared", "nclusters"),
+             gof_map = gof_map_custom,
              coef_map = labels,
              stars = TRUE,
              output = "flextable") %>%
   autofit()
 
+```
+
+And you can simply reuse these functions in future projects!
+
+### Marginal Effects
+
+To add marginal effects to your probit, 
+use the `marginaleffects` package. 
+THe `avg_slopes()` function computes average marginal effects.
+
+Here I make a wrapper function (`ame_robust()`),
+with a glance method that makes sure the number of clusters is reported 
+in modelsummary:
+```{r}
+
+library(marginaleffects)
+
+# wrapper function to make average marginal effects
+ame_robust <- function(x) {
+
+  ame <- marginaleffects::avg_slopes(
+    attr(x, "model"),
+    vcov = attr(x, "vcov"),
+    type = "response"
+  )
+
+  # save clusters and observations as attributes
+  attr(ame, "nclusters") <- attr(x, "nclusters")
+  attr(ame, "nobs")      <- attr(x, "nobs")
+
+  class(ame) <- c("ame_robust", class(ame))
+  ame
+}
+
+# glance methods for ame_robust objects
+glance.ame_robust <- function(x, ...) {
+
+  tibble::tibble(
+    nobs      = attr(x, "nobs"),
+    nclusters = attr(x, "nclusters"),
+    clustered = if_else(!is.null(nclusters), "Yes", "No")
+  )
+}
 
 
+modelsummary(list(LM = lmrobust, Probit = probitrobust,
+                  "Marginal Effects" = ame_robust(probitrobust)),
+             gof_map = gof_map_custom, coef_map = labels,
+             stars = TRUE, output = "flextable")%>%
+  autofit()
+
+```
+
+
+## Plots
+
+To make plots, use `ggplot2`. 
+Plenty of help out there, here's some examples, using the following data:
+
+```{r}
+plot_data <- 
+  read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+    separate_longer_delim(items_owned, delim = ";") %>%
+    mutate(value = 1) %>%
+    pivot_wider(names_from = items_owned,
+                values_from = value,
+                names_glue = "owns_{items_owned}",
+                values_fill = 0) %>%
+    rowwise %>%
+    select(-"owns_NA") %>%
+    mutate(number_items = sum(c_across(starts_with("owns_"))))  
+```
+
+### Faceting {#faceting}
+
+Faceting allows splitting a graph in multiple parts:
+
+```{r}
+
+plot_data %>%
+    group_by(village) %>%
+    summarize(across(.cols = starts_with("owns_"),
+                     .fns = ~sum(.x,na.rm=TRUE) / n() * 100,
+                     .names = "{str_replace(.col, 'owns_', '')}")) %>%
+    pivot_longer(-village, names_to = "items", values_to = "percent") %>%
+    ggplot(aes(x = village, y = percent)) +
+        geom_bar(stat = "identity", position = "dodge") +
+        facet_wrap(~ items) +
+        theme_bw() +
+        theme(panel.grid = element_blank())
+
+
+```
+
+Note that the `.names` argument to `summarize(across())` is specified as a 
+[glue string](https://glue.tidyverse.org/) that uses `str_replace()` to cut off the `"owns_"` 
+bit of the column names.
+
+For more control, look into [patchwork](https://patchwork.data-imaginist.com/).
+
+### Stacked bar plots in WUR style
+
+Stacked bar plots are useful to show distributions of categorical variables.
+Here is a function that makes a stacked bar plot, with percentages on the x-axis,
+counts inside the bars, and a legend at the bottom.
+
+It uses a bunch of techniques:
+
+- The wur household is applied using `[ggthemewur](https://git.wur.nl/wmrkdown/ggthemewur)`.
+- The plot is contained in a reusable function.
+- Category counts are computed, and added to factor labels, using `count_label()`.
+- Cell counts are extracted and displayed inside the bars, using `after_stat()`.
+
+
+
+
+```{r}
+
+library(ggthemewur)
+
+stacked_bar_plot <- function(df, by, fill) {
+  # outputs a stacked bar chart
+  
+  df %>%
+
+    # the category labels should include counts
+    mutate( {{ by }} := count_label( {{ by }})) %>%
+
+    ggplot(aes(y = {{ by }}, fill = {{ fill }})) +
+      geom_bar(position = position_fill(reverse = TRUE)) +
+      labs(x= "") +
+      theme_wur() +
+      scale_fill_wur_discrete() +
+      geom_text(stat = "count", 
+                # for %: after_stat(scales::percent(count / sum(count),accuracy=1))
+                aes(label = after_stat(count)), 
+                position = position_fill(vjust = 0.5, reverse = TRUE), 
+                color = "white") +
+      scale_x_continuous(labels = scales::percent_format()) +
+      theme(legend.position="bottom") +
+      guides(fill = guide_legend(nrow = 1, 
+                                 title.position="top", 
+                                 title.hjust = 0.5)) 
+}
+
+count_label <- function(vector) {
+  # takes a vector of strings or factor, 
+  # output a factor vector with N = N included in the labels
+  fct_recode(factor(vector), 
+             !!!vector %>%
+               as_tibble() %>%
+               group_by(value) %>%
+               summarize(n = n()) %>%
+               mutate(value = as.character(value),
+                      newlabel = paste0(value,"\nn=",n)) %>%
+               pull(value, name = newlabel))
+  
+}
+
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+  stacked_bar_plot(village,respondent_wall_type)
+
+
+```
+
+The point here is that plots can get quite complex, 
+and by saving them in a function, you can reuse them easily.
+
+### Lollipop plot
+
+A lollipop plot is a nice alternative to a bar chart. Here is an example. 
+It uses `reorder` to put the longest lollipops are at the top, and
+and the `brewur()` function to select four colors from the WUR theme. 
+
+
+
+```{r}
+
+N = nrow(data)
+
+read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+    separate_longer_delim(items_owned, delim = ";") %>%
+    select(items_owned) %>%
+    filter(!is.na(items_owned)) %>%
+    group_by(items_owned) %>%
+    summarize(Count = n() / N) %>%
+    mutate(items_owned = reorder(items_owned, Count)) %>%
+    ggplot(aes(x = Count, y = items_owned)) +
+        geom_linerange(aes(y = items_owned, xmin = 0, xmax = Count), color = "gray") +
+        geom_point(aes(x = Count, y = items_owned), 
+                   size = 4, position = position_dodge(width = 0.5),
+                   color = brewur()[[1]]) +
+        theme_wur() +
+        scale_x_continuous(labels = scales::percent_format())
+
+```
+
+
+### Maps
+
+For maps, we use the `sf` package, and a sample data set, in geo-json format (but sf can use
+all sorts of shapefiles).
+I add some fake data to plot to the shapefile, 
+using familiar `mutate()` syntax:
+
+```{r}
+
+library(sf)
+
+file <- "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
+
+
+shapefile <- 
+  st_read(file) %>%
+  mutate(x = rnorm(n = nrow(.))) 
+
+shapefile
+
+```
+
+You can then use `ggplot()` and `geom_sf()` to make a map:
+
+You can use the `fill` aesthetic to color your shapefile:
+
+```{r}
+
+shapefile %>%
+    ggplot(aes(fill = x)) +
+        geom_sf(colour = NA) +  # removes borders
+        theme_void()            # removes grid
+
+```
+
+You can also make an interactive map, 
+which you can use in html documents created with rmarkdown,
+or in shiny applications. It uses a palette I created using the `colorBin()` function.
+
+```{r}
+
+library(leaflet)
+
+
+pallete <- colorBin(
+  palette = "YlOrBr", domain = shapefile$x,
+  na.color = "transparent", bins = 5
+)
+
+shapefile %>%
+    #mutate(x = rnorm(n = nrow(.))) %>%
+    leaflet() %>%
+    addTiles() %>%
+    addPolygons(fillColor = ~pallete(x),
+                stroke = TRUE,
+                fillOpacity = 0.9,
+                color = "white",
+                weight = 0.3) %>%
+    addLegend(pal = pallete, values = ~x, opacity = 0.9,
+              title = "Look at these pretty colours", position = "bottomleft")
 
 ```
