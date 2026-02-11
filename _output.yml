@@ -3,7 +3,7 @@ bookdown::gitbook:
   css: style.css
   config:
     toc:
-      collapse: none 
+      collapse: section 
       before: |
         <li><a href="./">Reproducible and reusable social science with R: a field guide</a></li>
       after: |

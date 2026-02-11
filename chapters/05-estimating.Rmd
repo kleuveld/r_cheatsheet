@@ -249,8 +249,9 @@ descriptive_table_flex
 Again, to save it as a word file, use
 `save_as_docx(path = "my/file.docx")`.
 
+## Regression Tables
 
-## Simple regression
+### Simple regression
 
 A simple regression uses the `lm()` function. I use the `modelsummary()`
 function to display it:
@@ -263,7 +264,7 @@ modelsummary(lm, output = "flextable")
 
 ```
 
-## Robust standard errors
+### Robust standard errors, and custom glance methods
 
 To get robust standard errors clustered at the village
 level, using the same procedures Stata uses, I use  
@@ -308,12 +309,26 @@ If you want to add the number of clusters,
 you can do so manually, using `add_row`, 
 but you can also spend a lot of time getting R to do if for you, 
 which would save you the few seconds it would take to add it manually!
-On a serious note: having R do it does make for more reproducible code, 
+But really, having R do it does make for more reproducible code, 
 so that's what we'll do here.
  `modelsummary()` gets the N etc. from the 
 [`broom::glance()`](https://declaredesign.org/r/estimatr/reference/estimatr_glancers.html)
-function. This doesn't report the number of 
-clusters, but it is saved in the `lm_robust()` object.
+function:
+
+```{r}
+
+broom::glance(lmrobust)
+
+```
+
+As you can see, this doesn't report the number of 
+clusters, 
+but it is actually saved in the `lm_robust()` object:
+
+```{r}
+
+lmrobust$nclusters
+```
 
 Fortunately, modelsummary accepts custom methods, 
 so we make a ones for `lm` and `lm_robust objects 
@@ -360,9 +375,12 @@ modelsummary(list("LM" = lm, "Robust" = lmrobust),
 
 ```
 
+This was quite a bit more work than adding a custom row, 
+but more flexible, and will keep being correct even if we change the number of clusters.
 Note that I also added a `custom_gof_map` to control the order and display of the 
 goodness-of-fit statistics.
 
+### Probit with cluster robust SEs
 
 Now lets add  a probit model!
 
@@ -381,18 +399,20 @@ modelsummary(list("LM" = lm, "Robust" = lmrobust, "Probit"  = probit),
 
 
 Adding cluster-robust standard errors to the probit model is a bit more 
-complex. There is no `glm_robust()` function. 
+complex. 
+There is no `glm_robust()` function. 
 You can estimate a probit model, 
-then use `coeftest()` to get clustered standard errors, 
+then use the `sandwich` and `lmtest` packages to get clustered standard errors, 
 and then use the `glance_custom ` method to add the number of clusters to that. 
 
 However, 
 you can create your own `glm_robust` function, 
-~~with blackjack and hookers~~
 including `tidy()` and `glance()` methods that return everything
 you want to `modelsummary()`.
 I use `vcovCR` from the `clubSandwich` package to compute `CR2` standard errors,
-which are the default in `estimatr`:
+which are the default in `estimatr`, 
+but there's many different options for variance-covariance matrices,
+and apapting the code to use them would be trivial.
 
 
 ```{r}
@@ -404,6 +424,7 @@ which are the default in `estimatr`:
 
 glm_robust <- function(formula, family, data, cluster, type = "CR2") {
 
+  # initialize the list we want to return
   out <- list()
 
   # Estimate model
@@ -411,11 +432,12 @@ glm_robust <- function(formula, family, data, cluster, type = "CR2") {
 
 
   # we need the cluster variable from the observations used in the model:
-  # first get the data used in the model, and extract the row numbers
+  # first get the data used in the model (the complete observations), 
+  # and extract the row numbers
   row_numbers <- 
     model.frame(fit) %>%
     rownames() %>%
-    as.integer() 
+    as.integer()
 
   # then use them to subset the original data and pull the cluster variable
   # The {{ }} syntax allows for unqouted variable names
@@ -431,16 +453,13 @@ glm_robust <- function(formula, family, data, cluster, type = "CR2") {
     type = type
   )
 
-  # Coefficient test
-  out$coef <- lmtest::coeftest(fit, vcov. = vcov_cr)
-
-  # Attach useful attributes
-  # these can then be read by other functions, e.g., glance()`
-  out$vcov <- vcov_cr
+  # populate are returned list:
+  out$coef      <- lmtest::coeftest(fit, vcov. = vcov_cr)
+  out$vcov      <- vcov_cr
   out$nclusters <- length(unique(cluster_vec))
-  out$model    <- fit
+  out$model     <- fit
   out$nobs      <- stats::nobs(fit)
-  out$logLik   <- stats::logLik(fit)
+  out$logLik    <- stats::logLik(fit)
 
   # set the class of my object: this controls what methods are used to extract info
   class(out) <- c("glm_robust")
@@ -450,7 +469,6 @@ glm_robust <- function(formula, family, data, cluster, type = "CR2") {
 # this is the custom tidy methods for glm_robust objects
 # it returns a dataframe with coefficients
 tidy.glm_robust <- function(x, ...){
-  #x <- x$coef
   
   tibble::tibble(
     term      = rownames(x$coef),
@@ -481,12 +499,10 @@ will know how to handle its output!
 
 ```{r, warning = FALSE}
 
-data_test <- data %>% mutate(treatment = if_else(key_ID == 1, NA, treatment))
-
 probitrobust <- 
   glm_robust(uses_fertilizer ~ treatment + educated,
              family = binomial(link = "probit"),
-             data = data_test,
+             data = data,
              cluster = village,
              type = "CR2")
 
@@ -501,7 +517,7 @@ modelsummary(list("LM" = lm, "LM Robust" = lmrobust,
 
 ```
 
-And you can simply reuse these functions in future projects!
+These functions would be quite easy to reuse in other projects!
 
 ### Marginal Effects
 
@@ -512,6 +528,7 @@ THe `avg_slopes()` function computes average marginal effects.
 Here I make a wrapper function (`ame_robust()`),
 with a glance method that makes sure the number of clusters is reported 
 in modelsummary:
+
 ```{r}
 
 library(marginaleffects)
@@ -612,7 +629,8 @@ counts inside the bars, and a legend at the bottom.
 It uses a bunch of techniques:
 
 - The wur household is applied using `[ggthemewur](https://git.wur.nl/wmrkdown/ggthemewur)`.
-- The plot is contained in a reusable function.
+- The plot is complex, but because it is contained in a reusable function,
+it is easy to (re-)use.
 - Category counts are computed, and added to factor labels, using `count_label()`.
 - Cell counts are extracted and displayed inside the bars, using `after_stat()`.
 
@@ -627,44 +645,52 @@ stacked_bar_plot <- function(df, by, fill) {
   # outputs a stacked bar chart
   
   df %>%
-
     # the category labels should include counts
     mutate( {{ by }} := count_label( {{ by }})) %>%
-
     ggplot(aes(y = {{ by }}, fill = {{ fill }})) +
-      geom_bar(position = position_fill(reverse = TRUE)) +
-      labs(x= "") +
-      theme_wur() +
-      scale_fill_wur_discrete() +
-      geom_text(stat = "count", 
-                # for %: after_stat(scales::percent(count / sum(count),accuracy=1))
-                aes(label = after_stat(count)), 
-                position = position_fill(vjust = 0.5, reverse = TRUE), 
-                color = "white") +
-      scale_x_continuous(labels = scales::percent_format()) +
-      theme(legend.position="bottom") +
-      guides(fill = guide_legend(nrow = 1, 
-                                 title.position="top", 
-                                 title.hjust = 0.5)) 
+    geom_bar(position = position_fill(reverse = TRUE)) +
+    labs(x= "") +
+    theme_wur() +
+    scale_fill_wur_discrete() +
+    geom_text(
+      stat = "count", 
+      # for %: after_stat(scales::percent(count / sum(count),accuracy=1))
+      aes(label = after_stat(count)), 
+      position = position_fill(vjust = 0.5, reverse = TRUE),
+      color = "white"
+    ) +
+    scale_x_continuous(labels = scales::percent_format()) +
+    theme(legend.position="bottom") +
+    guides(
+      fill = guide_legend(
+        nrow = 1,
+        title.position="top",
+        title.hjust = 0.5
+      )
+    )
 }
 
 count_label <- function(vector) {
   # takes a vector of strings or factor, 
   # output a factor vector with N = N included in the labels
-  fct_recode(factor(vector), 
-             !!!vector %>%
-               as_tibble() %>%
-               group_by(value) %>%
-               summarize(n = n()) %>%
-               mutate(value = as.character(value),
-                      newlabel = paste0(value,"\nn=",n)) %>%
-               pull(value, name = newlabel))
+  fct_recode(
+    factor(vector), 
+    !!!vector %>%
+      as_tibble() %>%
+      group_by(value) %>%
+      summarize(n = n()) %>%
+      mutate(
+        value = as.character(value),
+        newlabel = paste0(value,"\nn=",n)
+      ) %>%
+    pull(value, name = newlabel)
+  )
   
 }
 
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-  stacked_bar_plot(village,respondent_wall_type)
+  stacked_bar_plot(village, respondent_wall_type)
 
 
 ```
@@ -678,11 +704,13 @@ A lollipop plot is a nice alternative to a bar chart. Here is an example.
 It uses `reorder` to put the longest lollipops are at the top, and
 and the `brewur()` function to select four colors from the WUR theme. 
 
-
+I also quite like `theme_ipsum` from `hrbrthemes`:
 
 ```{r}
 
-N = nrow(data)
+library(hrbrthemes)
+
+N <- nrow(data)
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     separate_longer_delim(items_owned, delim = ";") %>%
@@ -692,12 +720,21 @@ read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     summarize(Count = n() / N) %>%
     mutate(items_owned = reorder(items_owned, Count)) %>%
     ggplot(aes(x = Count, y = items_owned)) +
-        geom_linerange(aes(y = items_owned, xmin = 0, xmax = Count), color = "gray") +
-        geom_point(aes(x = Count, y = items_owned), 
-                   size = 4, position = position_dodge(width = 0.5),
-                   color = brewur()[[1]]) +
-        theme_wur() +
-        scale_x_continuous(labels = scales::percent_format())
+    geom_linerange(
+      aes(y = items_owned, xmin = 0, xmax = Count),
+      color = "gray"
+    ) +
+    geom_point(
+      aes(x = Count, y = items_owned), 
+      size = 4, 
+      position = position_dodge(width = 0.5),
+      color = brewur()[[1]]
+    ) +
+    theme_ipsum() + 
+    scale_x_continuous(labels = scales::percent_format()) +
+    labs(
+      title = "Look at this graph",
+      subtitle = "People love radios, phones, and a good plough")
 
 ```
 

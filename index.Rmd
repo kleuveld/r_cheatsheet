@@ -25,6 +25,9 @@ knitr::opts_chunk$set(eval=TRUE,
                       error=TRUE, 
                       message=FALSE)
 
+# to trick renv into keeping these in the lockfile
+library(languageserver)
+library(httpgd)
 
 ```
 
@@ -40,10 +43,10 @@ For a more basic intro to R try
 , on which some of this website is based.
 
 The site covers advice on workflows, 
-and general R techniques such as loops and functions, 
-as well as specific code examples to do common tasks such as reporting
-on regressions,
-power calculations and visualizing data.
+general R techniques such as loops and functions that facilitate reproducibility.
+Then the following chapters each cover a part of the research cycle:
+design, data cleaning and data analysis (including reporting the results). 
+For each, there's specific code examples using survey data. 
 
 ## Setting up {#setup}
 
