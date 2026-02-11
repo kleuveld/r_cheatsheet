@@ -400,16 +400,29 @@ which are the default in `estimatr`:
 # this function estimates a probit model, and 
 # then computes the cluster-robust standad errors using
 # clubSandwich and coeftest
-# it returns a glm_robust object, which is just a modified 
-# coeftest object
-# note that it expects cluster to be provided as a string containing the var name
+# it returns a glm_robust object, which is just a list with all the thing we may need. 
+
 glm_robust <- function(formula, family, data, cluster, type = "CR2") {
+
+  out <- list()
 
   # Estimate model
   fit <- glm(formula, family = family, data = data)
 
-  # use black magic to get the vector of clusters
-  cluster_vec <- data[[cluster]][as.integer(rownames(model.frame(fit)))]
+
+  # we need the cluster variable from the observations used in the model:
+  # first get the data used in the model, and extract the row numbers
+  row_numbers <- 
+    model.frame(fit) %>%
+    rownames() %>%
+    as.integer() 
+
+  # then use them to subset the original data and pull the cluster variable
+  # The {{ }} syntax allows for unqouted variable names
+  cluster_vec <- 
+    data %>% 
+    filter(row_number() %in% row_numbers) %>% 
+    pull( {{ cluster }} )
 
   # Cluster-robust VCOV
   vcov_cr <- clubSandwich::vcovCR(
@@ -419,30 +432,32 @@ glm_robust <- function(formula, family, data, cluster, type = "CR2") {
   )
 
   # Coefficient test
-  ct <- lmtest::coeftest(fit, vcov. = vcov_cr)
+  out$coef <- lmtest::coeftest(fit, vcov. = vcov_cr)
 
   # Attach useful attributes
-  # these can then be read by other functions, e.g., glance()
-  attr(ct, "vcov")      <- vcov_cr
-  attr(ct, "nclusters") <- length(unique(cluster_vec))
-  attr(ct, "model")     <- fit
-  attr(ct, "nobs")      <- stats::nobs(fit)
-  attr(ct, "logLik")    <- stats::logLik(fit)
+  # these can then be read by other functions, e.g., glance()`
+  out$vcov <- vcov_cr
+  out$nclusters <- length(unique(cluster_vec))
+  out$model    <- fit
+  out$nobs      <- stats::nobs(fit)
+  out$logLik   <- stats::logLik(fit)
 
   # set the class of my object: this controls what methods are used to extract info
-  class(ct) <- c("glm_robust")
-  ct
+  class(out) <- c("glm_robust")
+  out
 }
 
 # this is the custom tidy methods for glm_robust objects
 # it returns a dataframe with coefficients
 tidy.glm_robust <- function(x, ...){
+  #x <- x$coef
+  
   tibble::tibble(
-    term      = rownames(x),
-    estimate  = x[, "Estimate"],
-    std.error = x[, "Std. Error"],
-    statistic = x[, "z value"],
-    p.value   = x[, "Pr(>|z|)"]
+    term      = rownames(x$coef),
+    estimate  = x$coef[, "Estimate"],
+    std.error = x$coef[, "Std. Error"],
+    statistic = x$coef[, "z value"],
+    p.value   = x$coef[, "Pr(>|z|)"]
   )
 }
 
@@ -450,10 +465,10 @@ tidy.glm_robust <- function(x, ...){
 # the number of obserations, log likelihood and number of clusters
 glance.glm_robust <- function(x, ...){
   tibble::tibble(
-    nobs       = attr(x, "nobs"),
-    logLik     = as.numeric(attr(x, "logLik")),
-    nclusters  = attr(x, "nclusters"),
-    clustered = if_else(!is.null(nclusters), "Yes", "No")
+    nobs       = x$nobs,
+    logLik     = as.numeric(x$logLik),
+    nclusters  = x$nclusters,
+    clustered = "Yes" #we only accept clustered SEs in this function, so we can just say "Yes"
   )
 }
 
@@ -463,16 +478,18 @@ glance.glm_robust <- function(x, ...){
 You can then simply use the `glm_robust()` function and `modelsummary()`
 will know how to handle its output!
 
+
 ```{r, warning = FALSE}
+
+data_test <- data %>% mutate(treatment = if_else(key_ID == 1, NA, treatment))
 
 probitrobust <- 
   glm_robust(uses_fertilizer ~ treatment + educated,
              family = binomial(link = "probit"),
-             data = data,
-             cluster = "village", # provide it as a string!
+             data = data_test,
+             cluster = village,
              type = "CR2")
 
-broom::glance(probitrobust)
 
 modelsummary(list("LM" = lm, "LM Robust" = lmrobust, 
                   "Probit"  = probit, "Probit Robust" = probitrobust), 
@@ -503,26 +520,30 @@ library(marginaleffects)
 ame_robust <- function(x) {
 
   ame <- marginaleffects::avg_slopes(
-    attr(x, "model"),
-    vcov = attr(x, "vcov"),
+    x$model,
+    vcov = x$vcov,
     type = "response"
   )
 
-  # save clusters and observations as attributes
-  attr(ame, "nclusters") <- attr(x, "nclusters")
-  attr(ame, "nobs")      <- attr(x, "nobs")
+  out <- x
+  out$coef <- ame 
 
-  class(ame) <- c("ame_robust", class(ame))
-  ame
+  class(out) <- "ame_robust"
+  out
+}
+
+tidy.ame_robust <- function(x, ...){
+ broom::tidy(x$coef) # ame object come with their own tidy method, so we can just use that
 }
 
 # glance methods for ame_robust objects
 glance.ame_robust <- function(x, ...) {
 
   tibble::tibble(
-    nobs      = attr(x, "nobs"),
-    nclusters = attr(x, "nclusters"),
-    clustered = if_else(!is.null(nclusters), "Yes", "No")
+    nobs       = x$nobs,
+    logLik     = x$logLik,
+    nclusters  = x$nclusters,
+    clustered = "Yes" #we only accept clustered SEs in this function, so we can just say "Yes"
   )
 }
 
