@@ -472,6 +472,72 @@ wide_data %>%
 Note that throughout this page, I will use different ways of defining these inline
 functions. They all work, so pick what you like and be consistent.
 
+
+### Converting all yes/no factors to dummies
+
+Sometimes you want nicely labelled factors, 
+but sometimes need dummies.
+Here's one way to convert factors to dummies.
+
+First, create a fake dataset using the fantastic `fabricatr` package:
+
+```{r}
+library(fabricatr
+library(tidyverse)
+
+# define some parameters, so we can easily change the size of the dataset
+num_vars <- 10
+num_obs <- 200
+
+factor_data <-
+  # i make long data first, so I only need to make one factor var
+  fabricate(
+    N = num_obs * num_vars,
+    n = 1:N,
+    key_ID = ceiling(n/num_vars),
+    var = rep(1:num_vars, N/num_vars),
+    value = as_factor(sample(c("yes", "no"),N, replace = TRUE))
+  ) %>% 
+  # and then turn it to wide to create num_var factor variables
+  pivot_wider(
+    id_cols = key_ID,
+    names_from = var, 
+    values_from = value, 
+    names_glue = "factor_{var}"
+  )
+
+
+factor_data %>% glimpse()
+
+```
+
+Then we need to select all columns that solely consist of "yes" and "no" values,
+ and convert them to 1s and 0s.
+The `where` function can do this, 
+by using `setequal()` to compare the levels of factors to the vector `c("yes","no")`:
+
+```{r}
+
+factor_data %>%
+  mutate(key_ID = as.character(key_ID)) %>%
+  mutate(
+    across(
+      where(~setequal(levels(.x), c("yes", "no"))),
+      ~as.integer(.x == "yes")
+    )
+  ) %>%
+  mutate(across(
+    where(~setequal(unique(.x), 0:1)),
+    ~factor(.x, levels = c(0, 1), labels = c("no", "yes"))
+  ))
+  glimpse()
+
+```
+
+You can reverse this by using ` where(~setequal(unique(.x), 0:1))` 
+to select all variables that consist solely of 0s and 1s, 
+and then use `factor()` to convert them to factors with labels "no" and "yes".
+
 ### Pivoting
 
 Of course, in the example above, 
