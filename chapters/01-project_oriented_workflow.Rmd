@@ -1,4 +1,4 @@
-# Reproducible Workflows
+# 1. Reproducible Workflows
 
 ## Introduction
 

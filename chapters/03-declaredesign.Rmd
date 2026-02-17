@@ -5,19 +5,26 @@
 rm(list=ls())
 
 # run diagnosis?
-run_diagnosis = FALSE
+run_diagnosis <- FALSE
 
 
 ```
 
 
-# Power Analysis using DeclareDesign {#declaredesign}
+# 3. Power Analysis using DeclareDesign {#declaredesign}
 
-[DeclareDesign](https://declaredesign.org/) is a system to simulate Research Designs. This is useful for power 
-analysis, because it is often hard to include things like clustering and 
-covariates in standard power calculators. 
+There's a lot that goes into research design, 
+but here we focus on one thing that can be done well in R: power calculations.
+For this, I love [DeclareDesign](https://declaredesign.org/), 
+a system to simulate Research Designs. 
+Essentially, rather than plugging some parameters into a power calculator,
+you simulate your research and so investigate the statistical properties of your design.
+This is great, because it is often hard to include things like clustering and 
+covariates in standard power calculators, 
+and it forces you to be explicit about what you expect about your research.
 
-Resources for learning about DeclareDesign:
+This chapter will only scratch the surface of what you can do, 
+so I really recommend further learning about DeclareDesign:
 
 - [Slides by the authors of DeclareDesign: Graeme Blair, Alex Coppock, Macartan Humphreys](https://macartan.github.io/slides/202211_declaredesign_and_power.html)
 - [The DeclareDesign CheatSheet](https://raw.githubusercontent.com/rstudio/cheatsheets/master/declaredesign.pdf)
@@ -25,34 +32,42 @@ Resources for learning about DeclareDesign:
 
 Read at least the slides before going forward!
 
+This chapter covers power calculations in three designs: 
+a simple comparison of means, a diff-in-diff design, and a matching design.
+To start of, we need example data. 
+You can simulate this, but I prefer using existing data.
+Here we use Rhomis data.
+
 ## Simple Power Calculation
 
-Let's first do some power calcuations. 
-I will use Rhomis data from Burundi, you can get the data 
-[here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/9M6EHS). 
+The first design we consider is simply a comparison of means.
+We are interested in the effects of a project on the input of fertilizers.
 
 
 ### Loading data
 
-I do some data wrangling, like creating village codes based on y-coordinates,
-and some assorted cleaning.
+Here we take the Rhomis data, and add some variables. 
+(For example, village codes: I create fake ones based on y-cooridnates.)
+
 
 ```{r}
 
 library(tidyverse)
 library(DeclareDesign)
+library(here)
+
 
 n_clusters = 18
 
 rhomis <-
   read_csv(here("data/RHoMIS_Indicators.csv")) %>% #names()
-  filter(Country == "Burundi") %>% 
+  filter(Country == "Burundi") %>% #count(Livestock_Orientation)
 
   # split the sample in villages, by lattitude
   filter(!is.na(GPS_LAT)) %>%
   arrange(GPS_LAT) %>%
   mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) %>%
-  select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput, total_income_USD_PPP_pHH_Yr) %>%
+  #select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput, total_income_USD_PPP_pHH_Yr) %>%
   
   # create some variables
   mutate(HFIAS_status = factor(HFIAS_status, levels = c("FoodSecure", "MildlyFI", "ModeratelyFI", "SeverelyFI")),
@@ -64,7 +79,7 @@ rhomis <-
 
   # there are too many missings in my data; these seem reasonable to assume to be 0 when missing:
   mutate(across(c(LandOwned,NFertInput,educated),
-              ~ if_else(is.na(.x),0,.x)))
+         ~ if_else(is.na(.x),0,.x)))
 
 
 ```
@@ -73,13 +88,11 @@ rhomis <-
 
 Now it's time to start declaring our design. The first element of the 
 design is the model, using `declare_model()` which essentially is my data.
-`declare_model()` follows the syntax of `fabricate()`, 
-which allows you to generate an entirely new dataset. 
-For now we stick with existing data,
-but the syntax is still the same as `fabricate()`, 
-so insead of using `mutate()` we can just supply new variables 
+`declare_model()` follows the syntax of `fabricate()`: 
+a package that is part of the DeclareDesign ecosystem that allows you to generate fake data.
+In this syntax, instead of using `mutate()` we can just supply new variables 
 after a comma. 
-In this case, I add potential outcomes, using `potential_outcomes()`.
+In this case, I add potential outcomes, using `potential_outcomes()`:
 
 ```{r}
 
@@ -96,6 +109,8 @@ model_simple <-
 The potential outcomes are generated using `potential_outcomes()`.
 This will create two variables `Y_Z_1` and `Y_Z_0`, which are 
 the potential outcomes if having received treatment (`Z == 1`) or not. 
+The difference between these is the effect size, which we assume to be 70 kg,
+we store this in a variable, so we can play with it later on.
 Note that I will generate `Z` in the next step.
 
 Then it's time to think about assignment. 
@@ -124,13 +139,15 @@ inquiry_simple <-
 ```{r}
 
 measurement_simple <- declare_measurement(
-  Y = reveal_outcomes(Y~Z)
+  Y = reveal_outcomes(Y ~ Z)
 )
 
 ```
+
 Since I won't be able to observe Y_Z_1 for the control group, nor Y_Z_0 for the treatment group,
 I will need an estimation strategy.
-A simple difference in means:
+The below arguments will be put into `lm_robust` by default, 
+and the `term` argument determines which coefficient is our estimate of interest:
 
 ```{r}
 
@@ -153,8 +170,6 @@ design_simple <- model_simple + assignment_simple + inquiry_simple + measurement
 summary(design_simple)
 
 ```
-
-Note that the results of my three estimators are identical, which is as expected.
 
 
 ### Diagnosing Design and calculating power
@@ -208,7 +223,7 @@ diagnosis_simple <-
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
-write_csv(diagnosis_simple,file = here("data/diagnosis_simple.csv"))
+write_csv(diagnosis_simple, file = here("data/diagnosis_simple.csv"))
 
 ```
 
@@ -292,11 +307,15 @@ diagnosis_simple_cov %>%
 
 ```
 
-Turns out it doesn't help at all in this case.
+The power curve shifts a bit upwards, 
+so that our minimum detected effect is a bit smaller, 
+but the change is very small.
 
 ## Dif in diff
 
 We can of course also opt for a diff-in-diff design. 
+If fertilizer input in one year is correlated to the next, 
+this should reduce standard errors and increase power.
 But then we have to pretend we have two rounds of data collection.
 
 For that, I prefer to use `dplyr`, 
@@ -415,9 +434,7 @@ diagnosis_dd <- read_csv(file =  here("data/diagnosis_dd.csv"))
 ```
 
 
-Our power is now a lot better, even if we turn up the variance. 
-However, this all depends on the correlation between years. 
-If there is more between-year variation, you lose the benefits of a DiD design.
+Putting it in a plot again:
 
 
 ```{r}
@@ -433,6 +450,13 @@ diagnosis_dd %>%
 
 ```
 
+
+Our power is now a lot better, even if we turn up the variance. 
+However, this all depends on the correlation between years. 
+If there is more between-year variation, you lose the benefits of a DiD design
+(we could of course use `diagnose_design` to find out what the effect of between-year
+variation is on power!)
+
 ## Propsensity score matching
 
 Finally, let's imagine a Propensity Score matching scenario. We therefore need
@@ -445,130 +469,116 @@ more households than are in my original data set.
 
 ### Declare Design
 
-Let's put this in declare design.
+There's two novel things here:
 
-Treatment assignment is as follows:
-
-- 50% of the villages are selected for treatment. This is just random.
-- Roughly 50% of the households are selected. The selection indicator will have
-a correlation of `rho` with the household being educated, using `fabricatr`'s 
-`correlate()` function. 
-Education is also a strong predictor of `food_security`, creating inherent bias.
-
-I compare a standard difference in means, as well as a custom matching function that 
-uses the `MatchIt` package to create a balanced data set, that I can then use for
-regular regressions, weighted by the propensity score.
+  - The outcome is binary, 
+   and usually we think of effects sizes in that case as "and increase of X percentage points".
+   We can just add a constant to the entire treatment group: we need to change 
+   the number of food insecure households to food secure in such a way that the increase
+   is a certain percentage point.
+  - We don't randomly assign treatment, but rather make it correlated to the outcome. 
+   This is a bit tricky, but we can use the `correlate()` function to do this. 
+   We will correlate treatment with education and livestock holdings, which are both correlated with food security. 
 
 
-```{r}
-
-rhomis_psm <-
-  rhomis %>% 
-  mutate(Head_EducationLevel = if_else(is.na(Head_EducationLevel),"No_school", Head_EducationLevel),
-         income = mean(total_income_USD_PPP_pHH_Yr, na.rm = TRUE) + rnorm(n(), 0, 1000), 
-         income = income + if_else(Head_EducationLevel == "primary", 5000, 0) + 
-                         if_else(Head_EducationLevel == "secondary", 10000, 0) +
-                         if_else(Head_EducationLevel == "adult_education", 20000, 0) +
-                         if_else(Head_EducationLevel == "postsecondary", 50000, 0),
-         prob_treat = 0.3, 
-         prob_treat = prob_treat + if_else(Head_EducationLevel == "primary", 0.1, 0) + 
-                         if_else(Head_EducationLevel == "secondary", 0.2, 0) +
-                         if_else(Head_EducationLevel == "adult_education", 0.3, 0) +
-                         if_else(Head_EducationLevel == "postsecondary", 0.4, 0),         
-
-  ) 
-
-
-set.seed(1)
-
-library(MatchIt, exclude("select")) # the select function would conflict with dplyr
-                                    # this syntax requires R 4.0 or higher
-
-# set parameters
-effect <- 10000
-#rho <- 0.2
-
-
-rhomis_psm %>% mutate(sample = draw_binary(prob = prob_treat)) %>% count(sample)
-rhomis_psm %>% mutate(sample = simple_ra(N= nrow(.), prob_unit = prob_treat)) %>% count(sample)
-
-
-population_psm <- declare_population(
-  # rhomis %>%
-  #   mutate(treated_hh = correlate(given = educated, draw_handler = draw_binary, prob = 0.5 , rho = rho),
-  #          potential_outcomes(Y ~ pmin(1,food_secure + Z * draw_binary(effect,nrow(.)))))
-  N = nrow(rhomis),
-  rhomis,
-  #potential_outcomes(Y ~ pmin(1,food_secure + Z * draw_binary(effect,N)))
-  potential_outcomes(Y ~ income + Z * effect)
-)
-
-
-
-assignment_psm <- declare_assignment(
-  treated_hh = simple_ra(N= nrow(.), prob_unit = prob_treat),
-  treated_vill = cluster_ra(clusters = village, prob = 0.5),
-  Z = treated_hh * treated_vill
-)
-```
-
-I then re-sample from the original data using  `resample_hhs()` I define below.
-To include the function in our design, we need to use `declare_step()`
-
-- I ensure I have more control household than treatment households.
-- I drop any untreated households in treated villages.
-- Compared to the treatment hhs in each cluster, 
-I sample twice the number of control hhs.
-
-This simulates that we can't get control households in treated villages, 
-for example due to fears of 
-
-
+First, let's just define a function that can flip some of the 0s in `food_secure` to 1s,
+we can use that in `pontential_outcomes()` to create a certain effect size:
 
 ```{r}
 
-clusters_treat <- 50
-hh_treat <- 15
 
-clusters_control_multi <- 1 # multiplier for oversampling control clusters
-hh_control_multi <- 2 # multiplier for oversampling control hhs
 
-resample_hhs <- function(data){
-  # this function filters any control households in treated communities
-  # and it sets the sample size
-  data %>%
-    mutate(drop = if_else(treated_vill == 1 & treated_hh == 0,1,0)) %>%
-    filter(drop != 1) %>%
-      # sample from treated villages and untreated villages
-      group_by(treated_vill) %>%
-      do({
-        if (unique(.$treated_vill) == 1) {
-          resample_data(., N = c(village = clusters_treat, hh = hh_treat),unique_labels = TRUE)
-        } else {
-          resample_data(., N = c(village = clusters_control_multi * clusters_treat, hh = hh_control_multi * hh_treat), unique_labels = TRUE)
-        }
-      })
+x <- draw_binomial(N = 100, prob = 0.3)
+Z <- draw_binomial(N = 100, prob = 0.5)
+  
+# this function increases the share of 1s in x[Z==1] by `effect`
+flip_zeroes <- function(x, Z, effect) {
+  
+  # If no one is treated, return x unchanged
+  if (sum(Z == 1) == 0) return(x)
+  
+  # how many 1s do we currently have?
+  n_current_ones <- sum(x[Z == 1])
+
+  # how many 1s should we have?
+  p_current <- mean(x[Z == 1])
+  p_target  <- p_current + effect
+  n_target_ones  <- round(p_target * length(x[Z == 1]))
+ 
+  # figure out which zeros to flip
+  n_to_flip <- n_target_ones - n_current_ones
+  
+  # If nothing to flip, return x
+  if (n_to_flip <= 0) return(x)
+  
+  zeros_index <- which(x[Z == 1] == 0)
+  
+  # Can't flip more zeros than exist
+  n_to_flip <- min(n_to_flip, length(zeros_index))
+  if (n_to_flip == 0) return(x)
+  
+  flip_index <- sample(zeros_index, n_to_flip)
+
+  # do it, and return the new x
+  x[Z == 1][flip_index] <- 1
+  x
 }
 
-resampling_psm <- declare_step(
-  handler = resample_hhs
+
+
+
+```
+
+Our model then becomes:
+
+```{r}
+
+effect_size_psm = 0.3
+N <- 1000
+
+model_psm <- 
+  declare_model(
+    rhomis %>% 
+      resample_data(N = N), 
+    potential_outcomes(Y ~ flip_zeroes(food_secure, Z, effect_size_psm))
+  )
+
+```
+
+The we do the assignment. 
+We use the `correlate()` function to make treatment correlated with education and livestock holdings, which are both correlated with food security.
+
+I made the correlation a bit complex, 
+as one of the advantages of PSM is that it works even if you don't know the exact selection process, as long as you have the right covariates.
+
+```{r}
+
+rho <- 0.5
+
+assignment_psm <- declare_assignment(
+  Z = correlate(
+      given = educated * LivestockHoldings^2, 
+      rho = rho,  
+      draw_binomial, 
+      prob = 0.5
+    )
 )
 
 ```
 
+ 
 Measurement and inquiry are standard. I also add an OLS estimator to check for bias.
 
 ```{r}
 
 measurement_psm <- declare_measurement(Y = reveal_outcomes(Y ~ Z)
-) 
+)
 
 inquiry_psm <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)
 )
 
 estimator_notmatched_psm <- 
   declare_estimator(Y ~ Z, 
-                    clusters = village_unique,
                     inquiry = "ATE", 
                     term = "Z", 
                     label = "Not matched")
@@ -588,34 +598,53 @@ I define a function that does that, and some labelling:
 
 ```{r}
 
-custom_match <- function(data, equation, outcome = "Y", term = "Z") {
-  
+# the select function would conflict with dplyr
+# this syntax requires R 4.0 or higher
+
+library(MatchIt, exclude("select"))
+
+
+custom_match <- function(data,
+                         equation,
+                         outcome = "Y", 
+                         term = "Z", 
+                         method = "nearest"){
+
   # the command filter(term == term) wouldn't do anything, so this is a workaround
   term_value <- term
 
   # run the matching model
   matchit_model <- matchit(equation,
-                         data = data,
-                         method = "nearest")
+                          data = data,
+                         method = method)
   matched_df <- match.data(matchit_model)
 
   # run a regression, weighted by the propensity score
-  lm_robust(Y ~ Z, clusters = village_unique, data = matched_df, weights = weights) %>%
+  lm_robust(Y ~ Z, data = matched_df, weights = weights) %>%
     tidy() %>%
     mutate(outcome = outcome) %>%
     filter(term == term_value)
 }
 
 estimator_matched_psm <- declare_estimator(
-  Z ~ HHsizeMAE + educated + LandOwned + NFertInput + female + NFertInput,
+  Z ~ educated + LivestockHoldings,
   handler = label_estimator(custom_match),
   inquiry = "ATE",  # Tie the estimator to the declared inquiry
-  label = "Matched",
+  label = "Matched PSM",
   term = "Z",
 )
 
+estimator_matched_cem <- declare_estimator(
+  Z ~ educated + LivestockHoldings,
+  handler = label_estimator(custom_match),
+  inquiry = "ATE",  # Tie the estimator to the declared inquiry
+  label = "Matched CEM",
+  term = "Z",
+  method = "cem"
+)
+
 design_psm <-
-  population_psm +  inquiry_psm + assignment_psm + resampling_psm + measurement_psm + estimator_notmatched_psm + estimator_matched_psm
+  model_psm +  inquiry_psm + assignment_psm +  measurement_psm + estimator_notmatched_psm + estimator_matched_psm + estimator_matched_cem
 
 ```
 
@@ -628,17 +657,25 @@ First  I draw data based on my design and create matched version of that data.
 ```{r}
 
 set.seed(1)
-
 test_data <- 
   draw_data(design_psm) %>%
   as_tibble() 
 
 
-  matchit_model <- matchit(Z ~ HHsizeMAE + educated + LandOwned + NFertInput + female + NFertInput,
+  matchit_model_psm <- matchit( Z ~ educated + LivestockHoldings,
                          data = test_data,
-                         method = "nearest")
-  matched_df <- match.data(matchit_model)
+                         method = "nearest", 
+                         discard = "both")
+  test_data_psm <- match.data(matchit_model_psm)
 
+
+
+  matchit_model_cem <- matchit( Z ~ educated + LivestockHoldings,
+                         data = test_data,
+                         method = "cem", 
+                         discard = "both")
+  test_data_cem <- match.data(matchit_model_cem)
+  
 ```
 
 Then I create balance table for the `test_data`:
@@ -661,13 +698,11 @@ test_data %>%
 
 ```
 
-And for the `matched_df`, which is clearly more balanced.
-Note that according to the [documentation](https://modelsummary.com/reference/datasummary_balance.html#global-options),
-`datasummary_balance()` reports weighted means if a `weights` variable is present. 
+And for the `test_data_psm`, which is slightly more balanced.
 
 ```{r}
 
-matched_df %>% 
+test_data_psm %>% 
   mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
   select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) %>%
   datasummary_balance( ~ Z , data = ., 
@@ -678,21 +713,132 @@ matched_df %>%
 
 ```
 
+And for the CEM.
+
+
+```{r}
+
+
+test_data_cem %>% 
+  mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
+  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) %>%
+  datasummary_balance( ~ Z , data = ., 
+                      output = "flextable", stars = TRUE, 
+                      dinm = TRUE, dinm_statistic = "p.value") %>%
+  fix_border_issues() %>% 
+  autofit()
+
+
+
+```
+
+Note that while according to the [documentation](https://modelsummary.com/reference/datasummary_balance.html#global-options),
+`datasummary_balance()` reports weighted means if a `weights` variable is present. 
+However, there's a bug in the version of `modelsummary` used here, 
+so here's a fixed balance table, using a custom function, 
+with bits and pieces of code I had:
+
+
+```{r}
+
+library(flextable)
+library(estimatr)
+
+balance_table <- function(data, by){
+
+  # get a table with summ stats:
+  summstats <-
+    data %>%
+    select(-weights) %>%
+    group_by( {{ by }} ) %>%
+    summarize(
+      across(
+        .cols = everything(),
+        .fns = list(
+          mean = ~mean(.x,na.rm=TRUE),
+          sd = ~sd(.x,na.rm=TRUE)
+        ),
+        .names =  "{.col}-{.fn}"
+      )
+    ) %>%
+    pivot_longer(cols = -Z,
+                  names_to = c("Variable",".value"),
+                  names_sep="-")
+
+  # function to get the difference between treatment and control
+  get_diffs <- function(equation, 
+                        clusters = NULL,
+                        weights = NULL){
+    reg <- 
+      lm_robust(
+        equation, 
+        clusters = {{ clusters }},
+        weights = {{ weights }}
+      ) %>% 
+      broom::tidy()
+
+    estimate <- round(reg[2,2],2)
+
+    p <- reg[2,5]
+
+    stars = case_when(p < 0.001 ~ "***",
+                      p < 0.01 ~ "**",
+                      p < 0.05 ~ "*",
+                      .default = "")
+
+    paste0(estimate, stars)
+    
+  }
+
+  # compute differences for all vars:
+
+  difcol <-
+    data %>%
+    summarize(across(.cols = c(everything(), -Z),
+                    .fns = ~get_diffs(.x ~ Z, weights = weights))) %>% 
+    pivot_longer(cols =everything(),
+                names_to = "Variable",
+                values_to="Difference")  
+
+  # output
+  summstats %>%
+    tabulator(
+      rows = names(summstats)[2],
+      columns = names(summstats)[1],
+      datasup_last = difcol,
+      Mean = as_paragraph(as_chunk(mean, digits=2)),
+      SD = as_paragraph(as_chunk(sd, digits=2))
+    ) %>%
+    as_flextable()  %>%
+    #labelizor(j = "Variable", labels = labels, part = "body") %>% 
+    fix_border_issues() %>% 
+    autofit() 
+}
+
+
+test_data_cem %>%
+  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput, weights) %>%
+  balance_table(by = Z)
+
+
+```
+
 
 Let's run the models two times:
 
 
 ```{r}
 
-unmatched_model <- lm_robust(Y ~ Z, clusters = village_unique, data = test_data)
-matched_model <- lm_robust(Y~Z, clusters = village_unique, data = matched_df, weights = weights)
+unmatched_model <- lm_robust(Y ~ Z, data = test_data)
+matched_model_psm <- lm_robust(Y~Z, data = test_data_psm, weights = weights)
+matched_model_cem <- lm_robust(Y~Z, data = test_data_cem, weights = weights)
 
-modelsummary(list(lm = unmatched_model, psm = matched_model), output = "flextable",
-             gof_map = c("nobs","r.squared","adj.r.squared"))
+modelsummary(list(lm = unmatched_model, psm = matched_model_psm, cem = matched_model_cem), output = "flextable",
+             gof_map = c("nobs","r.squared","adj.r.squared"), stars = TRUE)
 
 ```
 
-Both of these underestimate the treatment effect by a bit, as it should be around 0.2.
+The true effect is 0.3, so CEM is clearly better able to reduce bias than PSM.
 
 ### Bias
 
@@ -706,7 +852,7 @@ so I use `redesign()` to vary it:
 
 diagnosis_psm_bias <-
   design_psm %>%
-  redesign(rho = seq(from = 0, to = 0.9, by = 0.3))  %>%
+  redesign(rho = seq(from = 0, to = 0.75, by = 0.25))  %>%
   diagnose_design(sims = 100) %>%
   tidy() %>%
   as_tibble()
@@ -715,7 +861,7 @@ diagnosis_psm_bias <-
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
-write_csv(diagnosis_psm_bias,file = here("data/diagnosis_psm_bias.csv"))
+write_csv(diagnosis_psm_bias, file = here("data/diagnosis_psm_bias.csv"))
 
 ```
 
@@ -739,10 +885,7 @@ diagnosis_psm_bias %>%
 
 ```
 
-Clearly, the more treatment is correlated to education, 
-the higher the bias in the regular model.
-Bias is never extreme, however.
-
+It's clear that PSM barely affected bias, while CEM reduced it significantly.
 
 ### Power 
 

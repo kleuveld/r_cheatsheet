@@ -1,10 +1,10 @@
-# Data Cleaning {#datawrangling}
+# 4. Data Cleaning {#datawrangling}
 
 Data from the field never quite comes in the form you want,
 and the form you want your data in changes depending on what you want to do with it.
 So for every project, you'll likely do a substantial amount of data wrangling.
 
-The goal of reproducible data wrangling is that at any moment,
+The goal of reproducible data cleaning is that at any moment,
 you can re-run your code to go from raw data to outputs.
 This is only useful, if you organize and document your code in such a way
 that people unfamiliar with the project (this could be future you!) can understand
@@ -335,7 +335,7 @@ To merge the roster to the household data, we use the join_by function:
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
-    left_join(wide_data)
+left_join(wide_data)
 
 ```
 
@@ -349,9 +349,10 @@ roster data, is equally easy:
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
 long_data %>%
-    left_join(
-        read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>% 
-            select(key_ID,village,interview_date))
+  left_join(
+    read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
+      select(key_ID, village, interview_date)
+  )
 ```
 Note that here I only merged in two variables,
 by using `select` and a pipe within the `left_join()` function.
@@ -367,10 +368,14 @@ as missing, using a simple `mutate()` to conver them to `NA`.
 
 ```{r eval=TRUE,echo=TRUE,warning=TRUE,error=TRUE,message=TRUE}
 
-long_data %>% 
-    group_by(key_ID) %>%
-    mutate(age = if_else(age == -99,NA,age)) %>%
-    summarize(hh_size = n(), num_women = sum(female), mean_age = mean(age, na.rm = TRUE))
+long_data %>%
+  group_by(key_ID) %>%
+  mutate(age = if_else(age == -99, NA, age)) %>%
+  summarize(
+    hh_size = n(),
+    num_women = sum(female),
+    mean_age = mean(age, na.rm = TRUE)
+  )
 
 ```
 
@@ -476,15 +481,17 @@ so that we have one `age` variable, and no need to use across.
 ```{r}
 
 wide_data %>%
-    pivot_longer(!key_ID,
-                 names_to = c(".value", "member_ID"),
-                 names_sep = "_",
-                 values_drop_na = TRUE,
-                 names_transform = list(member_ID = as.integer)) %>%
-    mutate(age = if_else(age == -99,NA,age)))  %>% 
-    pivot_wider(names_from = member_ID,
-                values_from = !ends_with("_ID"),
-                names_vary = "slowest") 
+    pivot_longer(
+    !key_ID,
+    names_to = c(".value", "member_ID"),
+    names_sep = "_",
+    values_drop_na = TRUE,
+    names_transform = list(member_ID = as.integer)
+  ) %>%
+  mutate(age = if_else(age == -99,NA,age))  %>% 
+  pivot_wider(names_from = member_ID,
+              values_from = !ends_with("_ID"),
+              names_vary = "slowest") 
 
 ```
 
@@ -567,15 +574,15 @@ To compute means and sums across rows in R, use `rowSums()` and `rowMeans()`:
 ```{r}
 
 wide_data %>%
-    mutate(across(.cols = starts_with("age_"),
-                  .fn = ~if_else(.x == -99,NA,.x))) %>%
-    mutate(mean_age = rowMeans(across(starts_with("age_")),
-                           na.rm=TRUE),
-           num_women =  rowSums(across(starts_with("female_")),
-                            na.rm=TRUE),
-           hh_size = rowSums(!is.na(across(starts_with("female_"))))) %>%
-    select(key_ID,hh_size,num_women, mean_age) %>%
-    ungroup()
+  mutate(across(.cols = starts_with("age_"),
+                .fn   = ~if_else(.x == -99,NA,.x))) %>%
+  mutate(mean_age = rowMeans(across(starts_with("age_")),
+                          na.rm=TRUE),
+         num_women =  rowSums(across(starts_with("female_")),
+                              na.rm=TRUE),
+         hh_size = rowSums(!is.na(across(starts_with("female_"))))) %>%
+  select(key_ID,hh_size,num_women, mean_age) %>%
+  ungroup()
 
 
 ```
@@ -733,11 +740,16 @@ step, so I used `left_join()` to merge it back in for demonstration purposes.
 
 ## Structure of a cleaning Rmarkdown doc with multi-level data{#cleaning-rmd}
 
-In a script, I would typically deal with each level separately, 
-and then merge them together at the end.
+Putting it all together in one script, would look something like this.
+The rendered document can be shared more freely than the data, 
+and includes everything to explain what happens to the data, 
+including figures.
+This makes it much more insightful to share this document than the raw cleaning code.
 
 ```{r include_example_rmd, echo=FALSE, comment=""}
+
 # Print the contents of an Rmd file verbatim, including code fences
 example_file <- here::here("scripts/example_datacleaning.Rmd")
 cat(readLines(example_file), sep = "\n")
+
 ```

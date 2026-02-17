@@ -1,4 +1,4 @@
-# Estimating and reporting {#reporting}
+# 5. Estimating and reporting {#reporting}
 
 This chapter uses a large number of packages, and the SAFI data 
 set, so make sure

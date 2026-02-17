@@ -4,8 +4,17 @@
   "workspaceFolder": "/doc", // Set the container's working directory to /doc
   "workspaceMount": "source=/home/koen/git/r_cheatsheet,target=/doc,type=bind",
   "mounts": [
-    "source=/home/koen/.ssh,target=/root/.ssh,type=bind,consistency=cached"
+    "type=bind,source=/home/koen/.ssh,target=/root/.ssh,consistency=cached"
   ],
+  // "mounts": [
+  //   "type=bind,source=${localEnv:HOME}/.ssh,target=/root/.ssh,consistency=cached"
+  // ],
+  // Override for Windows
+  // "overrideForWindows": {
+  //   "mounts": [
+  //     "type=bind,source=${localEnv:USERPROFILE}\\.ssh,target=/root/.ssh,consistency=cached"
+  //   ]
+  // }
   "overrideCommand": true, // Prevents the entrypoint script from running
   "customizations": {
     "vscode": {

@@ -1,10 +1,11 @@
 ---
-title: "Example Data Wrangling RMarkdown"
+title: "Example Data Cleaning RMarkdown"
 output: html_document
 ---
 
 # introduction
-This is an example of a data cleaning RMarkdown script for multi-level data (household and individual level).
+This is an example of a data cleaning RMarkdown script for multi-level data
+(household and individual level).
 
 It takes the raw data files in the data/raw folder,
 and outputs a cleaned data file in the data/cleaned folder.
@@ -27,7 +28,7 @@ library(here)
 
 ```{r}
 raw_data_hh <- 
-  read_csv(here("data/raw/SAFI_clean.csv"), na = "NULL") 
+  read_csv(here("data/raw/SAFI_clean.csv"), na = "NULL")
 
 
 raw_data_individual <- read_csv(here("data/raw/SAFI_roster.csv"), na = "NULL")
@@ -59,14 +60,19 @@ paradata <-
 We compute people per room, and recode wall type:
 
 ```{r}
-housing <- 
+
+housing <-
   raw_data_hh %>% 
-  mutate(people_per_room = no_membrs / rooms,
-         respondent_wall_type = as_factor(respondent_wall_type),
-         respondent_wall_type = fct_recode(respondent_wall_type, 
-                                           "Burned bricks" = "burntbricks",
-                                           "Mud Daub" = "muddaub",
-                                           "Sun bricks" = "sunbricks")) %>% 
+  mutate(
+    people_per_room = no_membrs / rooms,
+    respondent_wall_type = as_factor(respondent_wall_type),
+    respondent_wall_type = fct_recode(
+      respondent_wall_type, 
+      "Burned bricks" = "burntbricks",
+      "Mud Daub" = "muddaub",
+      "Sun bricks" = "sunbricks"
+    )
+  ) %>% 
   select(key_ID, no_membrs, rooms, people_per_room, respondent_wall_type)
 
 ```
@@ -151,7 +157,7 @@ household_size <-
 
 ```{r}
 conflict <- 
-  raw_data %>% 
+  raw_data_hh %>% 
   mutate(conflict_yn = case_when(affect_conflicts == "frequently" ~ 1,
                                  affect_conflicts == "more_once" ~ 1,
                                  affect_conflicts == "once" ~ 1,

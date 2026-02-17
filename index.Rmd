@@ -51,25 +51,17 @@ For each, there's specific code examples using survey data.
 ## Setting up {#setup}
 
 This book uses the SAFI data set, and a large number of libraries.
-The following will download them all. 
-I use the [here package](https://here.r-lib.org/) to manage 
-paths. 
+Everything is available on [github](https://github.com/kleuveld/r_cheatsheet),
+and cloning that repo will ensure you can install all packages through renv 
+(see Chapter 1).
 
-```{r,  eval=FALSE,}
+Throughout this book, I will mostly make use of `tidyverse` packages.
+While there are alternatives that have advantages of this, 
+such as `data.table` which is faster,
+`tidyverse` makes easily readable code, 
+which is imortant from a reproducibility perspective.
+Moreover, we are not so concerned with performance, 
+since household survey datasets are almost never large enough for that matter.
 
-#make sure your working folder is set to something sensible!
 
-file.create(".here")
-here::i_am(".here")
-library(here)
 
-dir.create(here("data"))
-
-download.file(
-  "https://raw.githubusercontent.com/datacarpentry/r-socialsci/main/episodes/data/SAFI_clean.csv",
-  here("data/SAFI_clean.csv"), mode = "wb"
-)
-
-install.packages(c("tidyverse","here","arsenal","lmtest","sandwich","here",
-                   "huxtable","flextable","declaredesign","fixest"))
-```

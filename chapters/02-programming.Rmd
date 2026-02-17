@@ -1,4 +1,4 @@
-# Programming with R {#programming}
+# 2. Programming with R {#programming}
 
 Before diving into specific R techniques about managing social science research,
 this chapter will cover some general programming concepts that will help you 
