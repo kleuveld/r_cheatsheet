@@ -5,7 +5,7 @@
 rm(list=ls())
 
 # run diagnosis?
-run_diagnosis <- FALSE
+run_diagnosis <- TRUE
 
 
 ```
@@ -382,7 +382,7 @@ estimator_dd <-
 The complete design is then:
 
 
-```{r diagnose_dd_power, eval = run_diagnosis}
+```{r diagnose_dd_power}
 
 design_dd <- model_dd + assignment_dd + inquiry_dd + measurement_dd + estimator_dd
 
@@ -395,7 +395,7 @@ Of course, in a DiD setting, power depends not only on the effect size, but also
 I therefore also vary the `rho_dd` variable, 
 which controls the correlation between fertilizer input in years 0 and 1:
 
-```{r}
+```{r, eval = run_diagnosis}
 
 set.seed(1)
 diagnosis_dd <-
@@ -525,7 +525,7 @@ assignment_matching <- declare_assignment(
   hh_treat = correlate(
     given = educated * LivestockHoldings^2,
     rho = rho,
-      raw_binomial,
+    draw_binomial,
     prob = 0.3
   ), 
   vill_treat = cluster_ra(clusters = village, prob = 0.5), 
