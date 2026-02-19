@@ -5,7 +5,7 @@
 rm(list=ls())
 
 # run diagnosis?
-run_diagnosis <- TRUE
+run_diagnosis <- FALSE
 
 
 ```
