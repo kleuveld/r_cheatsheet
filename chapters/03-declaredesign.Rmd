@@ -299,7 +299,9 @@ variate_var <- function(x, rho, slope = 1) {
 
 ```
 
-It feels like this shouldn't be allowed, but it's fun for now!
+This all feels like it should be illegal, 
+but since properly varying things is actually quite hard to do, 
+this is the best I have so far. 
 
 I update my design accordingly:
 
@@ -337,14 +339,9 @@ I modify the inquiry and assignment to only take into account `t == 1`
 inquiry_dd <-  
   declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0), subset = (t == 1)) 
 
-
-
-
 assignment_dd <-
   declare_assignment(treatment_group = cluster_ra(clusters = village, prob = 0.5),
                      Z = t * treatment_group)
-
-
 
 ```
 

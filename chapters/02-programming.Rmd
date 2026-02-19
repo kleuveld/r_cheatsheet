@@ -80,6 +80,7 @@ each time with different variables:
 
 
 ```{r, results='hold'}
+library(tidyverse)
 
 df <- tibble(y = rnorm(50),x1 = rnorm(50),x2 = rnorm(50), x3 = rnorm(50))
 
@@ -342,6 +343,76 @@ vectors %>%
 Note it will be quite difficult to use `map()` with data frame columns to edit 
 multiple variables. 
 For this, use  `across()`, as seen in the [data cleaning chapter](#across) 
+
+## Other variants of `map()`
+
+`map()` is an entire family of functions. 
+One that I like is `pmap()`, which allows you to iterate over a number
+of things at the same time.
+
+
+Suppose, like before I want to run a model a few times, 
+but now I want to not only change one thing (like the control), 
+but more things, like the dependent variable. 
+
+First, I put the parameters of each specification in a data frame like this:
+
+```{r}
+
+specs <- 
+tribble(
+  ~label, ~depvar, ~controls,
+  "X1 only" ,"y", "x1",
+  "X2 only" ,"y", "x2",
+   "X3 only" , "y","x3",
+  "Full" ,"y", c("x1", "x2", "x3")
+)
+
+
+```
+
+I can print this in my markdown file, so it's easily seen what I am doing:
+
+```{r}
+library(flextable)
+specs %>% 
+  mutate(
+    controls = map_chr(controls, ~ paste(.x, collapse = ","))
+  ) %>% 
+  flextable()
+
+```
+
+I used the `map_chr()` function to concatenate each cell in the `controls` column
+using `paste()` and turn that into a vector of strings.
+This vector can go straight into mutate, and in the dataframe.
+
+Then I feed my `spec` into a function using `pmap`:
+
+```{r}
+
+specs %>% 
+  pmap(
+    function(depvar, controls, ... ){
+      lm(reformulate(controls, response = depvar), data =df)  
+    }
+  ) %>%
+  set_names(specs$label) %>% 
+  modelsummary(output = "flextable", stars = TRUE)
+
+```
+
+Notes:
+
+  - The column names of `spec` will be passed to the function as arguments.
+  - If `spec` has columns that my function does not accept as arguments, 
+  it will throw an error. The `...` prevents this, 
+  as that captures all unused arguments. 
+
+This particular function uses only 2 arguments, 
+so `map2()` would have worked fine here as well, 
+but this can be more easily expanded to more complex things than `map2()`.
+
 
 ## Making functions re-usable with box
 
