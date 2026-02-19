@@ -5,7 +5,7 @@
 rm(list=ls())
 
 # run diagnosis?
-run_diagnosis <- FALSE
+run_diagnosis <- TRUE
 
 
 ```
@@ -67,8 +67,6 @@ rhomis <-
   filter(!is.na(GPS_LAT)) %>%
   arrange(GPS_LAT) %>%
   mutate(village = rep(1:n_clusters, each = nrow(.) / n_clusters , length.out =  nrow(.))) %>%
-  #select(village,HHsizeMAE,HouseholdType,Head_EducationLevel,LandOwned,HFIAS_status,NFertInput, total_income_USD_PPP_pHH_Yr) %>%
-  
   # create some variables
   mutate(HFIAS_status = factor(HFIAS_status, levels = c("FoodSecure", "MildlyFI", "ModeratelyFI", "SeverelyFI")),
          food_secure = 1 * (as.numeric(HFIAS_status) <= 3),
@@ -79,7 +77,8 @@ rhomis <-
 
   # there are too many missings in my data; these seem reasonable to assume to be 0 when missing:
   mutate(across(c(LandOwned,NFertInput,educated),
-         ~ if_else(is.na(.x),0,.x)))
+         ~ if_else(is.na(.x),0,.x))) %>%
+  select(village, hh, NFertInput, food_secure, educated, LivestockHoldings)
 
 
 ```
@@ -100,7 +99,7 @@ effect_size_simple <- 70
 
 model_simple <- 
   declare_model(
-    rhomis,
+    rhomis %>% select(village, NFertInput),
     potential_outcomes(Y ~ NFertInput + Z * effect_size_simple)
 )
 
@@ -253,67 +252,9 @@ We can reliably detect an effect size between 150 and 200 kgs of fertilizer.
 The mean fertilizer use is 70kg, so that seems unlikely to be realistic. 
 Perhaps we should add covariates to reduce the standard error?
 
-#### Adding more estimators
-
-I define another estimator that includes covariates in
-its model specification, and add it to my original design, 
-hoping this will increase power.
-
-```{r diagnose_simpe_cov_power, , eval = run_diagnosis}
-
-estimator_simple_cov <-
-  declare_estimator(Y ~ Z + LandOwned + educated + female,
-                    clusters = village, 
-                    inquiry = "ATE", 
-                    term = "Z", 
-                    label = "Simple Cov")
-
-
-design_simple_cov <- design_simple + estimator_simple_cov
-
-set.seed(1)
-diagnosis_simple_cov <-
-  design_simple_cov %>%
-  redesign(effect_size_simple = seq(100,300,50)) %>%
-  diagnose_design(sims = 200) %>%
-  tidy() %>%
-  as_tibble()
-
-```
-
-
-
-```{r, include = FALSE, eval = run_diagnosis}
-
-write_csv(diagnosis_simple,file = here("data/diagnosis_simple.csv"))
-
-```
-
-```{r,  include=FALSE}
-
-diagnosis_simple <- read_csv(file =  here("data/diagnosis_simple.csv"))
-
-```
-
-
-```{r}
-diagnosis_simple_cov %>%
-  filter(diagnosand == "power") %>%
-  rename(power = estimate) %>%
-  ggplot(aes(x = effect_size_simple, y = power, color = estimator, shape = estimator)) +
-    geom_line() +
-    geom_point() +
-    geom_hline(yintercept=0.8,linetype=2) 
-
-```
-
-The power curve shifts a bit upwards, 
-so that our minimum detected effect is a bit smaller, 
-but the change is very small.
-
 ## Dif in diff
 
-We can of course also opt for a diff-in-diff design. 
+Perhaps we can increase power using a diff-in-diff design?
 If fertilizer input in one year is correlated to the next, 
 this should reduce standard errors and increase power.
 But then we have to pretend we have two rounds of data collection.
@@ -323,24 +264,65 @@ but it should be possible with `fabricate()` as well.
 I first rename all our time-variant varaible to have `_0` at the end, 
 create a bunch of correlated varaibles with `_1` at the end, and then `pivot_longer`.
 
+First, I make a function to make some variation of a given variable, 
+with correlation coefficient rho. 
+I like the `correlate()` function for this, but it can only handle distributions
+such as rnorm(), which `NFertInput` just isn't. 
+So what I do is, I transform `NFertInput` to a normal distribution using
+`bestNormalize`, 
+the I use correlate to generate a variable that's correlated to to that normally
+distruted version of `NFertInput`, and transform that back.
 
 ```{r}
 
+
+library(bestNormalize)
+
+variate_var <- function(x, rho, slope = 1) {
+  suppressWarnings({
+
+    bn <- bestNormalize(x)
+
+    x_trans <- bn$x.t
+    sd_x <- sd(x_trans)
+    mean_x <- sd(x_trans)
+
+    x_new_trans <- correlate(given = x_trans, rho = rho, rnorm, mean = mean_x, sd = sd_x)
+
+    x_new <- predict(bn, x_new_trans, inverse = TRUE)
+    x_new[x_new == Inf] <- mean(x_new[x_new != Inf], na.rm = TRUE)
+
+    # correlated is fine, but the slope of the relationship should not be too steep
+    x_new * (mean(x) / mean(x_new)) * slope
+  })
+}
+
+```
+
+It feels like this shouldn't be allowed, but it's fun for now!
+
+I update my design accordingly:
+
+```{r}
 effect_size_dd <- 70
 sd_dd <- 100
-
+rho_dd <- 0.7
 model_dd <- declare_model(
-    rhomis %>%
-        # add one more year
-        rename_with(~ paste0(., "_0"), HHsizeMAE:female) %>%
-        mutate(food_secure_1 = correlate(given = food_secure_0, draw_handler = draw_binomial, prob = mean(food_secure_0) , rho = 0.9),
-               HHsizeMAE_1 = HHsizeMAE_0 + rnorm(n = nrow(.), mean = 0, sd = 0.1),
-               NFertInput_1 = pmax(0,NFertInput_0 + rnorm(n = nrow(.), mean = 0, sd = sd_dd))) %>%
-        pivot_longer(ends_with(c("_0","_1")), 
-                     names_to = c(".value", "t"),
-                     names_pattern = "(.*)_([0-9]+)$",
-                     values_drop_na = TRUE,
-                     names_transform = list(t = as.integer)),
+
+  rhomis %>%
+    select(village, NFertInput) %>%
+    # add one more year
+    rename_with(~ paste0(., "_0"), -village) %>%
+    mutate(
+      NFertInput_1 = variate_var(NFertInput_0, rho_dd)
+    ) %>%
+    pivot_longer(
+      ends_with(c("_0","_1")), 
+      names_to = c(".value", "t"),
+      names_pattern = "(.*)_([0-9]+)$",
+      values_drop_na = TRUE,
+      names_transform = list(t = as.integer)
+    ),
     potential_outcomes(Y ~ NFertInput + Z * effect_size_dd)
 
 
@@ -389,7 +371,7 @@ designs ([but beware!](https://doi.org/10.1017/pan.2020.33)).
 
 library(fixest)
 library(broom)
-
+ 
 estimator_dd <-
   declare_estimator(Y ~ Z | treatment_group + t,
                     cluster = "village",
@@ -400,20 +382,31 @@ estimator_dd <-
 
 ```
 
-Let's have a look at our power now! 
-Of course, in a DiD setting, power depends not only on the effect size, but also on how well the years correlate.
-I therefore also vary the `sd_dd` variable, which adds increase between-year variation
+The complete design is then:
 
 
 ```{r diagnose_dd_power, eval = run_diagnosis}
 
 design_dd <- model_dd + assignment_dd + inquiry_dd + measurement_dd + estimator_dd
 
+
+```
+
+
+Let's have a look at our power now! 
+Of course, in a DiD setting, power depends not only on the effect size, but also on how well the years correlate.
+I therefore also vary the `rho_dd` variable, 
+which controls the correlation between fertilizer input in years 0 and 1:
+
+```{r}
+
 set.seed(1)
 diagnosis_dd <-
   design_dd %>%
-  redesign(effect_size_dd = seq(10,90,20),
-           sd_dd = c(100,200)) %>%
+  redesign(
+    effect_size_dd = c(100, 150, 200),
+    rho_dd = c(0.3,0.7, 0.9)
+  ) %>%
   diagnose_design(sims = 100) %>%
   tidy() %>%
   as_tibble()
@@ -442,90 +435,68 @@ Putting it in a plot again:
 diagnosis_dd %>%
   filter(diagnosand == "power") %>%
   rename(power = estimate) %>%
-  mutate(sd_dd = factor(sd_dd)) %>%
-  ggplot(aes(x = effect_size_dd, y = power, color = sd_dd, shape = sd_dd)) +
+  mutate(rho_dd = factor(rho_dd)) %>%
+  ggplot(aes(x = effect_size_dd, y = power, color = rho_dd, shape = rho_dd)) +
     geom_line() +
     geom_point() +
-    geom_hline(yintercept=0.8,linetype=2) 
+    geom_hline(yintercept=0.8, linetype=2) 
 
 ```
 
+So at high levels of Rho, our power is higher than when using the simple model.
+The lower rho is, the less added value the diff-in-diff model has.
 
-Our power is now a lot better, even if we turn up the variance. 
-However, this all depends on the correlation between years. 
-If there is more between-year variation, you lose the benefits of a DiD design
-(we could of course use `diagnose_design` to find out what the effect of between-year
-variation is on power!)
+## Matching
 
-## Propsensity score matching
-
-Finally, let's imagine a Propensity Score matching scenario. We therefore need
-to pretend treatment isn't random, but is correlated to the outcome. 
+Finally, let's imagine a scenario where treatment isn't random,
+but correlated to outcomes, so we would need matching. 
 
 Let's also look at `food_secure`, since it's binary, and thus adds a twist here and there.
 
-Finally, I will use the `resample_data()` function to pretend that we can visit 
+Also, I will use the `resample_data()` function to pretend that we can visit 
 more households than are in my original data set.
 
 ### Declare Design
 
-There's two novel things here:
+The first novel thing is the binary outcome.
+We want an easy to interpret effect size:
+a percentage point increase in food secure households.
+This is a bit trickey: before we just added the effect size to everyone. 
+But for binary variables, we only change a 0 to a 1 for a certain share of the population.
+Let's just define that first.
+The function below flips a certain number of 0s to 1, so that we have a nice effect size:
 
-  - The outcome is binary, 
-   and usually we think of effects sizes in that case as "and increase of X percentage points".
-   We can just add a constant to the entire treatment group: we need to change 
-   the number of food insecure households to food secure in such a way that the increase
-   is a certain percentage point.
-  - We don't randomly assign treatment, but rather make it correlated to the outcome. 
-   This is a bit tricky, but we can use the `correlate()` function to do this. 
-   We will correlate treatment with education and livestock holdings, which are both correlated with food security. 
-
-
-First, let's just define a function that can flip some of the 0s in `food_secure` to 1s,
-we can use that in `pontential_outcomes()` to create a certain effect size:
 
 ```{r}
-
-
-
-x <- draw_binomial(N = 100, prob = 0.3)
-Z <- draw_binomial(N = 100, prob = 0.5)
   
-# this function increases the share of 1s in x[Z==1] by `effect`
 flip_zeroes <- function(x, Z, effect) {
-  
-  # If no one is treated, return x unchanged
-  if (sum(Z == 1) == 0) return(x)
-  
-  # how many 1s do we currently have?
-  n_current_ones <- sum(x[Z == 1])
 
-  # how many 1s should we have?
-  p_current <- mean(x[Z == 1])
-  p_target  <- p_current + effect
-  n_target_ones  <- round(p_target * length(x[Z == 1]))
- 
-  # figure out which zeros to flip
-  n_to_flip <- n_target_ones - n_current_ones
-  
-  # If nothing to flip, return x
-  if (n_to_flip <= 0) return(x)
-  
-  zeros_index <- which(x[Z == 1] == 0)
-  
-  # Can't flip more zeros than exist
-  n_to_flip <- min(n_to_flip, length(zeros_index))
-  if (n_to_flip == 0) return(x)
-  
-  flip_index <- sample(zeros_index, n_to_flip)
+    # how many 1s do we currently have?
+    n_current_ones <- sum(x[Z == 1])
 
-  # do it, and return the new x
-  x[Z == 1][flip_index] <- 1
-  x
-}
+    # how many 1s should we have?
+    p_current <- mean(x[Z == 1])
+    p_target  <- p_current + effect
+    n_target_ones  <- round(p_target * sum(Z == 1))
+  
+    # figure out which zeros to flip
+    n_to_flip <- n_target_ones - n_current_ones
+    
+    # If nothing to flip, return x
+    if (n_to_flip <= 0) return(x)
+    
+    zeros_index <- which(x[Z==1] == 0)
+    
+    # Can't flip more zeros than exist
+    n_to_flip <- min(n_to_flip, length(zeros_index))
+    if (n_to_flip == 0) return(x)
+    
+    flip_index <- sample(zeros_index, n_to_flip)
 
-
-
+    # do it, and return the new x
+    x[Z==1][flip_index] <- 1
+    x
+  }
 
 ```
 
@@ -533,55 +504,125 @@ Our model then becomes:
 
 ```{r}
 
-effect_size_psm = 0.3
-N <- 1000
 
-model_psm <- 
+model_matching <- 
   declare_model(
-    rhomis %>% 
-      resample_data(N = N), 
-    potential_outcomes(Y ~ flip_zeroes(food_secure, Z, effect_size_psm))
+    rhomis
   )
 
 ```
 
-The we do the assignment. 
-We use the `correlate()` function to make treatment correlated with education and livestock holdings, which are both correlated with food security.
+Then we do the assignment. 
+This now consists of two steps:
 
-I made the correlation a bit complex, 
-as one of the advantages of PSM is that it works even if you don't know the exact selection process, as long as you have the right covariates.
+  - Communities are assigned randomly, using `cluster_ra()`
+  - Households are assigned in a way that is correlated with education and livestock holdings,
+  (and also food_secure) using `correlate()`.
+
 
 ```{r}
 
 rho <- 0.5
 
-assignment_psm <- declare_assignment(
-  Z = correlate(
-      given = educated * LivestockHoldings^2, 
-      rho = rho,  
-      draw_binomial, 
-      prob = 0.5
-    )
+assignment_matching <- declare_assignment(
+  hh_treat = correlate(
+    given = educated * LivestockHoldings^2,
+    rho = rho,
+      raw_binomial,
+    prob = 0.3
+  ), 
+  vill_treat = cluster_ra(clusters = village, prob = 0.5), 
+  Z = hh_treat * vill_treat
 )
 
 ```
 
- 
-Measurement and inquiry are standard. I also add an OLS estimator to check for bias.
+Then we take an extra step: re-sampling.
+
+Some notes:
+
+- We use `resample_data()` to sample more households than are in our original data set.
+The resulting data set will thus follow the same distribution as our original data, 
+but with more observations.
+- In treatment communities, we only sample from treated households. 
+In control communities, we don't know who would have been treated, 
+so we sample randomly.
+- We sample a certain number of households per community,
+which is a parameter we can vary in our diagnosis. 
+The number differs between treatment and control communities, 
+to allow oversampling the control observation to compensate for matching losses.
+To do this, we run the `resample_data()` function separately for treatment and control communities,
+using a combination of nest and map2 functions 
+(see [here](https://jennybc.github.io/purrr-tutorial/ls12_different-sized-samples.html)).
 
 ```{r}
 
-measurement_psm <- declare_measurement(Y = reveal_outcomes(Y ~ Z)
+communities_per_arm <- 10
+respondents_treat <- 10
+respondents_control <- 15
+
+resample_hhs  <- function(df, communities_per_arm, respondents_treat, respondents_control){
+  df %>% 
+    filter(vill_treat == 0 | Z == 1) %>% 
+    mutate(respondents = if_else(Z == 1, respondents_treat, respondents_control)) %>%
+    nest(.by = c(Z, respondents)) %>%
+    mutate(
+      data = map2(
+        data, 
+        respondents, 
+        ~resample_data(
+          .x, 
+          N = c(communities_per_arm,.y), 
+          ID_labels = c("village", "hh"),
+          unique_labels = TRUE
+        )
+      )
+    ) %>% 
+  unnest(data) 
+}
+
+resampling_matching <- declare_step(
+  handler = resample_hhs,
+  communities_per_arm = communities_per_arm,
+  respondents_treat = respondents_treat,
+  respondents_control = respondents_control
 )
 
-inquiry_psm <- declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)
+```
+ 
+Measurement and inquiry are slightly different.
+I defined my treatment effects as a percentage point increase in food secure households.
+So if the percentage of food insecure households is very large relative to the effect size,
+the chance an individual household become food insecure is low.
+This messes with potential outcomes, 
+as the effect on each individal depends on the means in the treatment group, 
+and thus on the randomization.
+I therefore skip the potential outcomes, 
+and just define my estimand as the effect size.
+
+```{r}
+
+
+effect_size_matching <- 0.1
+
+measurement_matching <-
+ declare_measurement(
+  Y = flip_zeroes(food_secure, Z, effect_size_matching)
 )
 
-estimator_notmatched_psm <- 
+inquiry_matching <- declare_inquiry(ATE = effect_size_matching)
+
+```
+
+Now for the estimators, let's start with a simple one, with no matching:
+
+```{r}
+estimator_matching_no_matching <- 
   declare_estimator(Y ~ Z, 
                     inquiry = "ATE", 
                     term = "Z", 
-                    label = "Not matched")
+                    label = "Not matched",
+                    cluster= village_unique)
 
 
 ```
@@ -620,13 +661,20 @@ custom_match <- function(data,
   matched_df <- match.data(matchit_model)
 
   # run a regression, weighted by the propensity score
-  lm_robust(Y ~ Z, data = matched_df, weights = weights) %>%
+  lm_robust(Y ~ Z, data = matched_df, weights = weights, clusters = village_unique) %>%
     tidy() %>%
     mutate(outcome = outcome) %>%
     filter(term == term_value)
 }
 
-estimator_matched_psm <- declare_estimator(
+
+```
+
+Then I add two estimator: one that uses PSM ('nearest') and one that uses CEM ('cem'),
+so that we can compare these two matching methods in our diagnosis.
+
+```{r}
+estimator_matching_psm <- declare_estimator(
   Z ~ educated + LivestockHoldings,
   handler = label_estimator(custom_match),
   inquiry = "ATE",  # Tie the estimator to the declared inquiry
@@ -634,7 +682,7 @@ estimator_matched_psm <- declare_estimator(
   term = "Z",
 )
 
-estimator_matched_cem <- declare_estimator(
+estimator_matching_cem <- declare_estimator(
   Z ~ educated + LivestockHoldings,
   handler = label_estimator(custom_match),
   inquiry = "ATE",  # Tie the estimator to the declared inquiry
@@ -643,8 +691,16 @@ estimator_matched_cem <- declare_estimator(
   method = "cem"
 )
 
-design_psm <-
-  model_psm +  inquiry_psm + assignment_psm +  measurement_psm + estimator_notmatched_psm + estimator_matched_psm + estimator_matched_cem
+```
+
+And let's combine it into one design!
+
+```{r}
+
+design_matching  <-
+  model_matching +  assignment_matching +  resampling_matching + measurement_matching + 
+  inquiry_matching + 
+  estimator_matching_no_matching + estimator_matching_psm + estimator_matching_cem
 
 ```
 
@@ -655,14 +711,13 @@ It's useful to explore the property's of our matching estimator.
 First  I draw data based on my design and create matched version of that data.
 
 ```{r}
-
 set.seed(1)
 test_data <- 
-  draw_data(design_psm) %>%
+  draw_data(design_matching) %>%
   as_tibble() 
 
 
-  matchit_model_psm <- matchit( Z ~ educated + LivestockHoldings,
+  matchit_model_psm <- matchit( Z ~ educated + LivestockHoldings ,
                          data = test_data,
                          method = "nearest", 
                          discard = "both")
@@ -676,6 +731,8 @@ test_data <-
                          discard = "both")
   test_data_cem <- match.data(matchit_model_cem)
   
+
+
 ```
 
 Then I create balance table for the `test_data`:
@@ -689,7 +746,7 @@ library(flextable)
 # balance table
 test_data %>% 
   mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
-  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) %>%
+  select(Z, Y, food_secure, educated, LivestockHoldings) %>%
   datasummary_balance( ~ Z , data = ., 
                       output = "flextable", stars = TRUE, 
                       dinm = TRUE, dinm_statistic = "p.value") %>%
@@ -698,13 +755,14 @@ test_data %>%
 
 ```
 
-And for the `test_data_psm`, which is slightly more balanced.
+And for the `test_data_psm`, which is balanced in terms of the variables we 
+matched on:
 
 ```{r}
 
 test_data_psm %>% 
   mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
-  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) %>%
+  select(Z, Y, food_secure, educated, LivestockHoldings) %>%
   datasummary_balance( ~ Z , data = ., 
                       output = "flextable", stars = TRUE, 
                       dinm = TRUE, dinm_statistic = "p.value") %>%
@@ -713,30 +771,11 @@ test_data_psm %>%
 
 ```
 
-And for the CEM.
-
-
-```{r}
-
-
-test_data_cem %>% 
-  mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
-  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput) %>%
-  datasummary_balance( ~ Z , data = ., 
-                      output = "flextable", stars = TRUE, 
-                      dinm = TRUE, dinm_statistic = "p.value") %>%
-  fix_border_issues() %>% 
-  autofit()
-
-
-
-```
-
-Note that while according to the [documentation](https://modelsummary.com/reference/datasummary_balance.html#global-options),
-`datasummary_balance()` reports weighted means if a `weights` variable is present. 
-However, there's a bug in the version of `modelsummary` used here, 
-so here's a fixed balance table, using a custom function, 
-with bits and pieces of code I had:
+For CEM, it's a bit more complex, as it relies on weighting.
+While the [documentation`](https://modelsummary.com/reference/datasummary_balance.html#global-options) claims `datasummary_balance()` 
+reports weighted means if a `weights` variable is present,
+I find this is not the case in the version I use here.
+So here's a custom balance table:
 
 
 ```{r}
@@ -791,7 +830,6 @@ balance_table <- function(data, by){
   }
 
   # compute differences for all vars:
-
   difcol <-
     data %>%
     summarize(across(.cols = c(everything(), -Z),
@@ -817,12 +855,13 @@ balance_table <- function(data, by){
 
 
 test_data_cem %>%
-  select(Z, Y, food_secure, HHsizeMAE, educated, LandOwned, NFertInput, female, NFertInput, weights) %>%
+  select(Z, Y, food_secure, educated, LivestockHoldings, weights) %>%
   balance_table(by = Z)
 
 
 ```
 
+CEM balances a bit better it seems.
 
 Let's run the models two times:
 
@@ -838,11 +877,11 @@ modelsummary(list(lm = unmatched_model, psm = matched_model_psm, cem = matched_m
 
 ```
 
-The true effect is 0.3, so CEM is clearly better able to reduce bias than PSM.
+The true effect is 0.3, so the simple model is actually closest in this case.
+Of course, this is just for one draw of the data, 
+so let's see how this looks on average when we run the design many times!
 
 ### Bias
-
-Now, let's diagnose the design!
 
 First, let's examine bias, given selection effects. 
 The strength of the selection effect is given by `rho`,
@@ -850,8 +889,9 @@ so I use `redesign()` to vary it:
 
 ```{r diagnose_psm_bias, eval = run_diagnosis}
 
-diagnosis_psm_bias <-
-  design_psm %>%
+set.seed(1)
+diagnosis_matching_bias <-
+  design_matching %>%
   redesign(rho = seq(from = 0, to = 0.75, by = 0.25))  %>%
   diagnose_design(sims = 100) %>%
   tidy() %>%
@@ -861,13 +901,13 @@ diagnosis_psm_bias <-
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
-write_csv(diagnosis_psm_bias, file = here("data/diagnosis_psm_bias.csv"))
+write_csv(diagnosis_matching_bias, file = here("data/diagnosis_matching_bias.csv"))
 
 ```
 
 ```{r,  include=FALSE}
 
-diagnosis_psm_bias <- read_csv(file =  here("data/diagnosis_psm_bias.csv"))
+diagnosis_matching_bias <- read_csv(file =  here("data/diagnosis_matching_bias.csv"))
 
 ```
 
@@ -875,7 +915,7 @@ And I put the result in a plot:
 
 ```{r}
 
-diagnosis_psm_bias %>%
+diagnosis_matching_bias %>%
   filter(diagnosand == "bias") %>%
   select(rho, bias = estimate, estimator) %>%
   ggplot(aes(x = rho, y = bias, 
@@ -885,19 +925,29 @@ diagnosis_psm_bias %>%
 
 ```
 
-It's clear that PSM barely affected bias, while CEM reduced it significantly.
+It's clear that while PSM reduced bias, but CEM performed much better.
 
 ### Power 
 
 Then, let's examine power. 
-
+I drop the no matching a psm, to save some simulation time.
 
 ```{r diagnose_psm_power, eval = run_diagnosis}
 
-diagnosis_psm_power <-
-  design_psm %>%
-  redesign(clusters_treat = c(20,40,60),
-           effect = seq(0.1,0.4,0.1)) %>%
+
+design_cem  <-
+  model_matching +  assignment_matching +  resampling_matching + measurement_matching + 
+  inquiry_matching + 
+  estimator_matching_cem
+
+
+set.seed(1)
+diagnosis_matched_power <-
+  design_cem %>%
+  redesign(
+    communities_per_arm = c(5,30,50),
+    effect_size_matching = c(0.01,0.2, 0.3)
+  ) %>%
   diagnose_design(sims = 100) %>%
   tidy() %>%
   as_tibble()
@@ -906,35 +956,31 @@ diagnosis_psm_power <-
 
 ```{r, include = FALSE, eval = run_diagnosis}
 
-write_csv(diagnosis_psm_power,file = here("data/diagnosis_psm_power.csv"))
+write_csv(diagnosis_matched_power,file = here("data/diagnosis_matched_power.csv"))
 
 ```
 
 ```{r,  include=FALSE, message = FALSE}
 
-diagnosis_psm_power <- read_csv(file =  here("data/diagnosis_psm_power.csv"))
+diagnosis_matched_power <- read_csv(file =  here("data/diagnosis_matched_power.csv"))
 
 ```
 
-When we plot the results, it seems sample size doesn't affect power much 
-(not sure why, perhaps the resampling?). 
-The design can pick up an `effect` of 0.4,
-meaning that 40% of the food insecure beneficaries become food secure.
-The actual treatment effect would be lower, as some beneficiaries would
-have been food secure before the intervention.
+So at 30 communities per arm,
+our design can pick up an effect of 0.3, 
+but to pick up an effect of 0.2 we should ideally increase our sample.
 
 
 ```{r}
 
-diagnosis_psm_power %>%
+diagnosis_matched_power %>% 
   filter(diagnosand == "power") %>%
-  select(clusters_treat, power = estimate, estimator, effect) %>%
-  ggplot(aes(x = clusters_treat, y = power, 
-             shape = estimator, color=estimator)) +
+  mutate(effect_size_matching = factor(effect_size_matching)) %>%
+  select(communities_per_arm, power = estimate, estimator, effect_size_matching) %>%
+  ggplot(aes(x = communities_per_arm, y = power, 
+             shape = effect_size_matching, color=effect_size_matching)) +
     geom_line() +
     geom_point() +
-    geom_hline(yintercept=0.8,linetype=2) +
-    facet_wrap(~effect)
+    geom_hline(yintercept=0.8,linetype=2)
 
 ```
-
