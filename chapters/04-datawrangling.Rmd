@@ -177,6 +177,7 @@ be `-99`, which should be considered missing.
 
 ```{r }
 
+set.seed(1)
 long_data <- 
     read_csv(here("data/SAFI_clean.csv"), na = "NULL") %>%
     select(key_ID,no_membrs ) %>%
@@ -482,7 +483,7 @@ Here's one way to convert factors to dummies.
 First, create a fake dataset using the fantastic `fabricatr` package:
 
 ```{r}
-library(fabricatr
+library(fabricatr)
 library(tidyverse)
 
 # define some parameters, so we can easily change the size of the dataset

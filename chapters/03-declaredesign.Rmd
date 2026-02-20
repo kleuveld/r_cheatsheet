@@ -2,10 +2,10 @@
 
 
 # start with a clean environment
-rm(list=ls())
+rm(list = ls())
 
 # run diagnosis?
-run_diagnosis <- TRUE
+run_diagnosis <- FALSE
 
 
 ```
@@ -203,17 +203,18 @@ How large should our effect size be to reach a power of 0.8?
 We can use the `redesign()` function for this.
 Redesign allows you to vary certain parameters of your design, 
 and run the design 500 times for each value of the parameter.
-Here I set it to run 200 times, as that takes long enough
-already.
+You can change this number using the `sims` argument.
 
 
 ```{r diagnose_simple_power, eval = run_diagnosis}
+
+num_sims <- 500
 
 set.seed(1)
 diagnosis_simple <-
   design_simple %>%
   redesign(effect_size_simple = seq(100,300,50)) %>%
-  diagnose_design(sims = 200) %>%
+  diagnose_design(sims = num_sims) %>%
   tidy() %>%
   as_tibble()
 
@@ -250,60 +251,59 @@ diagnosis_simple %>%
 
 We can reliably detect an effect size between 150 and 200 kgs of fertilizer.
 The mean fertilizer use is 70kg, so that seems unlikely to be realistic. 
-Perhaps we should add covariates to reduce the standard error?
+Perhaps we can increase power using a diff-in-diff design?
 
 ## Dif in diff
 
-Perhaps we can increase power using a diff-in-diff design?
-If fertilizer input in one year is correlated to the next, 
-this should reduce standard errors and increase power.
-But then we have to pretend we have two rounds of data collection.
+We have one round of data, 
+so to analyze a diff in diff, we would have to simulate data.
+The key reason why a diff in diff design would matter, 
+is because the outcomes are correlated between years, 
+which should reduce standard errors and increase power.
 
-For that, I prefer to use `dplyr`, 
-but it should be possible with `fabricate()` as well.
-I first rename all our time-variant varaible to have `_0` at the end, 
-create a bunch of correlated varaibles with `_1` at the end, and then `pivot_longer`.
+So first order of business is to figure out how we can generate values for
+year 1 that are correlated to year 0, 
+by a coefficient that we can vary so we can investigate the properties of our design.
 
-First, I make a function to make some variation of a given variable, 
-with correlation coefficient rho. 
-I like the `correlate()` function for this, but it can only handle distributions
-such as rnorm(), which `NFertInput` just isn't. 
-So what I do is, I transform `NFertInput` to a normal distribution using
-`bestNormalize`, 
-the I use correlate to generate a variable that's correlated to to that normally
-distruted version of `NFertInput`, and transform that back.
+Here's what I've got (so far), a function that takes a vector,
+converts it to normal space, generates something correlated and maps it back:
+
 
 ```{r}
 
 
-library(bestNormalize)
+correlate_var <- function(x, rho) {
 
-variate_var <- function(x, rho, slope = 1) {
-  suppressWarnings({
+  n <- length(x)
 
-    bn <- bestNormalize(x)
+  # convert X to normal scores
+  u  <- rank(x) / (n + 1)     # empirical CDF
+  z1 <- qnorm(u)              # normal scores
 
-    x_trans <- bn$x.t
-    sd_x <- sd(x_trans)
-    mean_x <- sd(x_trans)
+  # generate correlated normal
+  z2 <- rho * z1 + sqrt(1 - rho^2) * rnorm(n)
 
-    x_new_trans <- correlate(given = x_trans, rho = rho, rnorm, mean = mean_x, sd = sd_x)
+  # transform back
+  u2 <- pnorm(z2)
 
-    x_new <- predict(bn, x_new_trans, inverse = TRUE)
-    x_new[x_new == Inf] <- mean(x_new[x_new != Inf], na.rm = TRUE)
-
-    # correlated is fine, but the slope of the relationship should not be too steep
-    x_new * (mean(x) / mean(x_new)) * slope
-  })
+  # map onto original distribution
+  x_sorted <- sort(x)
+  y <- quantile(x_sorted, probs = u2, type = 8)
+  y
 }
+
+
 
 ```
 
-This all feels like it should be illegal, 
-but since properly varying things is actually quite hard to do, 
-this is the best I have so far. 
 
-I update my design accordingly:
+
+I update my design accordingly, by generating the second year.
+For that, I prefer to use `dplyr`, 
+but it should be possible with `fabricate()` as well.
+I first rename all our time-variant varaible to have `_0` at the end, 
+create a  correlated varaible with `_1` at the end, and then `pivot_longer`.
+
 
 ```{r}
 effect_size_dd <- 70
@@ -316,7 +316,7 @@ model_dd <- declare_model(
     # add one more year
     rename_with(~ paste0(., "_0"), -village) %>%
     mutate(
-      NFertInput_1 = variate_var(NFertInput_0, rho_dd)
+      NFertInput_1 = correlate_var(NFertInput_0, rho_dd)
     ) %>%
     pivot_longer(
       ends_with(c("_0","_1")), 
@@ -402,9 +402,9 @@ diagnosis_dd <-
   design_dd %>%
   redesign(
     effect_size_dd = c(100, 150, 200),
-    rho_dd = c(0.3,0.7, 0.9)
+    rho_dd = c(0.3,0.6, 0.9)
   ) %>%
-  diagnose_design(sims = 100) %>%
+  diagnose_design(sims = num_sims) %>%
   tidy() %>%
   as_tibble()
 
@@ -440,8 +440,9 @@ diagnosis_dd %>%
 
 ```
 
-So at high levels of Rho, our power is higher than when using the simple model.
+So at high levels of Rho, our power is slightly higher than when using the simple model.
 The lower rho is, the less added value the diff-in-diff model has.
+But honestly, I am suprised with how small the differences are.
 
 ## Matching
 
@@ -701,182 +702,8 @@ design_matching  <-
 
 ```
 
-
-### Checking balance
-
-It's useful to explore the property's of our matching estimator. 
-First  I draw data based on my design and create matched version of that data.
-
-```{r}
-set.seed(1)
-test_data <- 
-  draw_data(design_matching) %>%
-  as_tibble() 
-
-
-  matchit_model_psm <- matchit( Z ~ educated + LivestockHoldings ,
-                         data = test_data,
-                         method = "nearest", 
-                         discard = "both")
-  test_data_psm <- match.data(matchit_model_psm)
-
-
-
-  matchit_model_cem <- matchit( Z ~ educated + LivestockHoldings,
-                         data = test_data,
-                         method = "cem", 
-                         discard = "both")
-  test_data_cem <- match.data(matchit_model_cem)
-  
-
-
-```
-
-Then I create balance table for the `test_data`:
-
-```{r}
-
-library(modelsummary)
-library(flextable)
-
-
-# balance table
-test_data %>% 
-  mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
-  select(Z, Y, food_secure, educated, LivestockHoldings) %>%
-  datasummary_balance( ~ Z , data = ., 
-                      output = "flextable", stars = TRUE, 
-                      dinm = TRUE, dinm_statistic = "p.value") %>%
-  fix_border_issues() %>% 
-  autofit()
-
-```
-
-And for the `test_data_psm`, which is balanced in terms of the variables we 
-matched on:
-
-```{r}
-
-test_data_psm %>% 
-  mutate(Z = factor(Z, labels = c("Control", "Treatment"))) %>%
-  select(Z, Y, food_secure, educated, LivestockHoldings) %>%
-  datasummary_balance( ~ Z , data = ., 
-                      output = "flextable", stars = TRUE, 
-                      dinm = TRUE, dinm_statistic = "p.value") %>%
-  fix_border_issues() %>% 
-  autofit()
-
-```
-
-For CEM, it's a bit more complex, as it relies on weighting.
-While the [documentation`](https://modelsummary.com/reference/datasummary_balance.html#global-options) claims `datasummary_balance()` 
-reports weighted means if a `weights` variable is present,
-I find this is not the case in the version I use here.
-So here's a custom balance table:
-
-
-```{r}
-
-library(flextable)
-library(estimatr)
-
-balance_table <- function(data, by){
-
-  # get a table with summ stats:
-  summstats <-
-    data %>%
-    select(-weights) %>%
-    group_by( {{ by }} ) %>%
-    summarize(
-      across(
-        .cols = everything(),
-        .fns = list(
-          mean = ~mean(.x,na.rm=TRUE),
-          sd = ~sd(.x,na.rm=TRUE)
-        ),
-        .names =  "{.col}-{.fn}"
-      )
-    ) %>%
-    pivot_longer(cols = -Z,
-                  names_to = c("Variable",".value"),
-                  names_sep="-")
-
-  # function to get the difference between treatment and control
-  get_diffs <- function(equation, 
-                        clusters = NULL,
-                        weights = NULL){
-    reg <- 
-      lm_robust(
-        equation, 
-        clusters = {{ clusters }},
-        weights = {{ weights }}
-      ) %>% 
-      broom::tidy()
-
-    estimate <- round(reg[2,2],2)
-
-    p <- reg[2,5]
-
-    stars = case_when(p < 0.001 ~ "***",
-                      p < 0.01 ~ "**",
-                      p < 0.05 ~ "*",
-                      .default = "")
-
-    paste0(estimate, stars)
-    
-  }
-
-  # compute differences for all vars:
-  difcol <-
-    data %>%
-    summarize(across(.cols = c(everything(), -Z),
-                    .fns = ~get_diffs(.x ~ Z, weights = weights))) %>% 
-    pivot_longer(cols =everything(),
-                names_to = "Variable",
-                values_to="Difference")  
-
-  # output
-  summstats %>%
-    tabulator(
-      rows = names(summstats)[2],
-      columns = names(summstats)[1],
-      datasup_last = difcol,
-      Mean = as_paragraph(as_chunk(mean, digits=2)),
-      SD = as_paragraph(as_chunk(sd, digits=2))
-    ) %>%
-    as_flextable()  %>%
-    #labelizor(j = "Variable", labels = labels, part = "body") %>% 
-    fix_border_issues() %>% 
-    autofit() 
-}
-
-
-test_data_cem %>%
-  select(Z, Y, food_secure, educated, LivestockHoldings, weights) %>%
-  balance_table(by = Z)
-
-
-```
-
-CEM balances a bit better it seems.
-
-Let's run the models two times:
-
-
-```{r}
-
-unmatched_model <- lm_robust(Y ~ Z, data = test_data)
-matched_model_psm <- lm_robust(Y~Z, data = test_data_psm, weights = weights)
-matched_model_cem <- lm_robust(Y~Z, data = test_data_cem, weights = weights)
-
-modelsummary(list(lm = unmatched_model, psm = matched_model_psm, cem = matched_model_cem), output = "flextable",
-             gof_map = c("nobs","r.squared","adj.r.squared"), stars = TRUE)
-
-```
-
-The true effect is 0.3, so the simple model is actually closest in this case.
-Of course, this is just for one draw of the data, 
-so let's see how this looks on average when we run the design many times!
+Note that to explore this design and fine tune matching procedures,
+it may be useful to run `draw_data()` a few times.
 
 ### Bias
 
@@ -890,7 +717,7 @@ set.seed(1)
 diagnosis_matching_bias <-
   design_matching %>%
   redesign(rho = seq(from = 0, to = 0.75, by = 0.25))  %>%
-  diagnose_design(sims = 100) %>%
+  diagnose_design(sims = num_sims) %>%
   tidy() %>%
   as_tibble()
 
@@ -945,7 +772,7 @@ diagnosis_matched_power <-
     communities_per_arm = c(5,30,50),
     effect_size_matching = c(0.01,0.2, 0.3)
   ) %>%
-  diagnose_design(sims = 100) %>%
+  diagnose_design(sims = num_sims) %>%
   tidy() %>%
   as_tibble()
 

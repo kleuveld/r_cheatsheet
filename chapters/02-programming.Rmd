@@ -375,7 +375,7 @@ I can print this in my markdown file, so it's easily seen what I am doing:
 
 ```{r}
 library(flextable)
-specs %>% 
+specs %>% rowwise %>% mutate(controls = paste(controls, collapse = ",")) 
   mutate(
     controls = map_chr(controls, ~ paste(.x, collapse = ","))
   ) %>% 
@@ -383,11 +383,22 @@ specs %>%
 
 ```
 
-I used the `map_chr()` function to concatenate each cell in the `controls` column
-using `paste()` and turn that into a vector of strings.
-This vector can go straight into mutate, and in the dataframe.
+The mutate bit there is a bit complex.
+The "controls" column contains lists, and those don't print nicely: 
+it will just say "[[character]]".
+So I need to convert the lists to a string: 
+`paste(controls, collapse = ",")` does that, but it will take the entire column;
+and I want it for each cell individually.
+To do that, I can either use `rowwise()`, 
+or pass the column to `map()`. 
+The `map_chr()` variant is especially handy, 
+as it outputs a vector of strings (rather than a list),
+which is what we need for `mutate` to work.
 
-Then I feed my `spec` into a function using `pmap`:
+Anyway, back to `pmap()`.
+The code blow throws my `spec` in `pmap()`, 
+which will then iterate row-wise through the dataframe.
+For each row, it passes the columns as arguments to the function inside `pmap`:
 
 ```{r}
 
